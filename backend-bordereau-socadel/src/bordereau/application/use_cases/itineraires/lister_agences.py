@@ -31,10 +31,13 @@ class ListerAgences:
 
     async def executer(self) -> list[Agence]:
         async with self._uow as uow:
-            lignes = await uow.itineraires.lister_agences()
+            lignes = await uow.clients.lister_agences()
 
-        return [
-            Agence(nom=nom, region=region, division=division)
-            for nom, region, division in lignes
-            if nom
-        ]
+        # Un nom ne doit apparaître qu'une fois : c'est lui que le compte
+        # portera comme périmètre, et deux entrées identiques dans une liste
+        # déroulante n'apprennent rien à celui qui choisit.
+        vues: dict[str, Agence] = {}
+        for nom, region, division in lignes:
+            if nom and nom not in vues:
+                vues[nom] = Agence(nom=nom, region=region, division=division)
+        return list(vues.values())

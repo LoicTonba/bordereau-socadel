@@ -96,8 +96,8 @@ export function SelecteurTheme() {
     <button
       type="button"
       onClick={suivant}
-      aria-label={`${t("theme.basculer")} — ${t(LIBELLES[theme])}`}
-      title={`${t("theme.basculer")} — ${t(LIBELLES[theme])}`}
+      aria-label={`${t("theme.basculer")}, ${t(LIBELLES[theme])}`}
+      title={`${t("theme.basculer")}, ${t(LIBELLES[theme])}`}
       className="rounded-lg border border-[var(--bordure-forte)] p-1.5 text-[var(--texte-doux)] transition-colors hover:bg-[var(--fond-survol)]"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>

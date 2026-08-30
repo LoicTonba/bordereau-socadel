@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s · Bordereau SOCADEL",
   },
   description:
-    "Bordereau intelligent de collecte de numéros WhatsApp — SOCADEL, opéré par NEXT LTD.",
+    "Bordereau intelligent de collecte de numéros WhatsApp, SOCADEL, opéré par NEXT LTD.",
   applicationName: "Bordereau SOCADEL",
   icons: {
     icon: [

@@ -79,6 +79,10 @@ class ClientRepository(Protocol):
 
     async def compter_par_itineraire(self, code: CodeItineraire) -> int: ...
 
+    async def lister_agences(self) -> Sequence[tuple[str, str | None, str | None]]:
+        """Annuaire distinct (agence, région, division), trié par territoire."""
+        ...
+
     async def enregistrer_en_lot(self, clients: Iterable[Client]) -> int:
         """Insertion/mise à jour de masse pour l'import du référentiel."""
         ...
@@ -96,10 +100,6 @@ class ItineraireRepository(Protocol):
         agence: str | None = None,
         pagination: PaginationParams | None = None,
     ) -> Page[Itineraire]: ...
-
-    async def lister_agences(self) -> Sequence[tuple[str, str | None, str | None]]:
-        """Annuaire distinct (agence, région, division), trié par territoire."""
-        ...
 
     async def enregistrer_en_lot(self, itineraires: Iterable[Itineraire]) -> int: ...
 

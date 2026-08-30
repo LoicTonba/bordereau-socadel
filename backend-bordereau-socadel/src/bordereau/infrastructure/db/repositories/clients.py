@@ -76,6 +76,26 @@ class ClientRepositoryPg:
         )
         return total or 0
 
+    async def lister_agences(self) -> Sequence[tuple[str, str | None, str | None]]:
+        """L'annuaire territorial, tel que le référentiel l'établit.
+
+        La source est le référentiel clients et non la table des itinéraires :
+        celle-ci rattache quinze agences à deux divisions à la fois, séquelle
+        de l'import, et le sélecteur afficherait alors des doublons. Le
+        référentiel, lui, donne 181 agences sans ambiguïté.
+        """
+        resultat = await self._session.execute(
+            select(ClientORM.agence, ClientORM.region, ClientORM.division)
+            .where(ClientORM.agence.is_not(None))
+            .distinct()
+            .order_by(
+                ClientORM.region.asc(),
+                ClientORM.division.asc(),
+                ClientORM.agence.asc(),
+            )
+        )
+        return [tuple(ligne) for ligne in resultat.all()]
+
     async def enregistrer_en_lot(self, clients: Iterable[Client]) -> int:
         """Insertion idempotente du référentiel, par paquets.
 

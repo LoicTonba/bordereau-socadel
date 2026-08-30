@@ -124,6 +124,27 @@ export function Coquille({ children }: { children: ReactNode }) {
     if (!chargement && !utilisateur) router.replace("/login");
   }, [chargement, utilisateur, router]);
 
+  const estAgent = utilisateur?.role === "AGENT_TERRAIN";
+  const permissions = new Set(utilisateur?.permissions ?? []);
+  const entrees = NAVIGATION.filter((e) => {
+    if (e.agentSeulement && !estAgent) return false;
+    if (e.saufAgent && estAgent) return false;
+    return permissions.has(e.permission);
+  });
+
+  // Un écran qu'aucune entrée n'ouvre reste atteignable par l'URL. Ce n'est
+  // pas une faille, l'API refuse de toute façon ce que le rôle ne porte pas et
+  // l'ABAC rétrécit ce qu'il lit ; mais un agent de terrain qui atterrit sur un
+  // bordereau vide croit à une panne. On le ramène chez lui.
+  const accessible =
+    entrees.length === 0 || entrees.some((e) => chemin.startsWith(e.href));
+
+  useEffect(() => {
+    if (!chargement && utilisateur && !accessible && entrees.length > 0) {
+      router.replace(entrees[0].href);
+    }
+  }, [chargement, utilisateur, accessible, entrees, router, chemin]);
+
   function basculerRepli() {
     setRepliee((actuel) => {
       const suivant = !actuel;
@@ -136,7 +157,7 @@ export function Coquille({ children }: { children: ReactNode }) {
     });
   }
 
-  if (chargement || !utilisateur) {
+  if (chargement || !utilisateur || !accessible) {
     return (
       <div className="grid min-h-dvh place-items-center">
         <p className="text-sm text-[var(--texte-tres-doux)]">
@@ -145,14 +166,6 @@ export function Coquille({ children }: { children: ReactNode }) {
       </div>
     );
   }
-
-  const estAgent = utilisateur.role === "AGENT_TERRAIN";
-  const permissions = new Set(utilisateur.permissions ?? []);
-  const entrees = NAVIGATION.filter((e) => {
-    if (e.agentSeulement && !estAgent) return false;
-    if (e.saufAgent && estAgent) return false;
-    return permissions.has(e.permission);
-  });
 
   const barre = (
     <BarreLaterale

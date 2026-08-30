@@ -83,9 +83,7 @@ class ConnecterSuperviseur:
                 ou l'agence déclarés ne correspondent pas au compte.
         """
         async with self._uow as uow:
-            utilisateur = await uow.utilisateurs.par_identifiant(
-                commande.identifiant.strip().lower()
-            )
+            utilisateur = await _retrouver(uow, commande.identifiant)
 
             # Le hachage est calculé même quand le compte est inconnu : sans
             # cela, le temps de réponse révélerait l'existence du compte.
@@ -138,6 +136,21 @@ class ConnecterSuperviseur:
             agence=agence,
             region=utilisateur.region,
         )
+
+
+async def _retrouver(uow: UnitOfWork, saisie: str):
+    """Retrouve le compte à partir de son adresse ou de son identifiant.
+
+    L'écran de connexion demande l'adresse électronique : c'est ce dont
+    l'utilisateur se souvient, et c'est déjà ce qu'il donne à l'inscription.
+    L'identifiant reste accepté pour ne pas casser les comptes de mise en route
+    ni les scripts d'intégration. Le « @ » suffit à distinguer les deux, une
+    adresse en étant toujours porteuse et un identifiant jamais.
+    """
+    saisie = saisie.strip().lower()
+    if "@" in saisie:
+        return await uow.utilisateurs.par_email(saisie)
+    return await uow.utilisateurs.par_identifiant(saisie)
 
 
 def _verifier_profil(effectif: Role, declare: Role | None) -> None:

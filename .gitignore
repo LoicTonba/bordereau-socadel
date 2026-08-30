@@ -48,3 +48,7 @@ Thumbs.db
 # Boite d envoi de developpement : les courriels de verification et de
 # reinitialisation y sont deposes en clair, jetons compris.
 backend-bordereau-socadel/courriels/
+
+# Captures d ecran du parcours de recette : regenerees par
+# scripts/captures.py, et lourdes. Les guides PDF, eux, sont versionnes.
+backend-bordereau-socadel/scripts/rapport/captures/*.png

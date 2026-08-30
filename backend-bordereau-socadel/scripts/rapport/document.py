@@ -14,9 +14,11 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
+    Image,
     KeepTogether,
     NextPageTemplate,
     PageBreak,
@@ -106,6 +108,40 @@ def titre(contenu: str, niveau: str = "h2") -> Paragraph:
 
 def legende(contenu: str) -> Paragraph:
     return Paragraph(contenu, S["legende"])
+
+
+#: Largeur utile du gabarit portrait, marges deduites. Les captures s'y
+#: ajustent, ce qui evite d'avoir a connaitre leur taille en pixels.
+LARGEUR_UTILE = 470.0
+
+
+def capture(chemin: Path, legende_texte: str) -> KeepTogether:
+    """Insère une capture d'écran à la largeur du texte, avec sa légende.
+
+    L'image est mise à l'échelle d'après ses proportions réelles : les captures
+    sont prises en haute densité pour rester nettes à l'impression, et une
+    largeur imposée sans hauteur correspondante les déformerait.
+
+    Le cadre gris n'est pas décoratif : sans lui, une capture au fond blanc se
+    fond dans la page et le lecteur ne voit plus où l'écran commence.
+    """
+    largeur_px, hauteur_px = ImageReader(str(chemin)).getSize()
+    hauteur = LARGEUR_UTILE * hauteur_px / largeur_px
+
+    image = Image(str(chemin), width=LARGEUR_UTILE, height=hauteur)
+    cadre = Table([[image]], colWidths=[LARGEUR_UTILE + 2])
+    cadre.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.7, GRIS_CLAIR),
+                ("LEFTPADDING", (0, 0), (-1, -1), 1),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 1),
+                ("TOPPADDING", (0, 0), (-1, -1), 1),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+            ]
+        )
+    )
+    return KeepTogether([cadre, Spacer(1, 2), legende(legende_texte)])
 
 
 def encadre(contenu: str) -> Table:

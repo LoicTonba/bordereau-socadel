@@ -19,7 +19,7 @@ export function LogoSocadel({
   return (
     <Image
       src="/LOGO_SOCADEL_CM.jpg"
-      alt="SOCADEL — Société Camerounaise d'Electricité"
+      alt="SOCADEL, Société Camerounaise d'Electricité"
       width={largeur}
       height={Math.round((largeur * 465) / 1280)}
       priority

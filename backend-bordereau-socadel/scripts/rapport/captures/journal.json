@@ -1,0 +1,200 @@
+[
+  {
+    "profil": "Commun",
+    "action": "Ouvrir l'écran de connexion",
+    "constat": "quatre profils proposés",
+    "capture": "commun-01-profil.png"
+  },
+  {
+    "profil": "Commun",
+    "action": "Choisir le profil Superviseur",
+    "constat": "le sélecteur d'agence s'ouvre",
+    "capture": null
+  },
+  {
+    "profil": "Commun",
+    "action": "Rechercher son agence",
+    "constat": "la liste se réduit à la saisie",
+    "capture": "commun-02-agence.png"
+  },
+  {
+    "profil": "Commun",
+    "action": "Saisir l'adresse et le mot de passe",
+    "constat": "le profil et l'agence sont rappelés",
+    "capture": "commun-03-identifiants.png"
+  },
+  {
+    "profil": "Commun",
+    "action": "Se déclarer administrateur avec un compte superviseur",
+    "constat": "refusé, message explicite",
+    "capture": "commun-04-poste-refuse.png"
+  },
+  {
+    "profil": "Commun",
+    "action": "Ouvrir le formulaire d'inscription",
+    "constat": "profil souhaité et mot de passe choisi par le demandeur",
+    "capture": "commun-05-inscription.png"
+  },
+  {
+    "profil": "Commun",
+    "action": "Ouvrir « mot de passe oublié »",
+    "constat": "une seule adresse demandée",
+    "capture": "commun-06-mot-de-passe-oublie.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Se connecter",
+    "constat": "arrivée directe sur l'écran d'affectation",
+    "capture": "sv-01-arrivee.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Confier l'itinéraire 110581 à AG001",
+    "constat": "itinéraire retenu, bouton actif",
+    "capture": "sv-02-affectation-saisie.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Valider l'affectation",
+    "constat": "Affectation enregistrée MBALLA Jean Pierre (AG001), 1 itinéraire(s), 73 ligne(",
+    "capture": "sv-03-affectation-faite.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Ouvrir le bordereau",
+    "constat": "25 lignes affichées, périmètre de l'agence",
+    "capture": "sv-04-bordereau.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Retrouver un client et ouvrir sa saisie",
+    "constat": "statut, numéro relevé et origine",
+    "capture": "sv-05-saisie.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Déclarer un abonnement sans le numéro",
+    "constat": "la plateforme refuse : un abonné exige son numéro",
+    "capture": "sv-06-numero-exige.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Renseigner le numéro relevé",
+    "constat": "le bouton d'enregistrement s'active",
+    "capture": "sv-07-saisie-complete.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Enregistrer les deux lignes",
+    "constat": "deux abonnements déclarés, numéros relevés portés",
+    "capture": null
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Vérifier auprès du référentiel",
+    "constat": "2 ligne(s) vérifiée(s) : 1 confirmée(s), 1 infirmée(s), 0 introuvable(s) au réfé",
+    "capture": "sv-08-verification.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Filtrer sur les abonnements déclarés",
+    "constat": "verdicts rendus : {\"confirme\":1,\"infirme\":1}",
+    "capture": "sv-09-verdicts.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Consulter le tableau de bord",
+    "constat": "KPI et courbes du périmètre",
+    "capture": "sv-10-tableau-de-bord.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Rechercher un itinéraire",
+    "constat": "recherche et impression du bordereau papier",
+    "capture": "sv-11-itineraires.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Ouvrir le répertoire des agents",
+    "constat": "création, modification, retrait du service",
+    "capture": "sv-12-agents.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Ouvrir Import / Export",
+    "constat": "modèle à télécharger, aperçu avant écriture",
+    "capture": "sv-13-imports.png"
+  },
+  {
+    "profil": "Superviseur",
+    "action": "Se reconnecter en annonçant 110581",
+    "constat": "arrivée sur le bordereau déjà cadré",
+    "capture": "sv-14-bordereau-cadre.png"
+  },
+  {
+    "profil": "Agent de terrain",
+    "action": "Se connecter",
+    "constat": "une seule entrée de navigation sur 1",
+    "capture": "ag-01-mon-espace.png"
+  },
+  {
+    "profil": "Agent de terrain",
+    "action": "Inspecter la navigation",
+    "constat": "écrans accessibles : [\"/mon-espace\"]",
+    "capture": null
+  },
+  {
+    "profil": "Agent de terrain",
+    "action": "Tenter d'ouvrir le bordereau à la main",
+    "constat": "aboutit sur /mon-espace",
+    "capture": "ag-02-bordereau-interdit.png"
+  },
+  {
+    "profil": "Administrateur",
+    "action": "Se connecter en portée nationale",
+    "constat": "tableau de bord de l'ensemble du réseau",
+    "capture": "ad-01-tableau-de-bord.png"
+  },
+  {
+    "profil": "Administrateur",
+    "action": "Ouvrir l'écran des comptes",
+    "constat": "1 demande(s) en attente d'approbation",
+    "capture": "ad-02-comptes.png"
+  },
+  {
+    "profil": "Administrateur",
+    "action": "Examiner une demande",
+    "constat": "profil, périmètre et motif de refus",
+    "capture": "ad-03-approbation.png"
+  },
+  {
+    "profil": "Administrateur",
+    "action": "Ouvrir le bordereau",
+    "constat": "25 lignes, aucune restriction d'agence",
+    "capture": "ad-04-bordereau.png"
+  },
+  {
+    "profil": "Super utilisateur",
+    "action": "Se connecter en portée nationale",
+    "constat": "tableau de bord de l'ensemble du réseau",
+    "capture": "su-01-tableau-de-bord.png"
+  },
+  {
+    "profil": "Super utilisateur",
+    "action": "Ouvrir l'écran des comptes",
+    "constat": "1 demande(s) en attente d'approbation",
+    "capture": "su-02-comptes.png"
+  },
+  {
+    "profil": "Super utilisateur",
+    "action": "Examiner une demande",
+    "constat": "profil, périmètre et motif de refus",
+    "capture": "su-03-approbation.png"
+  },
+  {
+    "profil": "Super utilisateur",
+    "action": "Ouvrir le bordereau",
+    "constat": "25 lignes, aucune restriction d'agence",
+    "capture": "su-04-bordereau.png"
+  }
+]

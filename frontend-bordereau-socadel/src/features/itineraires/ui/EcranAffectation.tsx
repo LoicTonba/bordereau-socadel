@@ -108,7 +108,7 @@ export function EcranAffectation() {
       {resultat && (
         <Carte
           titre="Affectation enregistrée"
-          description={`${resultat.nomAgent} (${resultat.matricule}) — ${resultat.itineraires.length} itinéraire(s), ${resultat.totalLignes} ligne(s) de bordereau créées.`}
+          description={`${resultat.nomAgent} (${resultat.matricule}), ${resultat.itineraires.length} itinéraire(s), ${resultat.totalLignes} ligne(s) de bordereau créées.`}
         >
           <ul className="divide-y divide-[var(--bordure)]">
             {resultat.itineraires.map((itineraire) => (
@@ -157,7 +157,7 @@ export function EcranAffectation() {
               </option>
               {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>
-                  {agent.nomComplet} — {agent.matricule}
+                  {agent.nomComplet}, {agent.matricule}
                   {agent.zoneRattachement ? ` (${agent.zoneRattachement})` : ""}
                 </option>
               ))}
@@ -203,7 +203,7 @@ export function EcranAffectation() {
             <input
               type="search"
               className="champ"
-              placeholder="Code de l'itinéraire, ex. 131227 — ou nom d'agence"
+              placeholder="Code de l'itinéraire, ex. 131227, ou nom d'agence"
               value={terme}
               onChange={(evenement) => setTerme(evenement.target.value)}
               aria-label="Rechercher un itinéraire"

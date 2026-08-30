@@ -217,15 +217,19 @@ async def semer_comptes_acteurs(container: Container) -> None:
     Les mots de passe sont ceux de la mise en route : chaque titulaire devra
     les remplacer à sa première connexion (drapeau `doit_changer_mot_de_passe`).
     """
+    # L'adresse est portee ici plutot que deduite de l'identifiant : c'est
+    # elle que l'ecran de connexion demande, elle doit donc etre lisible et
+    # ressembler a une vraie adresse de service.
     comptes = [
-        ("sudo", "Super utilisateur NEXT LTD", Role.SUPER_UTILISATEUR,
-         "Ngaoundal-Kribi-88", None, None),
-        ("admin", "Administrateur SOCADEL", Role.ADMINISTRATEUR,
-         "Bandjoun-Maroua-77", None, None),
+        ("sudo", "TONBA Loic", Role.SUPER_UTILISATEUR,
+         "tonbaloic6@gmail.com", "Ngaoundal-Kribi-88", None, None),
+        ("admin", "EYENGA Flore", Role.ADMINISTRATEUR,
+         "flore.eyenga@socadel.cm", "Bandjoun-Maroua-77", None, None),
         # Le superviseur recoit un perimetre : sans lui, la plateforme le
         # bloque plutot que de lui ouvrir les 181 agences.
-        ("superviseur", "Superviseur SOCADEL", Role.SUPERVISEUR,
-         "Ngaoundere-Sud-2026", None, "CSC_NGAOUNDERE SUD"),
+        ("superviseur", "NKOLO Bertrand", Role.SUPERVISEUR,
+         "bertrand.nkolo@socadel.cm", "Ngaoundere-Sud-2026", None,
+         "CSC_NGAOUNDERE SUD"),
     ]
 
     async with container.unit_of_work() as uow:
@@ -238,6 +242,7 @@ async def semer_comptes_acteurs(container: Container) -> None:
                     agents[0].matricule.lower(),
                     agents[0].nom_complet,
                     Role.AGENT_TERRAIN,
+                    f"{agents[0].matricule.lower()}@socadel.cm",
                     "Terrain-Essos-2026",
                     agents[0].id,
                     None,
@@ -245,14 +250,14 @@ async def semer_comptes_acteurs(container: Container) -> None:
             )
 
         crees = []
-        for identifiant, nom, role, mot_de_passe, agent_id, agence in comptes:
+        for identifiant, nom, role, email, mot_de_passe, agent_id, agence in comptes:
             if await uow.utilisateurs.par_identifiant(identifiant) is not None:
                 continue
             await uow.utilisateurs.enregistrer(
                 Utilisateur(
                     identifiant=identifiant,
                     nom_complet=nom,
-                    email=f"{identifiant}@socadel.cm",
+                    email=email,
                     empreinte_mot_de_passe=container.hacheur.hacher(mot_de_passe),
                     role=role,
                     statut=StatutCompte.ACTIF,
@@ -261,13 +266,13 @@ async def semer_comptes_acteurs(container: Container) -> None:
                     doit_changer_mot_de_passe=True,
                 )
             )
-            crees.append((identifiant, role.value, mot_de_passe))
+            crees.append((email, role.value, mot_de_passe))
         await uow.valider()
 
     if crees:
         print("Comptes ouverts :")
-        for identifiant, role, mot_de_passe in crees:
-            print(f"  {role:16s} {identifiant:14s} {mot_de_passe}")
+        for email, role, mot_de_passe in crees:
+            print(f"  {role:18s} {email:28s} {mot_de_passe}")
     else:
         print("Comptes deja presents, rien a faire.")
 

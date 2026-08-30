@@ -23,7 +23,14 @@ from .commun import SchemaBase
 
 
 class RequeteConnexion(SchemaBase):
-    identifiant: str = Field(min_length=1, max_length=64)
+    identifiant: str = Field(
+        min_length=1,
+        max_length=160,
+        description=(
+            "Adresse electronique du compte, ou son identifiant. Le « @ » "
+            "distingue les deux."
+        ),
+    )
     mot_de_passe: str = Field(min_length=1, max_length=128)
 
     role: Role | None = Field(

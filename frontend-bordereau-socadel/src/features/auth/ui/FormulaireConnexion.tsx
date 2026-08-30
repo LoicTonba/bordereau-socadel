@@ -159,7 +159,10 @@ export function FormulaireConnexion() {
 
           <Champ
             name="identifiant"
+            type="email"
             libelle={t("login.identifiant")}
+            placeholder={t("login.identifiantExemple")}
+            aide={t("login.identifiantAide")}
             autoComplete="username"
             autoFocus
             required
@@ -172,6 +175,7 @@ export function FormulaireConnexion() {
             type="password"
             libelle={t("login.motDePasse")}
             placeholder="••••••••"
+            aide={t("login.motDePasseAide")}
             autoComplete="current-password"
             required
             value={motDePasse}

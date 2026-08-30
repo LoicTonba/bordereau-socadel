@@ -22,7 +22,7 @@ const fr = {
   "app.nom": "Bordereau SOCADEL",
   "app.marque": "SOCADEL × NEXT",
   "app.editeur": "Une solution NEXT LTD",
-  "app.editeurComplet": "NEXT LTD — Numeric Export Technologies",
+  "app.editeurComplet": "NEXT LTD, Numeric Export Technologies",
   "app.societe": "Société Camerounaise d'Electricité",
 
   "commun.chargement": "Chargement…",
@@ -82,7 +82,11 @@ const fr = {
   "login.formulaireTitre": "Connexion",
   "login.formulaireSousTitre":
     "Identifiez-vous pour accéder au bordereau de collecte.",
-  "login.identifiant": "Identifiant",
+  "login.identifiant": "Adresse électronique",
+  "login.identifiantExemple": "prenom.nom@socadel.cm",
+  "login.identifiantAide":
+    "Celle de votre compte. Votre identifiant fonctionne aussi.",
+  "login.motDePasseAide": "Au moins dix caractères.",
   "login.motDePasse": "Mot de passe",
   "login.seConnecter": "Se connecter",
   "login.connexionEnCours": "Connexion…",
@@ -241,7 +245,7 @@ const fr = {
   "affectation.itinerairesConfies": "Itinéraires confiés",
   "affectation.rechercheAide": "Recherchez par code, agence ou libellé.",
   "affectation.recherchePlaceholder":
-    "Code de l'itinéraire, ex. 131227 — ou nom d'agence",
+    "Code de l'itinéraire, ex. 131227, ou nom d'agence",
   "affectation.aucunSelectionne": "Aucun itinéraire sélectionné",
   "affectation.aucunSelectionneAide":
     "Recherchez un itinéraire ci-dessus pour le confier à l'agent.",
@@ -373,7 +377,7 @@ const fr = {
   "agents.zone": "Zone de rattachement",
   "agents.region": "Région",
   "agents.photo": "Photo de profil",
-  "agents.photoAide": "JPEG, PNG ou WebP — 4 Mo maximum.",
+  "agents.photoAide": "JPEG, PNG ou WebP, 4 Mo maximum.",
   "agents.desactiver": "Retirer du service",
   "agents.reactiver": "Remettre en service",
   "agents.vide": "Aucun agent enregistré",
@@ -449,10 +453,10 @@ const fr = {
   "itineraires.sousTitre":
     "Retrouvez un itinéraire et imprimez son bordereau de relevé.",
   "itineraires.recherchePlaceholder":
-    "Code de l'itinéraire, agence ou libellé — au moins 2 caractères",
+    "Code de l'itinéraire, agence ou libellé, au moins 2 caractères",
   "itineraires.invite": "Recherchez un itinéraire",
   "itineraires.inviteAide":
-    "Saisissez son code — par exemple 131227 — ou le nom de son agence.",
+    "Saisissez son code, par exemple 131227, ou le nom de son agence.",
   "itineraires.bordereauPdf": "Bordereau terrain (PDF)",
   "itineraires.territoireInconnu": "Territoire non renseigné",
   "itineraires.echecPdf": "Le bordereau n'a pas pu être généré.",
@@ -514,7 +518,7 @@ const en: Record<Cle, string> = {
   "app.nom": "SOCADEL Collection Sheet",
   "app.marque": "SOCADEL × NEXT",
   "app.editeur": "A NEXT LTD solution",
-  "app.editeurComplet": "NEXT LTD — Numeric Export Technologies",
+  "app.editeurComplet": "NEXT LTD, Numeric Export Technologies",
   "app.societe": "Cameroon Electricity Company",
 
   "commun.chargement": "Loading…",
@@ -570,7 +574,11 @@ const en: Record<Cle, string> = {
     "Track your field agents route by route, and check every declaration against the SOCADEL reference data.",
   "login.formulaireTitre": "Sign in",
   "login.formulaireSousTitre": "Sign in to access the collection sheet.",
-  "login.identifiant": "Username",
+  "login.identifiant": "Email address",
+  "login.identifiantExemple": "first.last@socadel.cm",
+  "login.identifiantAide":
+    "The one on your account. Your username works too.",
+  "login.motDePasseAide": "At least ten characters.",
   "login.motDePasse": "Password",
   "login.seConnecter": "Sign in",
   "login.connexionEnCours": "Signing in…",
@@ -721,7 +729,7 @@ const en: Record<Cle, string> = {
   "affectation.consignesExemple": "Priority area, meeting point…",
   "affectation.itinerairesConfies": "Assigned routes",
   "affectation.rechercheAide": "Search by code, branch or label.",
-  "affectation.recherchePlaceholder": "Route code, e.g. 131227 — or branch name",
+  "affectation.recherchePlaceholder": "Route code, e.g. 131227, or branch name",
   "affectation.aucunSelectionne": "No route selected",
   "affectation.aucunSelectionneAide":
     "Search for a route above to hand it to the agent.",
@@ -842,7 +850,7 @@ const en: Record<Cle, string> = {
   "agents.zone": "Home branch",
   "agents.region": "Region",
   "agents.photo": "Profile photo",
-  "agents.photoAide": "JPEG, PNG or WebP — 4 MB maximum.",
+  "agents.photoAide": "JPEG, PNG or WebP, 4 MB maximum.",
   "agents.desactiver": "Take out of service",
   "agents.reactiver": "Put back in service",
   "agents.vide": "No agent registered",
@@ -910,9 +918,9 @@ const en: Record<Cle, string> = {
   "itineraires.titre": "Routes",
   "itineraires.sousTitre": "Find a route and print its collection sheet.",
   "itineraires.recherchePlaceholder":
-    "Route code, branch or label — at least 2 characters",
+    "Route code, branch or label, at least 2 characters",
   "itineraires.invite": "Search for a route",
-  "itineraires.inviteAide": "Enter its code — 131227 for example — or its branch name.",
+  "itineraires.inviteAide": "Enter its code, 131227 for example, or its branch name.",
   "itineraires.bordereauPdf": "Field sheet (PDF)",
   "itineraires.territoireInconnu": "Territory not recorded",
   "itineraires.echecPdf": "The sheet could not be generated.",
