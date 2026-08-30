@@ -73,10 +73,13 @@ Le back-office est sur <http://localhost:3000>.
 
 ### Identifiants de connexion
 
-| | |
-|---|---|
-| Identifiant | `superviseur` |
-| Mot de passe | `Socadel@2026` |
+| Acteur | Identifiant | Mot de passe |
+|---|---|---|
+| Administrateur | `admin` | `Admin@2026` |
+| Superviseur | `superviseur` | `Socadel@2026` |
+| Agent de terrain | `ag001` | `Terrain@2026` |
+
+Le [guide pratique](./GUIDE-PRATIQUE.md) déroule chaque flux pas à pas.
 
 Ils viennent de `SUPERVISEUR_IDENTIFIANT` et `SUPERVISEUR_MOT_DE_PASSE` dans
 `.env`. **À changer avant toute mise en production**, de même que `SECRET_KEY` :
@@ -103,7 +106,7 @@ Chaque projet a son propre README détaillant son architecture :
 ## Vérifications
 
 ```bash
-cd backend-bordereau-socadel && python -m pytest      # 56 tests
+cd backend-bordereau-socadel && python -m pytest      # 91 tests
 cd frontend-bordereau-socadel && pnpm typecheck && pnpm build
 ```
 
