@@ -172,6 +172,10 @@ def _style_cellule(index_ligne: int, taille: float) -> ParagraphStyle:
 # --- Habillage des pages ---------------------------------------------------
 
 
+#: Libellé du pied de page, renseigné par `construire`.
+_PIED = "Dossier de conception"
+
+
 def _habiller(canevas, document) -> None:
     """Filigrane, logo, pied de page — sur chaque page sauf la couverture."""
     largeur, hauteur = document.pagesize
@@ -190,33 +194,60 @@ def _habiller(canevas, document) -> None:
         canevas.setFillColor(GRIS_DOUX)
         canevas.drawString(
             18 * mm, 9 * mm,
-            "Bordereau SOCADEL — Dossier de conception  |  NEXT LTD × SOCADEL",
+            f"Bordereau SOCADEL — {_PIED}  |  NEXT LTD × SOCADEL",
         )
         canevas.drawRightString(
             largeur - 18 * mm, 9 * mm, f"Page {canevas.getPageNumber()}"
         )
     else:
-        # Couverture : bandeau de couleur plutôt que filigrane.
+        # Couverture : bandeaux de couleur et logo en pleine opacité, plutôt
+        # que le filigrane pâle des pages intérieures.
         canevas.setFillColor(BLEU)
         canevas.rect(0, hauteur - 8 * mm, largeur, 8 * mm, fill=1, stroke=0)
         canevas.setFillColor(BLEU_CLAIR)
         canevas.rect(0, 0, largeur, 5 * mm, fill=1, stroke=0)
 
+        largeur_logo = 62 * mm
+        dessiner_logo_entete(
+            canevas,
+            (largeur - largeur_logo) / 2,
+            hauteur - 52 * mm,
+            largeur_logo,
+        )
+
+        canevas.setFont("Helvetica", 8)
+        canevas.setFillColor(GRIS_DOUX)
+        canevas.drawCentredString(
+            largeur / 2,
+            22 * mm,
+            "NEXT LTD — Numeric Export Technologies  ·  team@numericexport.com",
+        )
+
     canevas.restoreState()
 
 
-def construire(chemin: Path, contenu_fabrique) -> None:
+def construire(
+    chemin: Path,
+    contenu_fabrique,
+    *,
+    titre: str = "Bordereau SOCADEL — Dossier de conception",
+    sujet: str = "Analyse, architecture et modélisation UML",
+    pied: str = "Dossier de conception",
+) -> None:
     """Monte le document sur deux gabarits : portrait et paysage.
 
     Les diagrammes de classes et le modèle de données sont trop larges pour le
     portrait ; le paysage évite de les réduire jusqu'à l'illisible.
     """
+    global _PIED
+    _PIED = pied
+
     document = BaseDocTemplate(
         str(chemin),
         pagesize=A4,
-        title="Bordereau SOCADEL — Dossier de conception",
+        title=titre,
         author="NEXT LTD — Numeric Export Technologies",
-        subject="Analyse, architecture et modélisation UML",
+        subject=sujet,
     )
 
     largeur_p, hauteur_p = A4

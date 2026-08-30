@@ -99,6 +99,18 @@ bordereau-socadel/
 └── docker-compose.yml
 ```
 
+## Documents
+
+Les deux documents sont générés depuis le dépôt, pas rédigés à la main :
+
+```bash
+cd backend-bordereau-socadel
+python scripts/generer_rapport.py   # dossier de conception, 21 pages + UML
+python scripts/generer_guide.py     # guide pratique, depuis GUIDE-PRATIQUE.md
+```
+
+Ils atterrissent dans `Documents/`.
+
 Chaque projet a son propre README détaillant son architecture :
 [backend](./backend-bordereau-socadel/README.md) ·
 [frontend](./frontend-bordereau-socadel/README.md).
