@@ -1,0 +1,46 @@
+# --- Node / Next.js --------------------------------------------------------
+node_modules/
+.next/
+out/
+build/
+.pnpm-store/
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Secrets et configuration locale ---------------------------------------
+.env
+.env.local
+.env*.local
+!.env.example
+
+# --- Données clients -------------------------------------------------------
+# Le référentiel contient des noms, contrats et numéros de téléphone de
+# clients SOCADEL réels : il ne quitte pas la machine. La présentation
+# commerciale n'a pas non plus vocation à être publiée.
+Documents/*.xlsx
+Documents/*.xls
+Documents/*.csv
+Documents/*.pptx
+
+# Photos de profil déposées par les utilisateurs.
+backend-bordereau-socadel/media/
+
+# --- Journaux et artefacts d'exécution --------------------------------------
+*.log
+backend-bordereau-socadel/api.log
+frontend-bordereau-socadel/dev.log
+
+# --- Outillage -------------------------------------------------------------
+.vercel
+.DS_Store
+Thumbs.db

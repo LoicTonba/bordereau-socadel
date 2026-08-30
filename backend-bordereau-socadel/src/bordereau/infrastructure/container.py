@@ -1,0 +1,220 @@
+"""Conteneur de dépendances : le seul endroit où les couches se rejoignent.
+
+C'est ici — et nulle part ailleurs — que les implémentations concrètes sont
+associées aux ports. Les cas d'usage reçoivent leurs collaborateurs par
+construction ; ils ignorent tout de PostgreSQL, de bcrypt et de reportlab.
+"""
+
+from __future__ import annotations
+
+from functools import cached_property
+from pathlib import Path
+
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+
+from ..application.use_cases.agents import (
+    BasculerActivationAgent,
+    ConsulterAgent,
+    ConsulterPortefeuille,
+    EnregistrerAgent,
+    ListerAgents,
+    ModifierAgent,
+)
+from ..application.use_cases.analytics import ConstruireTableauDeBord
+from ..application.use_cases.auth import ConnecterSuperviseur, RecupererSession
+from ..application.use_cases.collectes import (
+    DeclarerCollecte,
+    ListerBordereau,
+    VerifierDeclarations,
+)
+from ..application.use_cases.comptes import (
+    BasculerActivationCompte,
+    ChangerMotDePasse,
+    CreerCompte,
+    ListerComptes,
+    ModifierCompte,
+)
+from ..application.use_cases.exports import ExporterBordereau, TelechargerModeleImport
+from ..application.use_cases.imports import PrevisualiserImport, ValiderImport
+from ..application.use_cases.itineraires import (
+    AffecterItineraires,
+    GenererTemplateTerrain,
+    RechercherItineraires,
+)
+from .config.settings import Settings
+from .db.repositories.analytics import RequetesAnalytiquesPg
+from .db.session import creer_fabrique_sessions, creer_moteur
+from .db.unit_of_work import UnitOfWorkPg
+from .files.exporters.csv_exporter import ExportateurCsvStandard
+from .files.exporters.modele_import import GenerateurModeleXlsx
+from .files.exporters.pdf_exporter import ExportateurPdfReportlab
+from .files.parsers.tabulaire import LecteurTabulaireOpenpyxl
+from .files.stockage_media import StockageMediaLocal
+from .security.adapters import HacheurBcrypt, HorlogeSysteme, ServiceJetonJwt
+
+
+class Container:
+    """Assemble l'application au démarrage.
+
+    Les adaptateurs sans état (hacheur, exportateurs, horloge) sont des
+    singletons ; l'unité de travail, elle, est recréée à chaque cas d'usage
+    pour qu'une requête HTTP ne partage jamais sa transaction avec une autre.
+    """
+
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
+        self._moteur: AsyncEngine = creer_moteur(settings)
+        self._sessions: async_sessionmaker[AsyncSession] = creer_fabrique_sessions(
+            self._moteur
+        )
+
+    # --- Ressources partagées ---------------------------------------------
+
+    @property
+    def moteur(self) -> AsyncEngine:
+        return self._moteur
+
+    @property
+    def fabrique_sessions(self) -> async_sessionmaker[AsyncSession]:
+        return self._sessions
+
+    def unit_of_work(self) -> UnitOfWorkPg:
+        return UnitOfWorkPg(self._sessions)
+
+    @cached_property
+    def hacheur(self) -> HacheurBcrypt:
+        return HacheurBcrypt()
+
+    @cached_property
+    def jetons(self) -> ServiceJetonJwt:
+        return ServiceJetonJwt(self.settings.secret_key, self.settings.algorithme_jwt)
+
+    @cached_property
+    def horloge(self) -> HorlogeSysteme:
+        return HorlogeSysteme()
+
+    @cached_property
+    def lecteur_tabulaire(self) -> LecteurTabulaireOpenpyxl:
+        return LecteurTabulaireOpenpyxl()
+
+    @cached_property
+    def exportateur_csv(self) -> ExportateurCsvStandard:
+        return ExportateurCsvStandard()
+
+    @cached_property
+    def exportateur_pdf(self) -> ExportateurPdfReportlab:
+        return ExportateurPdfReportlab()
+
+    @cached_property
+    def generateur_modele(self) -> GenerateurModeleXlsx:
+        return GenerateurModeleXlsx()
+
+    @cached_property
+    def stockage_media(self) -> StockageMediaLocal:
+        return StockageMediaLocal(Path(self.settings.repertoire_media))
+
+    # --- Authentification et comptes --------------------------------------
+
+    def connecter_superviseur(self) -> ConnecterSuperviseur:
+        return ConnecterSuperviseur(
+            self.unit_of_work(),
+            self.hacheur,
+            self.jetons,
+            self.horloge,
+            self.settings.duree_session,
+        )
+
+    def recuperer_session(self) -> RecupererSession:
+        return RecupererSession(self.unit_of_work(), self.jetons, self.horloge)
+
+    def lister_comptes(self) -> ListerComptes:
+        return ListerComptes(self.unit_of_work())
+
+    def creer_compte(self) -> CreerCompte:
+        return CreerCompte(self.unit_of_work(), self.hacheur)
+
+    def modifier_compte(self) -> ModifierCompte:
+        return ModifierCompte(self.unit_of_work())
+
+    def basculer_activation_compte(self) -> BasculerActivationCompte:
+        return BasculerActivationCompte(self.unit_of_work())
+
+    def changer_mot_de_passe(self) -> ChangerMotDePasse:
+        return ChangerMotDePasse(self.unit_of_work(), self.hacheur)
+
+    # --- Bordereau ---------------------------------------------------------
+
+    def lister_bordereau(self) -> ListerBordereau:
+        return ListerBordereau(self.unit_of_work())
+
+    def declarer_collecte(self) -> DeclarerCollecte:
+        return DeclarerCollecte(self.unit_of_work(), self.horloge)
+
+    def verifier_declarations(self) -> VerifierDeclarations:
+        return VerifierDeclarations(self.unit_of_work(), self.horloge)
+
+    # --- Itinéraires -------------------------------------------------------
+
+    def affecter_itineraires(self) -> AffecterItineraires:
+        return AffecterItineraires(self.unit_of_work(), self.horloge)
+
+    def rechercher_itineraires(self) -> RechercherItineraires:
+        return RechercherItineraires(self.unit_of_work())
+
+    def generer_template_terrain(self) -> GenererTemplateTerrain:
+        return GenererTemplateTerrain(self.unit_of_work(), self.exportateur_pdf)
+
+    # --- Agents ------------------------------------------------------------
+
+    def lister_agents(self) -> ListerAgents:
+        return ListerAgents(self.unit_of_work())
+
+    def consulter_agent(self) -> ConsulterAgent:
+        return ConsulterAgent(self.unit_of_work())
+
+    def enregistrer_agent(self) -> EnregistrerAgent:
+        return EnregistrerAgent(self.unit_of_work())
+
+    def modifier_agent(self) -> ModifierAgent:
+        return ModifierAgent(self.unit_of_work())
+
+    def basculer_activation_agent(self) -> BasculerActivationAgent:
+        return BasculerActivationAgent(self.unit_of_work())
+
+    def consulter_portefeuille(self) -> ConsulterPortefeuille:
+        return ConsulterPortefeuille(self.unit_of_work())
+
+    # --- Import / export ---------------------------------------------------
+
+    def previsualiser_import(self) -> PrevisualiserImport:
+        return PrevisualiserImport(self.lecteur_tabulaire)
+
+    def valider_import(self) -> ValiderImport:
+        return ValiderImport(self.unit_of_work(), self.lecteur_tabulaire, self.horloge)
+
+    def exporter_bordereau(self) -> ExporterBordereau:
+        return ExporterBordereau(
+            self.unit_of_work(),
+            self.exportateur_csv,
+            self.exportateur_pdf,
+            self.horloge,
+        )
+
+    def telecharger_modele(self) -> TelechargerModeleImport:
+        return TelechargerModeleImport(self.generateur_modele)
+
+    # --- Tableau de bord ---------------------------------------------------
+
+    def construire_tableau_de_bord(self) -> ConstruireTableauDeBord:
+        """Le modèle de lecture reçoit la fabrique, pas une session.
+
+        Les cinq requêtes du tableau de bord partent en parallèle : chacune
+        doit disposer de sa propre session, une `AsyncSession` ne supportant
+        qu'une opération à la fois.
+        """
+        return ConstruireTableauDeBord(RequetesAnalytiquesPg(self._sessions))
+
+    # --- Cycle de vie ------------------------------------------------------
+
+    async def fermer(self) -> None:
+        await self._moteur.dispose()

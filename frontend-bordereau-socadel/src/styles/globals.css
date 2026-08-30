@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+/*
+ * Charte graphique SOCADEL.
+ * Le bleu primaire (#1A76B9) est échantillonné sur LOGO_SOCADEL_CM.jpg ;
+ * la gamme est construite autour de lui pour que toute l'interface reste
+ * cohérente avec le logo, y compris dans les documents exportés.
+ */
+@theme {
+  --color-socadel-50: #eff7fd;
+  --color-socadel-100: #dbedfa;
+  --color-socadel-200: #bfe0f7;
+  --color-socadel-300: #93cdf1;
+  --color-socadel-400: #60b1e8;
+  --color-socadel-500: #3b93dc;
+  --color-socadel-600: #1a76b9;
+  --color-socadel-700: #1f5fa0;
+  --color-socadel-800: #205084;
+  --color-socadel-900: #1f446d;
+  --color-socadel-950: #152b48;
+
+  /* Statuts du bordereau : une couleur par état, réutilisée partout
+     (badges du tableau, légendes des graphiques, pastilles de KPI). */
+  --color-statut-abonne: #16a34a;
+  --color-statut-non-abonne: #dc2626;
+  --color-statut-absent: #f59e0b;
+  --color-statut-injoignable: #a855f7;
+  --color-statut-refus: #e11d48;
+  --color-statut-doublon: #64748b;
+  --color-statut-attente: #94a3b8;
+
+  --font-sans: var(--police-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Jetons sémantiques : les composants n'utilisent que ceux-ci, jamais une
+   couleur en dur. Basculer le thème revient à redéfinir ce bloc. */
+:root {
+  --fond: #f6f8fb;
+  --fond-carte: #ffffff;
+  --fond-survol: #f1f5f9;
+  --bordure: #e2e8f0;
+  --bordure-forte: #cbd5e1;
+  --texte: #0f172a;
+  --texte-doux: #475569;
+  --texte-tres-doux: #94a3b8;
+  --primaire: var(--color-socadel-600);
+  --primaire-contraste: #ffffff;
+  --anneau: rgb(26 118 185 / 0.35);
+  --ombre-carte: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fond: #0b1220;
+    --fond-carte: #111a2b;
+    --fond-survol: #1a2436;
+    --bordure: #1e293b;
+    --bordure-forte: #334155;
+    --texte: #e2e8f0;
+    --texte-doux: #94a3b8;
+    --texte-tres-doux: #64748b;
+    --primaire: var(--color-socadel-400);
+    --primaire-contraste: #0b1220;
+    --anneau: rgb(96 177 232 / 0.35);
+    --ombre-carte: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --fond: #0b1220;
+  --fond-carte: #111a2b;
+  --fond-survol: #1a2436;
+  --bordure: #1e293b;
+  --bordure-forte: #334155;
+  --texte: #e2e8f0;
+  --texte-doux: #94a3b8;
+  --texte-tres-doux: #64748b;
+  --primaire: var(--color-socadel-400);
+  --primaire-contraste: #0b1220;
+  --anneau: rgb(96 177 232 / 0.35);
+  --ombre-carte: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+}
+
+@layer base {
+  * {
+    border-color: var(--bordure);
+  }
+
+  body {
+    background-color: var(--fond);
+    color: var(--texte);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Anneau de focus unique, visible sur fond clair comme sur fond sombre :
+     l'application se pilote beaucoup au clavier lors des saisies en série. */
+  :focus-visible {
+    outline: 2px solid var(--primaire);
+    outline-offset: 2px;
+  }
+
+  /* Les nombres du tableau et des KPI s'alignent en colonne. */
+  .chiffres {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .carte {
+    background-color: var(--fond-carte);
+    border: 1px solid var(--bordure);
+    border-radius: 0.875rem;
+    box-shadow: var(--ombre-carte);
+  }
+
+  .champ {
+    width: 100%;
+    background-color: var(--fond-carte);
+    border: 1px solid var(--bordure-forte);
+    border-radius: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--texte);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .champ:focus {
+    outline: none;
+    border-color: var(--primaire);
+    box-shadow: 0 0 0 3px var(--anneau);
+  }
+
+  .champ::placeholder {
+    color: var(--texte-tres-doux);
+  }
+}
+
+/* Le tableau peut afficher des centaines de lignes : on retire l'animation
+   pour les personnes qui la refusent, et on évite tout mouvement superflu. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * Palette des graphiques.
+ * Trois teintes validées pour la déficience de vision des couleurs et le
+ * contraste, sur les surfaces réellement utilisées (#ffffff / #111a2b) :
+ * écart CVD minimal ΔE 9.2 en clair, 9.4 en sombre — seuil 8.
+ * Le bleu est celui du logo ; les steps sombres sont choisis pour la surface
+ * sombre, ce n'est pas une inversion automatique.
+ */
+:root {
+  --serie-1: #1a76b9;
+  --serie-2: #eb6834;
+  --serie-3: #1baf7a;
+  --grille-viz: #eef2f7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --serie-1: #3b93dc;
+    --serie-2: #d95926;
+    --serie-3: #199e70;
+    --grille-viz: #1e293b;
+  }
+}
+
+:root[data-theme="dark"] {
+  --serie-1: #3b93dc;
+  --serie-2: #d95926;
+  --serie-3: #199e70;
+  --grille-viz: #1e293b;
+}

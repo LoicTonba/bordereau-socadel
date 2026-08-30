@@ -1,0 +1,57 @@
+# Environnement de développement complet : base, API et back-office.
+#
+#   docker compose up -d db     # PostgreSQL seul (backend et front en local)
+#   docker compose up           # la pile entière
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: socadel-db
+    environment:
+      POSTGRES_USER: socadel
+      POSTGRES_PASSWORD: socadel
+      POSTGRES_DB: bordereau_socadel
+      # Collation C : indispensable pour que les index sur SERVICE_NO et
+      # REF_GEO servent aussi les recherches par préfixe.
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - donnees-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socadel -d bordereau_socadel"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend-bordereau-socadel
+    container_name: socadel-api
+    environment:
+      DATABASE_URL: postgresql+asyncpg://socadel:socadel@db:5432/bordereau_socadel
+      SECRET_KEY: cle-de-developpement-a-remplacer-en-production
+      ORIGINES_AUTORISEES: http://localhost:3000
+      ENVIRONNEMENT: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Rechargement à chaud du code pendant le développement.
+      - ./backend-bordereau-socadel/src:/app/src:ro
+
+  web:
+    build:
+      context: ./frontend-bordereau-socadel
+    container_name: socadel-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  donnees-postgres:

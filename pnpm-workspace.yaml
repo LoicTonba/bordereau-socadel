@@ -1,0 +1,8 @@
+# Racine du monorepo. Seul le frontend est un paquet Node ; le backend est un
+# projet Python géré par pip / pyproject.toml.
+packages:
+  - frontend-bordereau-socadel
+
+allowBuilds:
+  sharp: false
+  unrs-resolver: false

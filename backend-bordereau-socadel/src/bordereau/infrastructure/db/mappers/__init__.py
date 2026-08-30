@@ -1,0 +1,1 @@
+"""Traduction ORM vers domaine."""

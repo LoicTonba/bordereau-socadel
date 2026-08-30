@@ -1,0 +1,15 @@
+{
+  "name": "bordereau-socadel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bordereau intelligent de collecte de numéros WhatsApp — SOCADEL × NEXT LTD",
+  "scripts": {
+    "dev": "pnpm --filter bordereau-socadel-frontend dev",
+    "build": "pnpm --filter bordereau-socadel-frontend build",
+    "start": "pnpm --filter bordereau-socadel-frontend start",
+    "lint": "pnpm --filter bordereau-socadel-frontend lint",
+    "typecheck": "pnpm --filter bordereau-socadel-frontend typecheck",
+    "api": "cd backend-bordereau-socadel && uvicorn bordereau.main:app --app-dir src --reload --port 8000"
+  },
+  "packageManager": "pnpm@11.9.0"
+}
