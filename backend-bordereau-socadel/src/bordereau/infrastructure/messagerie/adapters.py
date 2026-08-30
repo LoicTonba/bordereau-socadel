@@ -54,7 +54,8 @@ class MessagerieFichier:
         destinataire = "".join(
             c if c.isalnum() else "-" for c in courriel.destinataire
         )[:40]
-        chemin = self._repertoire / f"{horodatage}-{destinataire}.txt"
+        base = self._repertoire / f"{horodatage}-{destinataire}"
+        chemin = base.with_suffix(".txt")
 
         try:
             chemin.write_text(
@@ -63,6 +64,13 @@ class MessagerieFichier:
                 f"{'-' * 70}\n\n{courriel.corps_texte}\n",
                 encoding="utf-8",
             )
+            # La version HTML est déposée à côté : elle s'ouvre dans un
+            # navigateur et montre le message tel que le destinataire le verra,
+            # ce qu'un fichier texte ne permet pas de vérifier.
+            if courriel.corps_html:
+                base.with_suffix(".html").write_text(
+                    courriel.corps_html, encoding="utf-8"
+                )
             logger.info("Courriel écrit dans %s", chemin)
         except OSError:
             logger.exception("Impossible d'écrire le courriel pour %s",

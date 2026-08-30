@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { STATUTS_SAISISSABLES } from "@core/domain/statuts";
 import { useT } from "@core/i18n/PreferencesProvider";
@@ -34,9 +35,33 @@ const PAGINATION_INITIALE: ParamsPagination = {
   ordre: "desc",
 };
 
+/**
+ * Filtre de départ, lu dans l'URL.
+ *
+ * Le superviseur qui a noté les itinéraires annoncés par son agent à la
+ * connexion arrive ici avec `?itineraire=42422` : l'écran s'ouvre déjà cadré
+ * sur sa tournée, sans qu'il ait à refaire le filtre à la main.
+ *
+ * Rien de tout cela n'est un droit : l'API rétrécit de toute façon la requête
+ * au périmètre du compte, un code d'itinéraire hors périmètre ne ramène donc
+ * aucune ligne.
+ */
+function useFiltreInitial(): FiltreBordereau {
+  const parametres = useSearchParams();
+  return useMemo(() => {
+    const itineraire = parametres
+      .getAll("itineraire")
+      .map(Number)
+      .filter((code) => Number.isInteger(code) && code > 0);
+    return itineraire.length > 0 ? { itineraire } : {};
+  }, [parametres]);
+}
+
 export function EcranBordereau() {
   const t = useT();
-  const [filtre, setFiltre] = useState<FiltreBordereau>({});
+  const filtreInitial = useFiltreInitial();
+  const [filtre, setFiltre] = useState<FiltreBordereau>(filtreInitial);
+  const cadrageItineraires = filtre.itineraire ?? [];
   const [pagination, setPagination] = useState<ParamsPagination>(PAGINATION_INITIALE);
   const [selection, setSelection] = useState<Set<string>>(new Set());
   const [ligneEditee, setLigneEditee] = useState<LigneBordereau | null>(null);
@@ -182,6 +207,25 @@ export function EcranBordereau() {
 
       {message && <Alerte ton={message.ton}>{message.texte}</Alerte>}
       {error instanceof ErreurApi && <Alerte>{error.message}</Alerte>}
+
+      {/* Sans ce bandeau, un tableau arrivé cadré depuis la connexion
+          paraîtrait simplement vide, sans raison visible ni moyen d'en sortir. */}
+      {cadrageItineraires.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-socadel-200 bg-socadel-50 px-4 py-2.5 dark:border-socadel-800 dark:bg-socadel-950">
+          <p className="text-sm text-socadel-800 dark:text-socadel-100">
+            {t("bordereau.cadreSurItineraires", {
+              codes: cadrageItineraires.join(", "),
+            })}
+          </p>
+          <button
+            type="button"
+            onClick={() => changerFiltre({})}
+            className="text-xs font-medium text-socadel-700 hover:underline dark:text-socadel-300"
+          >
+            {t("bordereau.toutAfficher")}
+          </button>
+        </div>
+      )}
 
       <Carte className="overflow-hidden">
         <BarreFiltres filtre={filtre} onChanger={changerFiltre} />

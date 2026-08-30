@@ -69,16 +69,17 @@ def _sommaire() -> list:
                 ["2", "Parties prenantes", "Six entités, leurs responsabilités, matrice RACI"],
                 ["3", "Acteurs du système", "Quatre rôles applicatifs et trois systèmes externes"],
                 ["4", "Cas d'utilisation", "Un diagramme par acteur, avec le détail des cas"],
-                ["5", "Modèle du domaine", "Diagramme de classes et règles métier portées"],
-                ["6", "Dynamique", "Trois diagrammes de séquence, un diagramme d'activité"],
-                ["7", "Architecture", "Clean architecture, couches et règle de dépendance"],
-                ["8", "Modèle de données", "Tables PostgreSQL, cardinalités, volumétrie"],
-                ["9", "Habilitations", "RBAC, ABAC, hiérarchie des rôles, matrice complète"],
-                ["10", "Ouverture des accès", "Inscription, courriels, mots de passe, hiérarchie"],
-                ["11", "Changer de source", "Ce que coûtera la bascule vers l'API NEXT"],
-                ["12", "Charte graphique", "Couleurs, thèmes, palette des graphiques"],
-                ["13", "Décisions", "Choix structurants et leur justification"],
-                ["14", "Limites", "Ce qui reste ouvert et ce qui est hors périmètre"],
+                ["5", "Parcours par profil", "Inscription, connexion, journée de chaque acteur"],
+                ["6", "Modèle du domaine", "Diagramme de classes et règles métier portées"],
+                ["7", "Dynamique", "Trois diagrammes de séquence, un diagramme d'activité"],
+                ["8", "Architecture", "Clean architecture, couches et règle de dépendance"],
+                ["9", "Modèle de données", "Tables PostgreSQL, cardinalités, volumétrie"],
+                ["10", "Habilitations", "RBAC, ABAC, hiérarchie des rôles, matrice complète"],
+                ["11", "Ouverture des accès", "Inscription, courriels, mots de passe, hiérarchie"],
+                ["12", "Changer de source", "Ce que coûtera la bascule vers l'API NEXT"],
+                ["13", "Charte graphique", "Couleurs, thèmes, palette des graphiques"],
+                ["14", "Décisions", "Choix structurants et leur justification"],
+                ["15", "Limites", "Ce qui reste ouvert et ce qui est hors périmètre"],
             ],
             [26, 130, 274],
         ),
@@ -362,9 +363,149 @@ def _cas_utilisation() -> list:
         ),
     ]
 
+def _parcours() -> list:
+    return [
+        NextPageTemplate("paysage"),
+        PageBreak(),
+        titre("5. Les parcours, profil par profil", "h1"),
+        p(
+            "Le chapitre précédent dit ce que chaque acteur <b>peut</b> faire. "
+            "Il ne dit pas dans quel ordre, ni à quel moment de la journée. "
+            "C'est pourtant l'ordre qui fait le travail : on n'imprime pas un "
+            "bordereau avant d'avoir affecté les itinéraires, et on ne vérifie "
+            "pas une production qui n'a pas encore été saisie."
+        ),
+        p(
+            "Les cinq diagrammes qui suivent se lisent en même temps que le "
+            "guide pratique : chaque étape numérotée correspond à un écran, "
+            "dans le même ordre."
+        ),
+        KeepTogether(
+            [
+                titre("Comment lire ces diagrammes", "h3"),
+                p(
+                    "Chaque rectangle bleuté est une <b>étape</b>, numérotée dans "
+                    "l'ordre où elle survient, et la ligne du dessous précise ce "
+                    "qui s'y passe. Les flèches pleines enchaînent, les pointillés "
+                    "marquent un passage que la plateforme ne pilote pas. <b>Les "
+                    "cadres gris sont hors application</b> : c'est le travail de "
+                    "terrain, papier en main. Le vert est un aboutissement, le "
+                    "rouge un refus, le bleu plein une réserve."
+                ),
+            ]
+        ),
+        titre("5.1 S'inscrire et obtenir un accès", "h2"),
+        p(
+            "Le même pour les quatre profils, en trois temps et une décision : "
+            "on se déclare, on prouve son adresse, un responsable tranche."
+        ),
+        KeepTogether(
+            [
+                diagrammes.parcours_inscription(),
+                legende(
+                    "Parcours d'inscription. En vert le compte ouvert, en rouge "
+                    "la demande refusée ; dans les deux cas un courriel part."
+                ),
+            ]
+        ),
+        titre("5.2 Se connecter en trois temps", "h2"),
+        p(
+            "La connexion demande d'abord <b>qui</b> et <b>où</b>, avant "
+            "l'identifiant. Ce n'est pas une formalité de plus : c'est ce qui "
+            "permet d'ouvrir la session sur le bon écran, déjà cadré, plutôt "
+            "que de déverser un national de 181 agences et de laisser chacun "
+            "filtrer. Un superviseur peut même noter au passage les itinéraires "
+            "que son agent lui récite de mémoire, et arriver directement sur "
+            "leur bordereau."
+        ),
+        KeepTogether(
+            [
+                diagrammes.parcours_connexion(),
+                legende(
+                    "Parcours de connexion. Les cinq atterrissages possibles, "
+                    "selon le profil et selon que le superviseur a noté ou non "
+                    "des itinéraires."
+                ),
+            ]
+        ),
+        encadre(
+            "<b>Ce que le choix de profil et d'agence ne fait pas.</b> Il "
+            "n'accorde rien. Le serveur confronte la déclaration au compte et "
+            "refuse la session si elles divergent ; le rôle porté par le jeton "
+            "reste celui du compte, et l'ABAC rétrécit les requêtes au "
+            "périmètre du compte, pas à l'agence annoncée. Un superviseur qui "
+            "déclarerait une autre agence se verrait simplement refuser "
+            "l'entrée. La déclaration est un confort de saisie, doublé d'un "
+            "garde-fou contre la session ouverte au mauvais poste."
+        ),
+        titre("5.3 La journée du superviseur", "h2"),
+        p(
+            "C'est le parcours le plus long, parce que c'est lui qui porte le "
+            "dispositif. Les quatre premières étapes sont strictement "
+            "séquentielles ; les quatre suivantes se reprennent au fil de la "
+            "journée, à mesure que les agents rentrent."
+        ),
+        KeepTogether(
+            [
+                diagrammes.parcours_superviseur(),
+                legende(
+                    "Journée du superviseur. Le cadre gris est le seul moment "
+                    "où le travail sort de l'application."
+                ),
+            ]
+        ),
+        titre("5.4 L'agent de terrain", "h2"),
+        p(
+            "Trois étapes, aucune écriture. La brièveté du parcours n'est pas "
+            "un manque de fonctionnalités, c'est la traduction d'un choix : "
+            "l'agent travaille sur papier, le superviseur saisit."
+        ),
+        KeepTogether(
+            [
+                diagrammes.parcours_agent(),
+                legende(
+                    "Parcours de l'agent de terrain, le plus court du système."
+                ),
+            ]
+        ),
+        titre("5.5 La gouvernance des accès", "h2"),
+        p(
+            "L'administrateur SOCADEL et le super utilisateur NEXT LTD "
+            "partagent le même tronc. Un seul diagramme suffit donc, et il "
+            "rend visible la seule chose qui les sépare : deux gestes, en bas "
+            "à droite."
+        ),
+        KeepTogether(
+            [
+                diagrammes.parcours_gouvernance(),
+                legende(
+                    "Gouvernance des accès. En bleu plein, ce que seul le super "
+                    "utilisateur peut faire."
+                ),
+            ]
+        ),
+        tableau(
+            [
+                ["Profil", "Écran d'arrivée", "Étapes du parcours", "Écritures"],
+                ["Super utilisateur", "Tableau de bord national", "1 tronc commun, plus 2 gestes réservés", "Toutes"],
+                ["Administrateur", "Tableau de bord national", "4 étapes de gouvernance", "Comptes et périmètres"],
+                ["Superviseur", "Écran d'affectation, ou bordereau cadré", "8 étapes, dont 4 séquentielles", "Production et agents"],
+                ["Agent de terrain", "Mon espace", "3 étapes", "<b>Aucune</b>"],
+            ],
+            [110, 190, 250, 150],
+        ),
+        legende(
+            "Résumé des cinq parcours. La colonne des écritures est la "
+            "traduction opérationnelle de la hiérarchie des rôles."
+        ),
+        NextPageTemplate("portrait"),
+        PageBreak(),
+    ]
+
+
 def _domaine() -> list:
     return [
-        titre("5. Le modèle du domaine", "h1"),
+        titre("6. Le modèle du domaine", "h1"),
         p(
             "Le domaine est modélisé en objets porteurs de règles, pas en "
             "structures de données anémiques. Les invariants sont dans les "
@@ -447,8 +588,8 @@ def _domaine() -> list:
 def _dynamique() -> list:
     return [
         # Toujours en paysage : le chapitre precedent a ouvert le passage.
-        titre("6. La dynamique du système", "h1"),
-        titre("6.1 Le briefing du matin", "h2"),
+        titre("7. La dynamique du système", "h1"),
+        titre("7.1 Le briefing du matin", "h2"),
         p(
             "C'est le premier geste de la journée, et l'écran qui s'ouvre juste après "
             "la connexion du superviseur. L'agent se présente, on note les itinéraires "
@@ -475,13 +616,13 @@ def _dynamique() -> list:
             "mettent à jour. L'unicité (agent, itinéraire, jour) empêche seulement de "
             "compter deux fois la même tournée."
         ),
-        titre("6.2 La saisie et le recoupement", "h2"),
+        titre("7.2 La saisie et le recoupement", "h2"),
         diagrammes.sequence_verification(),
         legende(
             "Séquence, déclaration du superviseur, puis confrontation au référentiel."
         ),
         Spacer(1, 4 * mm),
-        titre("6.3 L'import en deux temps", "h2"),
+        titre("7.3 L'import en deux temps", "h2"),
         p(
             "Le métier a demandé un aperçu avant toute écriture. Le flux est donc "
             "strictement séquentiel : analyser, montrer, puis écrire seulement si le "
@@ -491,7 +632,7 @@ def _dynamique() -> list:
         legende("Séquence, import d'un bordereau rempli."),
         NextPageTemplate("portrait"),
         PageBreak(),
-        titre("6.4 Le parcours d'enrôlement du client", "h2"),
+        titre("7.4 Le parcours d'enrôlement du client", "h2"),
         p(
             "Ce parcours se déroule <b>hors de l'application</b>, dans WhatsApp. Il "
             "est reproduit ici parce qu'il explique ce que « abonné » veut dire, et "
@@ -516,7 +657,7 @@ def _dynamique() -> list:
 
 def _architecture() -> list:
     return [
-        titre("7. L'architecture logicielle", "h1"),
+        titre("8. L'architecture logicielle", "h1"),
         p(
             "Le backend suit la clean architecture. Ce n'est pas une préférence "
             "esthétique : le métier a annoncé que la base actuelle est une base de "
@@ -577,7 +718,7 @@ def _donnees() -> list:
     return [
         NextPageTemplate("paysage"),
         PageBreak(),
-        titre("8. Le modèle de données", "h1"),
+        titre("9. Le modèle de données", "h1"),
         titre("Comment lire ce diagramme", "h3"),
         p(
             "Même lecture que le diagramme de classes, appliquée aux tables. "
@@ -617,7 +758,7 @@ def _donnees() -> list:
 
 def _habilitations() -> list:
     return [
-        titre("9. Les habilitations", "h1"),
+        titre("10. Les habilitations", "h1"),
         p(
             "Deux mécanismes répondent à deux questions distinctes. Les confondre est "
             "la source habituelle des fuites de données."
@@ -744,7 +885,7 @@ def _matrice_permissions():
 
 def _charte() -> list:
     return [
-        titre("12. La charte graphique", "h1"),
+        titre("13. La charte graphique", "h1"),
         p(
             "L'identité repose sur deux couleurs seulement : le <b>bleu du logo "
             "SOCADEL</b> et le <b>blanc</b>. Le bleu a été échantillonné directement "
@@ -801,7 +942,7 @@ def _charte() -> list:
 
 def _decisions() -> list:
     return [
-        titre("13. Les décisions de conception", "h1"),
+        titre("14. Les décisions de conception", "h1"),
         p(
             "Les choix ci-dessous ont été pris en connaissance de leurs alternatives. "
             "Ils sont listés avec ce qui les motive."
@@ -868,7 +1009,7 @@ def _decision(titre_court: str, justification: str):
 
 def _limites() -> list:
     return [
-        titre("14. Limites connues et suite", "h1"),
+        titre("15. Limites connues et suite", "h1"),
         p(
             "Ce qui suit est énoncé sans détour : un dossier de conception qui tairait "
             "ses zones d'ombre ne servirait à rien."
@@ -930,7 +1071,7 @@ def _limites() -> list:
 
 def _cycle_de_vie_comptes() -> list:
     return [
-        titre("10. L'ouverture des accès", "h1"),
+        titre("11. L'ouverture des accès", "h1"),
         p(
             "La plateforme porte le référentiel clients de SOCADEL, plus de "
             "quatre cent mille noms et numéros de téléphone. Un accès ne "
@@ -1091,7 +1232,7 @@ def _cycle_de_vie_comptes() -> list:
 
 def _bascule_source() -> list:
     return [
-        titre("11. Changer de source de vérité", "h1"),
+        titre("12. Changer de source de vérité", "h1"),
         p(
             "C'est la question posée dès le départ : la base actuelle est une "
             "base de test, et la vraie source de vérité arrivera par l'API que "
@@ -1189,6 +1330,7 @@ def contenu() -> list:
         *_parties_prenantes(),
         *_acteurs(),
         *_cas_utilisation(),
+        *_parcours(),
         *_domaine(),
         *_dynamique(),
         *_architecture(),

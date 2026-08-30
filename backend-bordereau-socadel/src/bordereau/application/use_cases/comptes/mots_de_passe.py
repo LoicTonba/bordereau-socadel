@@ -23,9 +23,9 @@ from ....domain.securite import (
     peut_agir_sur_role,
 )
 from ....domain.securite.permissions import AccesRefuse
+from ... import courriels
 from ...errors import IdentifiantsInvalides, RessourceIntrouvable
 from ...ports import (
-    Courriel,
     GenerateurJeton,
     HacheurMotDePasse,
     Horloge,
@@ -147,23 +147,8 @@ class DemanderReinitialisation:
             await uow.valider()
 
         self._messagerie.envoyer(
-            Courriel(
-                destinataire=compte.email,
-                sujet="Réinitialisation de votre mot de passe, Bordereau SOCADEL",
-                corps_texte=(
-                    f"Bonjour {compte.nom_complet},\n\n"
-                    "Une réinitialisation de mot de passe a été demandée pour "
-                    f"le compte « {compte.identifiant} ».\n\n"
-                    "Choisissez un nouveau mot de passe en ouvrant ce lien :\n"
-                    f"{self._url}/reinitialisation?jeton={jeton}\n\n"
-                    "Le lien est valable deux heures et ne fonctionne qu'une "
-                    "fois.\n\n"
-                    "Si vous n'êtes pas à l'origine de cette demande, ignorez "
-                    "ce message : votre mot de passe actuel reste valable."
-                    "\n\n---\n"
-                    "Bordereau SOCADEL, solution NEXT LTD.\n"
-                    "Ce message est automatique, merci de ne pas y répondre."
-                ),
+            courriels.reinitialisation_demandee(
+                compte, f"{self._url}/reinitialisation?jeton={jeton}"
             )
         )
 
@@ -244,23 +229,7 @@ class ReinitialiserParResponsable:
             await uow.utilisateurs.enregistrer(compte)
             await uow.valider()
 
-        self._messagerie.envoyer(
-            Courriel(
-                destinataire=compte.email,
-                sujet="Votre mot de passe a été réinitialisé, Bordereau SOCADEL",
-                corps_texte=(
-                    f"Bonjour {compte.nom_complet},\n\n"
-                    "Un responsable a réinitialisé votre mot de passe. Un mot "
-                    "de passe provisoire vous a été remis, et vous devrez le "
-                    "remplacer dès votre prochaine connexion.\n\n"
-                    "Si vous n'avez rien demandé, prévenez immédiatement votre "
-                    "administrateur."
-                    "\n\n---\n"
-                    "Bordereau SOCADEL, solution NEXT LTD.\n"
-                    "Ce message est automatique, merci de ne pas y répondre."
-                ),
-            )
-        )
+        self._messagerie.envoyer(courriels.reinitialisation_par_responsable(compte))
 
         # Le mot de passe est renvoyé à l'appelant, jamais écrit dans le
         # courriel : le responsable le communique de vive voix.

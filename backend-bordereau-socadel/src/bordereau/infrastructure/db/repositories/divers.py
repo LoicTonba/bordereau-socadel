@@ -179,6 +179,28 @@ class ItineraireRepositoryPg:
             taille=params.taille,
         )
 
+    async def lister_agences(self) -> Sequence[tuple[str, str | None, str | None]]:
+        """Les agences distinctes du référentiel, dans l'ordre du territoire.
+
+        Une agence par ligne, pas une par itinéraire : le `distinct` ramène
+        181 lignes là où la table en compte plus de seize mille.
+        """
+        resultat = await self._session.execute(
+            select(
+                ItineraireORM.agence,
+                ItineraireORM.region,
+                ItineraireORM.division,
+            )
+            .where(ItineraireORM.agence.is_not(None))
+            .distinct()
+            .order_by(
+                ItineraireORM.region.asc(),
+                ItineraireORM.division.asc(),
+                ItineraireORM.agence.asc(),
+            )
+        )
+        return [tuple(ligne) for ligne in resultat.all()]
+
     async def enregistrer_en_lot(self, itineraires: Iterable[Itineraire]) -> int:
         valeurs = [
             {

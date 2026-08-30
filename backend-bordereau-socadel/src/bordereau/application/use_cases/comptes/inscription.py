@@ -27,9 +27,9 @@ from ....domain.securite import (
     peut_agir_sur_role,
 )
 from ....domain.securite.permissions import AccesRefuse
+from ... import courriels
 from ...errors import ConflitRessource, RessourceIntrouvable
 from ...ports import (
-    Courriel,
     GenerateurJeton,
     HacheurMotDePasse,
     Horloge,
@@ -125,7 +125,11 @@ class InscrireUtilisateur:
             await uow.utilisateurs.enregistrer(compte)
             await uow.valider()
 
-        self._messagerie.envoyer(_courriel_verification(compte, jeton, self._url))
+        self._messagerie.envoyer(
+            courriels.verification_adresse(
+                compte, f"{self._url}/verification?jeton={jeton}"
+            )
+        )
         return compte
 
 
@@ -207,7 +211,7 @@ class ApprouverCompte:
             await uow.valider()
 
         self._messagerie.envoyer(
-            _courriel_approbation(compte, f"{self._url}/login")
+            courriels.acces_ouvert(compte, f"{self._url}/login")
         )
         return compte
 
@@ -235,72 +239,5 @@ class RefuserCompte:
             await uow.utilisateurs.enregistrer(compte)
             await uow.valider()
 
-        self._messagerie.envoyer(_courriel_refus(compte, motif))
+        self._messagerie.envoyer(courriels.demande_refusee(compte, motif))
         return compte
-
-
-# --- Rédaction des courriels -----------------------------------------------
-#
-# Les messages sont courts et disent qui écrit, pourquoi, et quoi faire. Un
-# courriel transactionnel qui laisse le destinataire perplexe finit dans les
-# indésirables.
-
-
-def _pied() -> str:
-    return (
-        "\n\n---\n"
-        "Bordereau SOCADEL, plateforme de collecte des numéros WhatsApp.\n"
-        "Solution NEXT LTD, Numeric Export Technologies.\n"
-        "Ce message est automatique, merci de ne pas y répondre."
-    )
-
-
-def _courriel_verification(compte: Utilisateur, jeton: str, url: str) -> Courriel:
-    lien = f"{url}/verification?jeton={jeton}"
-    return Courriel(
-        destinataire=compte.email,
-        sujet="Confirmez votre adresse, Bordereau SOCADEL",
-        corps_texte=(
-            f"Bonjour {compte.nom_complet},\n\n"
-            "Une demande d'accès à la plateforme Bordereau SOCADEL a été "
-            f"déposée avec cette adresse, sous l'identifiant « {compte.identifiant} ».\n\n"
-            "Confirmez votre adresse en ouvrant ce lien :\n"
-            f"{lien}\n\n"
-            "Le lien est valable trois jours. Une fois l'adresse confirmée, un "
-            "responsable examinera votre demande et vous attribuera vos droits. "
-            "Vous recevrez alors un second courriel.\n\n"
-            "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : "
-            "aucun accès ne sera ouvert." + _pied()
-        ),
-    )
-
-
-def _courriel_approbation(compte: Utilisateur, lien: str) -> Courriel:
-    perimetre = compte.agence or compte.region or "national"
-    return Courriel(
-        destinataire=compte.email,
-        sujet="Votre accès est ouvert, Bordereau SOCADEL",
-        corps_texte=(
-            f"Bonjour {compte.nom_complet},\n\n"
-            "Votre demande d'accès a été approuvée.\n\n"
-            f"  Identifiant : {compte.identifiant}\n"
-            f"  Rôle        : {compte.role.value}\n"
-            f"  Périmètre   : {perimetre}\n\n"
-            f"Connectez-vous sur {lien} avec le mot de passe que vous avez "
-            "choisi lors de votre inscription." + _pied()
-        ),
-    )
-
-
-def _courriel_refus(compte: Utilisateur, motif: str | None) -> Courriel:
-    return Courriel(
-        destinataire=compte.email,
-        sujet="Votre demande d'accès, Bordereau SOCADEL",
-        corps_texte=(
-            f"Bonjour {compte.nom_complet},\n\n"
-            "Votre demande d'accès n'a pas été retenue.\n"
-            + (f"\nMotif indiqué : {motif}\n" if motif else "")
-            + "\nRapprochez-vous de votre responsable si vous pensez qu'il "
-            "s'agit d'une erreur." + _pied()
-        ),
-    )

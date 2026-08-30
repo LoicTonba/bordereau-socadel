@@ -117,12 +117,66 @@ Deux chemins, selon la situation.
 
 ---
 
+## Flux 0 bis : Se connecter en trois temps
+
+La page de connexion ne demande pas l'identifiant en premier. Elle demande
+d'abord **qui vous êtes**, puis **où vous êtes**, et seulement ensuite vos
+identifiants. Ce n'est pas une formalité de plus, c'est ce qui permet d'ouvrir
+la session sur le bon écran, déjà cadré.
+
+1. **Choisissez votre profil.** Quatre cartes, du plus large au plus
+   restreint : super utilisateur NEXT LTD, administrateur SOCADEL, superviseur,
+   agent de terrain.
+
+2. **Choisissez votre agence.** Le champ de recherche filtre les 181 agences du
+   référentiel sur le nom, la division ou la direction : tapez `ESSOS` ou
+   `DOUALA`. Les deux profils à portée nationale peuvent s'en tenir à
+   « Portée nationale » ; un superviseur ou un agent doit désigner son agence.
+
+3. **Saisissez vos identifiants.** Un bandeau rappelle le profil et l'agence
+   retenus, avec un lien « Changer » si vous vous êtes trompé.
+
+### Le raccourci du superviseur
+
+À la troisième étape, le superviseur dispose d'un champ de plus :
+**« Itinéraires annoncés par l'agent »**. L'agent connaît ses itinéraires par
+cœur ; pendant qu'il les récite, notez les codes séparés par un espace ou une
+virgule, par exemple `42422 42423`.
+
+Vous n'arrivez alors pas sur l'écran d'affectation mais **directement sur le
+bordereau, déjà filtré sur ces itinéraires**. Un bandeau bleu le rappelle en
+haut du tableau, avec un lien « Tout afficher » pour en sortir. Sans code
+saisi, la connexion se comporte comme avant.
+
+Le chemin long reste évidemment disponible : se connecter, puis poser le filtre
+à la main dans la barre du bordereau.
+
+### Ce que le serveur vérifie
+
+Trois contrôles, dans cet ordre.
+
+| Contrôle | En cas d'écart |
+|---|---|
+| Le mot de passe | `401`, message indifférencié, on ne dit jamais si le compte existe |
+| Profil déclaré = profil du compte | `409` et un message explicite, le mot de passe est déjà validé |
+| Agence déclarée compatible avec le périmètre | `409`, avec le nom de l'agence attendue |
+
+**Le profil et l'agence ne donnent aucun droit.** Le jeton porte le rôle du
+compte, et l'ABAC rétrécit chaque requête au périmètre du compte, pas à
+l'agence annoncée. Un superviseur de Ngaoundéré Sud qui déclarerait Kribi ne
+verrait pas Kribi : il se verrait refuser l'entrée. C'est un confort de saisie,
+doublé d'un garde-fou contre la session ouverte au mauvais poste.
+
+---
+
 ## Flux 1 : Le briefing du matin
 
 **Vous êtes le superviseur. L'agent se présente et vous donne ses itinéraires.**
 
-1. Connectez-vous avec `superviseur`. Vous arrivez **directement sur
-   Affectations**, pas sur le tableau de bord. C'est voulu : c'est le premier
+1. Connectez-vous avec `superviseur`, profil **Superviseur**, agence
+   **CSC_NGAOUNDERE SUD**, et laissez le champ des itinéraires vide. Vous
+   arrivez **directement sur Affectations**, pas sur le tableau de bord.
+   C'est voulu : c'est le premier
    geste de votre journée.
 
 2. Choisissez l'agent dans la liste déroulante. Seuls les agents **actifs**

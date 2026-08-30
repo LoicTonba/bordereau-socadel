@@ -27,13 +27,17 @@ async def connexion(
 ) -> ReponseConnexion:
     """Authentifie l'utilisateur et renvoie son jeton de session.
 
-    Les trois profils passent par ici : administrateur, superviseur et agent
-    de terrain. C'est le rôle porté par le jeton qui détermine ensuite ce que
-    chacun peut faire et voir.
+    Les quatre profils passent par ici. Le rôle et l'agence transmis par le
+    formulaire sont des **déclarations** : elles sont confrontées au compte, et
+    la session est refusée si elles divergent. C'est le rôle porté par le
+    jeton, donc celui du compte, qui détermine ce que chacun peut faire.
     """
     session = await container.connecter_superviseur().executer(
         CommandeConnexion(
-            identifiant=requete.identifiant, mot_de_passe=requete.mot_de_passe
+            identifiant=requete.identifiant,
+            mot_de_passe=requete.mot_de_passe,
+            role_declare=requete.role,
+            agence_declaree=requete.agence,
         )
     )
     return ReponseConnexion(
@@ -42,6 +46,8 @@ async def connexion(
         identifiant=session.identifiant,
         nom_complet=session.nom_complet,
         role=session.role,
+        agence=session.agence,
+        region=session.region,
     )
 
 

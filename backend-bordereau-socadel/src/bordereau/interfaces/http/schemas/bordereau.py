@@ -26,6 +26,23 @@ class RequeteConnexion(SchemaBase):
     identifiant: str = Field(min_length=1, max_length=64)
     mot_de_passe: str = Field(min_length=1, max_length=128)
 
+    role: Role | None = Field(
+        default=None,
+        description=(
+            "Profil sous lequel l'utilisateur souhaite ouvrir sa session. "
+            "Il est verifie contre le compte, jamais cru : il n'accorde aucun "
+            "droit et la session refusee si les deux divergent."
+        ),
+    )
+    agence: str | None = Field(
+        default=None,
+        max_length=80,
+        description=(
+            "Agence ou l'utilisateur se trouve. Presélectionne son ecran "
+            "d'accueil ; le perimetre effectif reste celui du compte."
+        ),
+    )
+
 
 class ReponseConnexion(SchemaBase):
     jeton: str
@@ -33,6 +50,20 @@ class ReponseConnexion(SchemaBase):
     identifiant: str
     nom_complet: str
     role: Role
+    agence: str | None = None
+    region: str | None = None
+
+
+class AgenceSortie(SchemaBase):
+    """Une agence de l'annuaire, sans aucune donnee d'exploitation."""
+
+    nom: str
+    region: str | None = None
+    division: str | None = None
+
+
+class TerritoireSortie(SchemaBase):
+    agences: list[AgenceSortie]
 
 
 class ProfilUtilisateur(SchemaBase):

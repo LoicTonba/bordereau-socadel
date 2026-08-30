@@ -19,9 +19,10 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
-import type { Utilisateur } from "@core/domain/types";
+import type { PosteDeTravail, Utilisateur } from "@core/domain/types";
 import {
   ecrireJeton,
+  ecrirePoste,
   ecrireProfil,
   lireJeton,
   supprimerJeton,
@@ -32,7 +33,11 @@ import { authApi } from "../infrastructure/auth-api";
 interface ValeurSession {
   utilisateur: Utilisateur | null;
   chargement: boolean;
-  connecter: (identifiant: string, motDePasse: string) => Promise<void>;
+  connecter: (
+    identifiant: string,
+    motDePasse: string,
+    poste?: PosteDeTravail,
+  ) => Promise<void>;
   deconnecter: () => void;
 }
 
@@ -69,13 +74,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const connecter = useCallback(
-    async (identifiant: string, motDePasse: string) => {
-      const session = await authApi.connexion(identifiant, motDePasse);
+    async (identifiant: string, motDePasse: string, poste?: PosteDeTravail) => {
+      const session = await authApi.connexion({
+        identifiant,
+        motDePasse,
+        role: poste?.role ?? null,
+        agence: poste?.agence ?? null,
+      });
       ecrireJeton(session.jeton);
       ecrireProfil({
         identifiant: session.identifiant,
         nomComplet: session.nomComplet,
         role: session.role,
+      });
+      // L'agence retenue est celle que le serveur renvoie, pas celle qui a été
+      // demandée : c'est lui qui tranche en cas d'écart avec le compte.
+      ecrirePoste({
+        role: session.role,
+        agence: session.agence,
+        itineraires: poste?.itineraires ?? [],
       });
       setUtilisateur(await authApi.profil());
     },

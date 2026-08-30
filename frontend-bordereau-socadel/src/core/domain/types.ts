@@ -6,7 +6,11 @@
  * rend visible tout écart de contrat au moment de la compilation.
  */
 
-export type Role = "ADMINISTRATEUR" | "SUPERVISEUR" | "AGENT_TERRAIN";
+export type Role =
+  | "SUPER_UTILISATEUR"
+  | "ADMINISTRATEUR"
+  | "SUPERVISEUR"
+  | "AGENT_TERRAIN";
 
 export type StatutCollecte =
   | "A_TRAITER"
@@ -48,6 +52,29 @@ export interface Session {
   identifiant: string;
   nomComplet: string;
   role: Role;
+  /** Agence retenue pour la session. Cadre l'écran d'accueil, n'accorde rien. */
+  agence: string | null;
+  region: string | null;
+}
+
+/** Une agence de l'annuaire, servie avant toute authentification. */
+export interface Agence {
+  nom: string;
+  region: string | null;
+  division: string | null;
+}
+
+/**
+ * Ce que l'utilisateur déclare avant de saisir ses identifiants.
+ *
+ * Le rôle et l'agence sont confrontés au compte côté serveur : la déclaration
+ * ne donne aucun droit, elle évite une session ouverte au mauvais endroit.
+ */
+export interface PosteDeTravail {
+  role: Role;
+  agence: string | null;
+  /** Itinéraires que l'agent a annoncés de mémoire au superviseur. */
+  itineraires: number[];
 }
 
 export interface LigneBordereau {
@@ -111,19 +138,44 @@ export interface Portefeuille {
   performance: PerformanceAgent;
 }
 
+/** Étapes du cycle de vie d'un compte, de la demande à l'exploitation. */
+export type StatutCompte =
+  | "EN_ATTENTE_VERIFICATION"
+  | "EN_ATTENTE_APPROBATION"
+  | "ACTIF"
+  | "SUSPENDU"
+  | "REFUSE";
+
 export interface Compte {
   id: string;
   identifiant: string;
   nomComplet: string;
   role: Role;
+  statut: StatutCompte;
   actif: boolean;
   agentId: string | null;
   region: string | null;
   agence: string | null;
   email: string | null;
+  telephone: string | null;
   photoUrl: string | null;
   doitChangerMotDePasse: boolean;
+  creeLe: string | null;
+  approuveLe: string | null;
   derniereConnexion: string | null;
+}
+
+/**
+ * Verdict de la politique de mot de passe, évalué par le serveur.
+ *
+ * Le score va de 0 à 4 ; `acceptable` est la seule valeur qui compte, les
+ * motifs disent pourquoi quand elle est fausse.
+ */
+export interface ForceMotDePasse {
+  score: number;
+  libelle: string;
+  acceptable: boolean;
+  motifs: string[];
 }
 
 export interface Itineraire {

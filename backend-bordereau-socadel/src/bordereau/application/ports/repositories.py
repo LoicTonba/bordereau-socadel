@@ -97,6 +97,10 @@ class ItineraireRepository(Protocol):
         pagination: PaginationParams | None = None,
     ) -> Page[Itineraire]: ...
 
+    async def lister_agences(self) -> Sequence[tuple[str, str | None, str | None]]:
+        """Annuaire distinct (agence, région, division), trié par territoire."""
+        ...
+
     async def enregistrer_en_lot(self, itineraires: Iterable[Itineraire]) -> int: ...
 
 

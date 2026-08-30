@@ -45,6 +45,7 @@ from ..application.use_cases.imports import PrevisualiserImport, ValiderImport
 from ..application.use_cases.itineraires import (
     AffecterItineraires,
     GenererTemplateTerrain,
+    ListerAgences,
     RechercherItineraires,
 )
 from .config.settings import Settings
@@ -238,6 +239,9 @@ class Container:
 
     def rechercher_itineraires(self) -> RechercherItineraires:
         return RechercherItineraires(self.unit_of_work())
+
+    def lister_agences(self) -> ListerAgences:
+        return ListerAgences(self.unit_of_work())
 
     def generer_template_terrain(self) -> GenererTemplateTerrain:
         return GenererTemplateTerrain(self.unit_of_work(), self.exportateur_pdf)

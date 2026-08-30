@@ -15,6 +15,7 @@ from ...application.errors import (
     ApplicationError,
     ConflitRessource,
     IdentifiantsInvalides,
+    PosteDeTravailIncoherent,
     ImportInvalide,
     JetonInvalide,
     RessourceIntrouvable,
@@ -36,6 +37,7 @@ ENTITE_NON_TRAITABLE = 422
 #: Correspondance exception -> statut HTTP.
 STATUTS: dict[type[Exception], int] = {
     IdentifiantsInvalides: status.HTTP_401_UNAUTHORIZED,
+    PosteDeTravailIncoherent: status.HTTP_409_CONFLICT,
     JetonInvalide: status.HTTP_401_UNAUTHORIZED,
     AccesRefuse: status.HTTP_403_FORBIDDEN,
     RessourceIntrouvable: status.HTTP_404_NOT_FOUND,

@@ -10,6 +10,7 @@ from __future__ import annotations
 from reportlab.graphics.shapes import Drawing, Line, Rect
 
 from .dessin import (
+    Boite,
     BLANC,
     BLEU,
     BLEU_CLAIR,
@@ -634,5 +635,340 @@ def modele_donnees() -> Drawing:
         d, 20, 10, 350, 34,
         "L'unicité (agent, itinéraire, jour) empêche de compter deux fois la même "
         "production. Aucun agent n'est jamais supprimé : on le retire du service.",
+    )
+    return d
+
+
+# --- 10. Parcours par profil -----------------------------------------------
+#
+# Ces diagrammes sont larges : ils sont posés en paysage. Chaque boîte est une
+# étape, chaque flèche l'enchaînement. Ce qui sort du logiciel, le travail sur
+# le terrain, est tramé en pointillé pour qu'on ne le confonde pas avec un
+# écran de l'application.
+
+#: Largeur utile d'une page A4 en paysage, marges déduites.
+LARGEUR_PAYSAGE = 720.0
+
+
+def _etape(
+    d: Drawing,
+    x: float,
+    y: float,
+    largeur: float,
+    numero: str,
+    titre_etape: str,
+    detail: str,
+    *,
+    hauteur: float = 54,
+    fond=BLEU_TRES_CLAIR,
+    bordure=BLEU,
+    encre=TEXTE,
+) -> Boite:
+    """Une étape numérotée du parcours.
+
+    Le numéro est dans le libellé plutôt que dans une pastille séparée : à
+    cette taille, une pastille coûterait plus de place qu'elle n'en clarifie.
+    """
+    return boite(
+        d, x, y, largeur, hauteur,
+        f"{numero}. {titre_etape}",
+        sous_titre=detail,
+        fond=fond, bordure=bordure, couleur_texte=encre,
+        taille=8, police=POLICE_GRAS,
+    )
+
+
+def _decision(d: Drawing, x: float, y: float, largeur: float, hauteur: float,
+              question: str) -> Boite:
+    """Point de décision. Le fond blanc le distingue des étapes bleutées."""
+    return boite(
+        d, x, y, largeur, hauteur, question,
+        fond=BLANC, bordure=BLEU_SOMBRE, taille=8, police=POLICE_GRAS,
+        epaisseur=1.4,
+    )
+
+
+def parcours_inscription() -> Drawing:
+    """De la demande d'accès au compte utilisable."""
+    d = Drawing(LARGEUR_PAYSAGE, 254)
+
+    a = _etape(
+        d, 8, 196, 218,
+        "1", "Le demandeur s'inscrit",
+        "identité, profil souhaité, agence, mot de passe et sa confirmation",
+    )
+    b = _etape(
+        d, 251, 196, 218,
+        "2", "Un courriel part vers son adresse",
+        "lien de confirmation valable trois jours",
+    )
+    c = _etape(
+        d, 494, 196, 218,
+        "3", "Il confirme son adresse",
+        "le compte passe en attente d'approbation",
+    )
+    fleche(d, a.droite, a.centre_y, b.x, b.centre_y)
+    fleche(d, b.droite, b.centre_y, c.x, c.centre_y)
+
+    question = _decision(
+        d, 494, 96, 218, 54,
+        "Un responsable approuve la demande ?",
+    )
+    fleche(d, c.centre_x, c.y, question.centre_x, question.haut)
+
+    accorde = boite(
+        d, 251, 96, 218, 54, "Compte actif",
+        sous_titre="courriel d'ouverture, avec identifiant, profil et périmètre",
+        fond=VERT, couleur_texte=BLANC, bordure=VERT, taille=8, police=POLICE_GRAS,
+    )
+    fleche(d, question.x, question.centre_y, accorde.droite, accorde.centre_y,
+           libelle="oui")
+
+    refuse = boite(
+        d, 8, 96, 218, 54, "Demande refusée",
+        sous_titre="courriel motivé, une nouvelle demande reste possible",
+        fond=ROUGE, couleur_texte=BLANC, bordure=ROUGE, taille=8, police=POLICE_GRAS,
+    )
+    fleche(d, accorde.x, 110, refuse.droite, 110, pointillee=True, libelle="non")
+
+    note(
+        d, 8, 14, 480, 46,
+        "S'inscrire dépose une demande, cela n'ouvre rien. Le référentiel "
+        "porte plus de quatre cent mille noms et numéros de téléphone : "
+        "l'accès se donne, il ne se prend pas. Qui approuve dépend du profil "
+        "demandé, et personne ne peut approuver son propre rang.",
+    )
+    texte(d, 500, 62, "Le mot de passe n'est jamais transmis par courriel,",
+          taille=7.5, couleur=GRIS)
+    texte(d, 500, 50, "ni à l'inscription ni à la réinitialisation :",
+          taille=7.5, couleur=GRIS)
+    texte(d, 500, 38, "seul un lien à usage unique circule.",
+          taille=7.5, couleur=GRIS)
+    return d
+
+
+def parcours_connexion() -> Drawing:
+    """Les trois temps de la connexion, et les cinq atterrissages."""
+    d = Drawing(LARGEUR_PAYSAGE, 310)
+
+    etapes = [
+        ("1", "Je choisis mon profil",
+         "super utilisateur, administrateur, superviseur, agent de terrain"),
+        ("2", "Je choisis mon agence",
+         "recherche parmi les 181 agences du référentiel"),
+        ("3", "Je saisis mes identifiants",
+         "le superviseur note au passage les itinéraires annoncés"),
+    ]
+    boites = []
+    for index, (numero, titre_etape, detail) in enumerate(etapes):
+        b = _etape(d, 8 + index * 243, 240, 218, numero, titre_etape, detail,
+                   hauteur=58)
+        boites.append(b)
+        if index:
+            fleche(d, boites[index - 1].droite, b.centre_y, b.x, b.centre_y)
+
+    controle = boite(
+        d, 230, 144, 300, 66,
+        "Le serveur confronte la déclaration au compte",
+        sous_titre=(
+            "mot de passe, puis profil déclaré = profil du compte, "
+            "puis agence déclarée compatible avec le périmètre"
+        ),
+        fond=BLEU, couleur_texte=BLANC, bordure=BLEU_SOMBRE,
+        taille=8.5, police=POLICE_GRAS,
+    )
+    fleche(d, boites[1].centre_x, boites[1].y, controle.centre_x, controle.haut)
+
+    # Le refus est posé à gauche, à bonne distance : collé au cadre central,
+    # son étiquette de flèche venait mordre dessus.
+    refus = boite(
+        d, 8, 151, 160, 52, "Session refusée",
+        sous_titre="profil ou agence incohérents, mot de passe faux",
+        fond=BLANC, bordure=ROUGE, couleur_texte=ROUGE, taille=8,
+        police=POLICE_GRAS,
+    )
+    fleche(d, controle.x, 177, refus.droite, 177, pointillee=True, libelle="non")
+
+    arrivees = [
+        ("Tableau de bord", "super utilisateur", "national, tout le pays"),
+        ("Tableau de bord", "administrateur", "national, données SOCADEL"),
+        ("Écran d'affectation", "superviseur", "son agence, sa journée"),
+        ("Bordereau déjà cadré", "superviseur", "s'il a noté des itinéraires"),
+        ("Mon espace", "agent de terrain", "sa seule production"),
+    ]
+    largeur = 134
+    ecart = (LARGEUR_PAYSAGE - 16 - 5 * largeur) / 4
+    for index, (ecran, qui, portee) in enumerate(arrivees):
+        x = 8 + index * (largeur + ecart)
+        b = boite(
+            d, x, 22, largeur, 56, ecran, sous_titre=portee,
+            fond=BLEU_CLAIR, bordure=BLEU, taille=8, police=POLICE_GRAS,
+        )
+        fleche(d, controle.centre_x, controle.y, b.centre_x, b.haut + 10,
+               couleur=GRIS_CLAIR)
+        texte(d, b.centre_x, b.haut + 4, qui, taille=7,
+              couleur=GRIS, police=POLICE_GRAS, ancrage="middle")
+
+    return d
+
+def parcours_superviseur() -> Drawing:
+    """La journee du superviseur, du briefing au recoupement."""
+    d = Drawing(LARGEUR_PAYSAGE, 300)
+
+    largeur = 164
+    colonnes = [8, 194, 380, 566]
+
+    haut = [
+        ("1", "Se connecter", "profil superviseur, son agence, itinéraires annoncés"),
+        ("2", "Affecter les itinéraires", "l'agent se présente, les codes sont saisis"),
+        ("3", "Imprimer le bordereau", "PDF filigrané, dans l'ordre de marche des maisons"),
+    ]
+    boites_haut = []
+    for index, (numero, titre_etape, detail) in enumerate(haut):
+        b = _etape(d, colonnes[index], 206, largeur, numero, titre_etape, detail, hauteur=62)
+        boites_haut.append(b)
+        if index:
+            fleche(d, boites_haut[index - 1].droite, b.centre_y, b.x, b.centre_y)
+
+    terrain = boite(
+        d, colonnes[3], 206, largeur, 62, "4. L'agent collecte",
+        sous_titre="hors application, bordereau papier en main",
+        fond=GRIS_FOND, bordure=GRIS_CLAIR, couleur_texte=GRIS,
+        taille=8, police=POLICE_GRAS,
+    )
+    fleche(d, boites_haut[2].droite, terrain.centre_y, terrain.x, terrain.centre_y,
+           pointillee=True)
+
+    bas = [
+        ("5", "Saisir la production", "ligne par ligne, en lot, ou par import du fichier"),
+        ("6", "Vérifier au référentiel", "un verdict par ligne : confirmé, infirmé, introuvable"),
+        ("7", "Suivre et exporter", "KPI, courbes, CSV et PDF du périmètre affiché"),
+        ("8", "Gérer ses agents", "arrivée, changement, départ d'un collecteur"),
+    ]
+    boites_bas = []
+    for index, (numero, titre_etape, detail) in enumerate(bas):
+        # La rangee du bas se lit de droite a gauche : le parcours serpente,
+        # ce qui evite huit colonnes illisibles sur une seule ligne.
+        x = colonnes[3 - index]
+        b = _etape(d, x, 96, largeur, numero, titre_etape, detail, hauteur=62)
+        boites_bas.append(b)
+        if index:
+            fleche(d, boites_bas[index - 1].x, b.centre_y, b.droite, b.centre_y)
+
+    fleche(d, terrain.centre_x, terrain.y, boites_bas[0].centre_x, boites_bas[0].haut,
+           pointillee=True, libelle="au retour")
+
+    # Boucle du lendemain : elle repart de la gestion des agents vers
+    # l'affectation, ce qui montre que le cycle est quotidien.
+    fleche(d, boites_bas[3].centre_x, boites_bas[3].haut,
+           boites_haut[1].centre_x, boites_haut[1].y,
+           pointillee=True, libelle="le lendemain", couleur=BLEU)
+
+    note(
+        d, 8, 14, 420, 50,
+        "Les étapes 5 à 8 ne s'enchaînent pas dans un ordre imposé : le "
+        "superviseur y revient au fil de la journée. Seules les quatre "
+        "premières sont séquentielles, parce qu'on n'imprime pas un bordereau "
+        "avant d'avoir affecté les itinéraires.",
+    )
+    return d
+
+
+def parcours_agent() -> Drawing:
+    """Le parcours le plus court du systeme, et c'est voulu."""
+    d = Drawing(LARGEUR_PAYSAGE, 186)
+
+    largeur = 200
+    a = _etape(d, 8, 108, largeur, "1", "Se connecter",
+               "profil agent de terrain, son agence", hauteur=58)
+    b = _etape(d, 268, 108, largeur, "2", "Consulter ses itinéraires",
+               "ceux que son superviseur lui a confiés", hauteur=58)
+    c = _etape(d, 528, 108, 184, "3", "Consulter ses chiffres",
+               "production, taux de confirmation, évolution", hauteur=58)
+    fleche(d, a.droite, a.centre_y, b.x, b.centre_y)
+    fleche(d, b.droite, b.centre_y, c.x, c.centre_y)
+
+    ferme = boite(
+        d, 268, 34, 444, 42, "Aucune écriture, aucun autre écran",
+        sous_titre="ni saisie, ni import, ni export, ni accès à un autre agent",
+        fond=GRIS_FOND, bordure=GRIS_CLAIR, couleur_texte=GRIS,
+        taille=8, police=POLICE_GRAS,
+    )
+    fleche(d, b.centre_x, b.y, ferme.centre_x, ferme.haut, pointillee=True,
+           couleur=GRIS_CLAIR)
+
+    note(
+        d, 8, 20, 244, 70,
+        "Son travail se fait sur le terrain, papier en main : il n'a ni le "
+        "temps ni toujours le réseau pour saisir en mobilité. La conséquence "
+        "est appréciable, son compte compromis ne permet aucune écriture.",
+    )
+    return d
+
+
+def parcours_gouvernance() -> Drawing:
+    """Administrateur et super utilisateur : un tronc commun, deux gestes de plus."""
+    d = Drawing(LARGEUR_PAYSAGE, 268)
+
+    largeur = 222
+    colonnes = [8, 249, 490]
+
+    haut = [
+        ("1", "Se connecter",
+         "profil administrateur ou super utilisateur, portée nationale"),
+        ("2", "Examiner les demandes d'accès",
+         "approuver ou refuser, avec un motif communiqué au demandeur"),
+        ("3", "Attribuer un périmètre",
+         "une agence ou une région à un superviseur"),
+    ]
+    boites_haut = []
+    for index, (numero, titre_etape, detail) in enumerate(haut):
+        b = _etape(d, colonnes[index], 176, largeur, numero, titre_etape, detail,
+                   hauteur=62)
+        boites_haut.append(b)
+        if index:
+            fleche(d, boites_haut[index - 1].droite, b.centre_y, b.x, b.centre_y)
+
+    # La rangée du bas se lit de droite à gauche, comme la journée du
+    # superviseur : le parcours serpente au lieu de s'étirer sur six colonnes.
+    commun = _etape(
+        d, colonnes[2], 74, largeur,
+        "4", "Réinitialiser un mot de passe",
+        "un provisoire est remis de vive voix, jamais par courriel",
+        hauteur=62,
+    )
+    fleche(d, boites_haut[2].centre_x, boites_haut[2].y, commun.centre_x, commun.haut)
+
+    reserves = [
+        ("5", "Changer le rôle d'un compte",
+         "y compris promouvoir un administrateur"),
+        ("6", "Administrer le référentiel",
+         "la source sur laquelle repose toute la vérification"),
+    ]
+    precedent = commun
+    boites_reservees = []
+    for index, (numero, titre_etape, detail) in enumerate(reserves):
+        b = _etape(
+            d, colonnes[1 - index], 74, largeur, numero, titre_etape, detail,
+            hauteur=62, fond=BLEU, bordure=BLEU_SOMBRE, encre=BLANC,
+        )
+        fleche(d, precedent.x, b.centre_y, b.droite, b.centre_y)
+        boites_reservees.append(b)
+        precedent = b
+
+    # Un trait sous les deux boîtes pleines vaut mieux qu'une étiquette posée
+    # sur une flèche : il dit d'un coup jusqu'où va la réserve.
+    gauche, droite = boites_reservees[1].x, boites_reservees[0].droite
+    d.add(Line(gauche, 56, droite, 56, strokeColor=BLEU_SOMBRE, strokeWidth=1.2))
+    d.add(Line(gauche, 56, gauche, 62, strokeColor=BLEU_SOMBRE, strokeWidth=1.2))
+    d.add(Line(droite, 56, droite, 62, strokeColor=BLEU_SOMBRE, strokeWidth=1.2))
+    texte(d, (gauche + droite) / 2, 38,
+          "Réservé au super utilisateur NEXT LTD", taille=8,
+          couleur=BLEU_SOMBRE, police=POLICE_GRAS, ancrage="middle")
+
+    note(
+        d, 490, 6, 222, 52,
+        "L'administrateur SOCADEL exploite la plateforme, le super utilisateur "
+        "NEXT LTD en répond. Aucun des deux ne peut agir sur son propre rang.",
     )
     return d

@@ -45,6 +45,18 @@ class IdentifiantsInvalides(ApplicationError):
         super().__init__("Identifiant ou mot de passe incorrect")
 
 
+class PosteDeTravailIncoherent(ApplicationError):
+    """Le profil ou l'agence déclarés à la connexion contredisent le compte.
+
+    Le message est explicite, contrairement à `IdentifiantsInvalides` : à ce
+    stade le mot de passe est déjà validé, le titulaire a donc prouvé qu'il
+    possède le compte. Lui dire « vous êtes enregistré comme agent de terrain »
+    ne renseigne aucun attaquant, et lui évite de chercher pourquoi.
+    """
+
+    code = "poste_incoherent"
+
+
 class JetonInvalide(ApplicationError):
     """Jeton de session absent, expiré ou falsifié."""
 

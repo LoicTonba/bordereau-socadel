@@ -70,6 +70,7 @@ const fr = {
   "nav.deconnexion": "Déconnexion",
 
   // --- Rôles ---------------------------------------------------------------
+  "role.SUPER_UTILISATEUR": "Super utilisateur",
   "role.ADMINISTRATEUR": "Administrateur",
   "role.SUPERVISEUR": "Superviseur",
   "role.AGENT_TERRAIN": "Agent de terrain",
@@ -99,6 +100,131 @@ const fr = {
   "login.etape3.titre": "Vérifier et payer",
   "login.etape3.texte":
     "Le référentiel SOCADEL confirme les abonnements réellement enregistrés : c'est lui qui fait foi.",
+
+  "login.creerCompte": "Demander un accès",
+  "login.motDePasseOublie": "Mot de passe oublié ?",
+  // --- Connexion, choix du poste de travail --------------------------------
+  "poste.etape": "Étape {n} sur 3",
+  "poste.retour": "Retour",
+  "poste.continuer": "Continuer",
+
+  "poste.profil.titre": "Qui êtes-vous ?",
+  "poste.profil.aide":
+    "Choisissez le profil sous lequel vous travaillez. Il est vérifié à la connexion : si votre compte est enregistré autrement, l'accès est refusé.",
+  "poste.profil.SUPER_UTILISATEUR": "exploite et répond de la plateforme",
+  "poste.profil.ADMINISTRATEUR": "gouverne les accès et les périmètres",
+  "poste.profil.SUPERVISEUR": "pilote les agents d'une agence",
+  "poste.profil.AGENT_TERRAIN": "consulte sa production",
+
+  "poste.agence.titre": "Où travaillez-vous aujourd'hui ?",
+  "poste.agence.aide":
+    "Votre agence cadre l'écran d'accueil. Elle ne donne aucun droit supplémentaire : votre périmètre reste celui de votre compte.",
+  "poste.agence.recherche": "Rechercher une agence",
+  "poste.agence.placeholder": "Tapez les premières lettres, par exemple ESSOS",
+  "poste.agence.nationale": "Portée nationale, toutes les agences",
+  "poste.agence.aucune": "Aucune agence ne correspond",
+  "poste.agence.chargement": "Chargement de l'annuaire…",
+  "poste.agence.indisponible":
+    "Annuaire indisponible. Vous pouvez continuer sans choisir d'agence.",
+  "poste.agence.nombre": "{n} agences",
+
+  "poste.identifiants.titre": "Vos identifiants",
+  "poste.itineraires.libelle": "Itinéraires annoncés par l'agent",
+  "poste.itineraires.aide":
+    "Facultatif. Saisissez les codes que l'agent vous donne de mémoire, séparés par un espace ou une virgule : vous arriverez directement sur son bordereau.",
+  "poste.itineraires.placeholder": "42422 42423",
+  "poste.itineraires.compte": "{n} itinéraire(s) retenu(s)",
+  "poste.itineraires.invalide": "Un code d'itinéraire est un nombre.",
+
+  "poste.recapitulatif": "{profil}, {agence}",
+  "poste.changer": "Changer",
+
+
+  // --- Cycle de vie des comptes --------------------------------------------
+  "statutCompte.EN_ATTENTE_VERIFICATION": "Adresse à confirmer",
+  "statutCompte.EN_ATTENTE_APPROBATION": "En attente d'approbation",
+  "statutCompte.ACTIF": "Actif",
+  "statutCompte.SUSPENDU": "Suspendu",
+  "statutCompte.REFUSE": "Refusé",
+
+  "inscription.titre": "Demander un accès",
+  "inscription.chapeau":
+    "S'inscrire dépose une demande, cela n'ouvre rien. La plateforme porte le référentiel clients de SOCADEL : un responsable examinera votre demande et vous attribuera vos droits.",
+  "inscription.nomComplet": "Nom complet",
+  "inscription.identifiant": "Identifiant",
+  "inscription.identifiantAide": "Celui que vous saisirez à la connexion.",
+  "inscription.email": "Adresse électronique",
+  "inscription.telephone": "Téléphone",
+  "inscription.roleSouhaite": "Profil souhaité",
+  "inscription.roleAide":
+    "Souhaité, pas acquis : c'est le responsable qui attribue le profil définitif.",
+  "inscription.motDePasse": "Mot de passe",
+  "inscription.confirmation": "Confirmer le mot de passe",
+  "inscription.discordance": "Les deux saisies diffèrent.",
+  "inscription.envoyer": "Déposer ma demande",
+  "inscription.echec": "La demande n'a pas pu être enregistrée.",
+  "inscription.deposeeTitre": "Demande enregistrée",
+  "inscription.deposeeSuite":
+    "En développement, aucun serveur de messagerie n'est configuré : les courriels sont écrits dans backend-bordereau-socadel/courriels/, un fichier .html et un fichier .txt par message.",
+  "inscription.retourConnexion": "Revenir à la connexion",
+  "inscription.dejaInscrit": "Vous avez déjà un compte ?",
+
+  "adresse.titre": "Confirmation de votre adresse",
+  "adresse.enCours": "Vérification du lien…",
+  "adresse.jetonAbsent":
+    "Ce lien est incomplet. Ouvrez celui reçu par courriel, sans le modifier.",
+  "adresse.echec":
+    "Ce lien est expiré ou a déjà servi. Déposez une nouvelle demande.",
+
+  "oubli.titre": "Mot de passe oublié",
+  "oubli.chapeau":
+    "Indiquez l'adresse de votre compte. Un lien valable deux heures vous sera envoyé.",
+  "oubli.envoyer": "Envoyer le lien",
+  "oubli.confirmationNeutre":
+    "Si un compte actif correspond à cette adresse, un lien de réinitialisation vient d'être envoyé.",
+
+  "reinitialisation.titre": "Choisir un nouveau mot de passe",
+  "reinitialisation.chapeau":
+    "Ce lien ne fonctionne qu'une fois. Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.",
+  "reinitialisation.nouveau": "Nouveau mot de passe",
+  "reinitialisation.envoyer": "Enregistrer",
+  "reinitialisation.echec":
+    "Le lien est expiré ou a déjà servi. Demandez-en un nouveau.",
+  "reinitialisation.faitTitre": "Mot de passe enregistré",
+  "reinitialisation.faitTexte":
+    "Vous pouvez vous connecter avec votre nouveau mot de passe.",
+
+  "comptes.titre": "Comptes et accès",
+  "comptes.sousTitre":
+    "Approuver les demandes, attribuer les périmètres, débloquer un mot de passe.",
+  "comptes.filtrer": "Filtrer par statut",
+  "comptes.tous": "Tous les statuts",
+  "comptes.videTitre": "Aucun compte dans ce statut",
+  "comptes.videTexte":
+    "Changez de filtre, ou attendez qu'une demande d'accès soit déposée.",
+  "comptes.examiner": "Examiner",
+  "comptes.approuver": "Approuver",
+  "comptes.refuser": "Refuser",
+  "comptes.suspendre": "Suspendre",
+  "comptes.reactiver": "Réactiver",
+  "comptes.reinitialiser": "Réinitialiser le mot de passe",
+  "comptes.horsPortee": "Hors de votre portée",
+  "comptes.roleAttribue": "Profil attribué",
+  "comptes.agentRattache": "Agent de terrain rattaché",
+  "comptes.choisirAgent": "Choisir un agent",
+  "comptes.agence": "Agence",
+  "comptes.region": "Région",
+  "comptes.motifRefus": "Motif, en cas de refus",
+  "comptes.motifAide": "Il figurera dans le courriel adressé au demandeur.",
+  "comptes.perimetreManquant":
+    "Sans agence ni région, ce superviseur verrait la production des 181 agences. La plateforme refusera ses requêtes tant qu'un périmètre ne lui est pas attribué.",
+  "comptes.approuve": "Accès ouvert pour {nom}.",
+  "comptes.refuse": "Demande de {nom} refusée.",
+  "comptes.suspendu": "Compte de {nom} suspendu.",
+  "comptes.reactive": "Compte de {nom} réactivé.",
+  "comptes.provisoire":
+    "Mot de passe provisoire de {nom} : {motDePasse}. Communiquez-le de vive voix, il devra être remplacé à la prochaine connexion.",
+  "comptes.echec": "L'opération a échoué.",
 
   // --- Affectations --------------------------------------------------------
   "affectation.titre": "Affectation des itinéraires",
@@ -135,6 +261,9 @@ const fr = {
   "bordereau.titre": "Bordereau de collecte",
   "bordereau.sousTitre":
     "Reportez ici ce que chaque agent a réalisé sur le terrain.",
+  "bordereau.cadreSurItineraires":
+    "Bordereau cadré sur les itinéraires {codes}, annoncés à la connexion.",
+  "bordereau.toutAfficher": "Tout afficher",
   "bordereau.verifier": "Vérifier auprès du référentiel",
   "bordereau.exporterCsv": "Exporter CSV",
   "bordereau.exporterPdf": "Exporter PDF",
@@ -431,6 +560,7 @@ const en: Record<Cle, string> = {
   "nav.sessionActive": "Active session",
   "nav.deconnexion": "Sign out",
 
+  "role.SUPER_UTILISATEUR": "Super user",
   "role.ADMINISTRATEUR": "Administrator",
   "role.SUPERVISEUR": "Supervisor",
   "role.AGENT_TERRAIN": "Field agent",
@@ -455,7 +585,128 @@ const en: Record<Cle, string> = {
     "On their return, you enter what the agent achieved: sign-ups, absentees, refusals.",
   "login.etape3.titre": "Verify and pay",
   "login.etape3.texte":
-    "The SOCADEL reference data confirms which sign-ups were actually recorded — it is the one that counts.",
+    "The SOCADEL reference data confirms which sign-ups were actually recorded, it is the one that counts.",
+
+  "login.creerCompte": "Request access",
+  "login.motDePasseOublie": "Forgotten password?",
+  "poste.etape": "Step {n} of 3",
+  "poste.retour": "Back",
+  "poste.continuer": "Continue",
+
+  "poste.profil.titre": "Who are you?",
+  "poste.profil.aide":
+    "Pick the profile you work under. It is checked at sign-in: if your account is registered otherwise, access is refused.",
+  "poste.profil.SUPER_UTILISATEUR": "runs and answers for the platform",
+  "poste.profil.ADMINISTRATEUR": "governs access and scopes",
+  "poste.profil.SUPERVISEUR": "runs the agents of one branch",
+  "poste.profil.AGENT_TERRAIN": "looks up their own output",
+
+  "poste.agence.titre": "Where are you working today?",
+  "poste.agence.aide":
+    "Your branch frames the landing screen. It grants nothing extra: your scope stays the one on your account.",
+  "poste.agence.recherche": "Search for a branch",
+  "poste.agence.placeholder": "Type the first letters, for instance ESSOS",
+  "poste.agence.nationale": "National scope, every branch",
+  "poste.agence.aucune": "No branch matches",
+  "poste.agence.chargement": "Loading the directory…",
+  "poste.agence.indisponible":
+    "Directory unavailable. You can continue without picking a branch.",
+  "poste.agence.nombre": "{n} branches",
+
+  "poste.identifiants.titre": "Your credentials",
+  "poste.itineraires.libelle": "Routes the agent announced",
+  "poste.itineraires.aide":
+    "Optional. Type the codes the agent gives you from memory, separated by a space or a comma: you will land straight on their sheet.",
+  "poste.itineraires.placeholder": "42422 42423",
+  "poste.itineraires.compte": "{n} route(s) kept",
+  "poste.itineraires.invalide": "A route code is a number.",
+
+  "poste.recapitulatif": "{profil}, {agence}",
+  "poste.changer": "Change",
+
+
+  "statutCompte.EN_ATTENTE_VERIFICATION": "Address to confirm",
+  "statutCompte.EN_ATTENTE_APPROBATION": "Awaiting approval",
+  "statutCompte.ACTIF": "Active",
+  "statutCompte.SUSPENDU": "Suspended",
+  "statutCompte.REFUSE": "Refused",
+
+  "inscription.titre": "Request access",
+  "inscription.chapeau":
+    "Signing up files a request, it opens nothing. The platform holds SOCADEL customer reference data: a manager will review your request and grant your rights.",
+  "inscription.nomComplet": "Full name",
+  "inscription.identifiant": "Username",
+  "inscription.identifiantAide": "The one you will type at sign-in.",
+  "inscription.email": "Email address",
+  "inscription.telephone": "Phone",
+  "inscription.roleSouhaite": "Requested profile",
+  "inscription.roleAide":
+    "Requested, not granted: the manager assigns the final profile.",
+  "inscription.motDePasse": "Password",
+  "inscription.confirmation": "Confirm password",
+  "inscription.discordance": "The two entries differ.",
+  "inscription.envoyer": "File my request",
+  "inscription.echec": "The request could not be recorded.",
+  "inscription.deposeeTitre": "Request recorded",
+  "inscription.deposeeSuite":
+    "In development no mail server is configured: emails are written to backend-bordereau-socadel/courriels/, one .html and one .txt file per message.",
+  "inscription.retourConnexion": "Back to sign-in",
+  "inscription.dejaInscrit": "Already have an account?",
+
+  "adresse.titre": "Confirming your address",
+  "adresse.enCours": "Checking the link…",
+  "adresse.jetonAbsent":
+    "This link is incomplete. Open the one you received by email, unchanged.",
+  "adresse.echec":
+    "This link has expired or was already used. File a new request.",
+
+  "oubli.titre": "Forgotten password",
+  "oubli.chapeau":
+    "Enter your account address. A link valid for two hours will be sent to you.",
+  "oubli.envoyer": "Send the link",
+  "oubli.confirmationNeutre":
+    "If an active account matches this address, a reset link has just been sent.",
+
+  "reinitialisation.titre": "Choose a new password",
+  "reinitialisation.chapeau":
+    "This link works only once. Choose a password you use nowhere else.",
+  "reinitialisation.nouveau": "New password",
+  "reinitialisation.envoyer": "Save",
+  "reinitialisation.echec":
+    "The link has expired or was already used. Request a new one.",
+  "reinitialisation.faitTitre": "Password saved",
+  "reinitialisation.faitTexte": "You can sign in with your new password.",
+
+  "comptes.titre": "Accounts and access",
+  "comptes.sousTitre":
+    "Approve requests, assign scopes, unblock a password.",
+  "comptes.filtrer": "Filter by status",
+  "comptes.tous": "All statuses",
+  "comptes.videTitre": "No account with this status",
+  "comptes.videTexte": "Change the filter, or wait for an access request.",
+  "comptes.examiner": "Review",
+  "comptes.approuver": "Approve",
+  "comptes.refuser": "Refuse",
+  "comptes.suspendre": "Suspend",
+  "comptes.reactiver": "Reactivate",
+  "comptes.reinitialiser": "Reset password",
+  "comptes.horsPortee": "Outside your reach",
+  "comptes.roleAttribue": "Assigned profile",
+  "comptes.agentRattache": "Linked field agent",
+  "comptes.choisirAgent": "Select an agent",
+  "comptes.agence": "Branch",
+  "comptes.region": "Region",
+  "comptes.motifRefus": "Reason, if refused",
+  "comptes.motifAide": "It will appear in the email sent to the applicant.",
+  "comptes.perimetreManquant":
+    "With no branch or region, this supervisor would see the output of all 181 branches. The platform will refuse their requests until a scope is assigned.",
+  "comptes.approuve": "Access opened for {nom}.",
+  "comptes.refuse": "Request from {nom} refused.",
+  "comptes.suspendu": "Account of {nom} suspended.",
+  "comptes.reactive": "Account of {nom} reactivated.",
+  "comptes.provisoire":
+    "Temporary password for {nom}: {motDePasse}. Pass it on verbally, it must be replaced at the next sign-in.",
+  "comptes.echec": "The operation failed.",
 
   "affectation.titre": "Route assignment",
   "affectation.sousTitre":
@@ -488,6 +739,9 @@ const en: Record<Cle, string> = {
 
   "bordereau.titre": "Collection sheet",
   "bordereau.sousTitre": "Record here what each agent achieved in the field.",
+  "bordereau.cadreSurItineraires":
+    "Sheet framed on routes {codes}, announced at sign-in.",
+  "bordereau.toutAfficher": "Show everything",
   "bordereau.verifier": "Check against reference data",
   "bordereau.exporterCsv": "Export CSV",
   "bordereau.exporterPdf": "Export PDF",
