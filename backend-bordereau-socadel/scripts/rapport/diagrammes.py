@@ -19,8 +19,10 @@ from .dessin import (
     GRIS_CLAIR,
     GRIS_FOND,
     ORANGE,
+    POLICE,
     POLICE_GRAS,
     ROUGE,
+    TEXTE,
     VERT,
     acteur,
     activation,
@@ -48,49 +50,50 @@ def contexte() -> Drawing:
     Montre ce que le bordereau touche et, surtout, ce qu'il ne fait pas : le
     ChatBot et MRA sont hors périmètre, l'API de recoupement reste à ouvrir.
     """
-    d = Drawing(LARGEUR, 300)
+    d = Drawing(LARGEUR, 320)
 
     centre = boite(
-        d, 155, 130, 160, 52,
+        d, 158, 138, 158, 54,
         "Bordereau SOCADEL",
         sous_titre="Back-office de pilotage",
         fond=BLEU, couleur_texte=BLANC, bordure=BLEU_SOMBRE,
         taille=9.5, police=POLICE_GRAS,
     )
 
-    acteur(d, 45, 235, "Administrateur", role="NEXT LTD")
-    acteur(d, 45, 150, "Superviseur", role="SOCADEL")
-    acteur(d, 45, 55, "Agent de terrain", role="Distributeur")
+    # Les quatre rôles, du plus large au plus restreint.
+    acteur(d, 46, 262, "Super utilisateur", role="NEXT LTD")
+    acteur(d, 46, 188, "Administrateur", role="SOCADEL")
+    acteur(d, 46, 114, "Superviseur", role="SOCADEL, une agence")
+    acteur(d, 46, 40, "Agent de terrain", role="Distributeur")
 
     chatbot = boite(
-        d, 355, 232, 105, 40, "ChatBot WhatsApp",
-        sous_titre="NEXT LTD · Meta",
-        fond=BLEU_TRES_CLAIR, taille=8,
+        d, 358, 246, 102, 38, "ChatBot WhatsApp",
+        sous_titre="NEXT LTD, Meta", fond=BLEU_TRES_CLAIR, taille=8,
     )
     mra = boite(
-        d, 355, 140, 105, 40, "Plateforme MRA",
-        sous_titre="SOCADEL · facturation",
-        fond=BLEU_TRES_CLAIR, taille=8,
+        d, 358, 154, 102, 38, "Plateforme MRA",
+        sous_titre="SOCADEL, facturation", fond=BLEU_TRES_CLAIR, taille=8,
     )
     referentiel = boite(
-        d, 355, 48, 105, 40, "Référentiel clients",
-        sous_titre="Base de test aujourd'hui",
-        fond=BLEU_TRES_CLAIR, taille=8,
+        d, 358, 62, 102, 38, "Référentiel clients",
+        sous_titre="Base de test aujourd'hui", fond=BLEU_TRES_CLAIR, taille=8,
     )
 
-    for y_acteur, libelle in (
-        (245, "gère comptes"),
-        (160, "pilote"),
-        (65, "consulte"),
+    # Chaque flèche vise sa propre hauteur sur le bord gauche : un point de
+    # convergence unique empilait les quatre étiquettes au même endroit.
+    for y_acteur, y_bord, libelle in (
+        (272, 186, "exploite"),
+        (198, 172, "gouverne"),
+        (124, 158, "pilote"),
+        (50, 144, "consulte"),
     ):
-        fleche(d, 62, y_acteur, 155, 160, libelle=libelle)
+        fleche(d, 63, y_acteur, centre.x, y_bord, libelle=libelle)
 
-    fleche(d, centre.droite, 168, chatbot.x, 250, pointillee=True,
-           libelle="hors périmètre")
-    fleche(d, centre.droite, 158, mra.x, 158, pointillee=True,
-           libelle="hors périmètre")
-    fleche(d, centre.droite, 148, referentiel.x, 68,
-           libelle="vérifie")
+    # Le pointillé dit déjà le hors-périmètre, l'étiquette ferait doublon et
+    # viendrait mordre sur le cadre central.
+    fleche(d, centre.droite, 178, chatbot.x, 262, pointillee=True)
+    fleche(d, centre.droite, 166, mra.x, 172, pointillee=True)
+    fleche(d, centre.droite, 154, referentiel.x, 82, libelle="vérifie")
 
     fleche(d, chatbot.centre_x, chatbot.y, mra.centre_x, mra.haut,
            libelle="enrôlement")
@@ -98,9 +101,9 @@ def contexte() -> Drawing:
            libelle="alimente")
 
     note(
-        d, 130, 20, 210, 44,
-        "L'API de recoupement NEXT / MRA n'est pas encore ouverte : "
-        "la vérification s'appuie aujourd'hui sur une base de test.",
+        d, 132, 6, 216, 40,
+        "L'API de recoupement NEXT et MRA n'est pas encore ouverte : la "
+        "vérification s'appuie aujourd'hui sur une base de test.",
     )
     return d
 
@@ -157,25 +160,54 @@ def cas_agent() -> Drawing:
     return d
 
 
-def cas_administrateur() -> Drawing:
-    d = Drawing(LARGEUR, 250)
-    cadre_systeme(d, 110, 10, 350, 230, "Bordereau SOCADEL")
-    acteur(d, 45, 115, "Administrateur")
+def cas_super_utilisateur() -> Drawing:
+    """Ce que NEXT LTD peut faire et que SOCADEL ne peut pas."""
+    d = Drawing(LARGEUR, 224)
+    cadre_systeme(d, 108, 8, 352, 206, "Bordereau SOCADEL")
+    acteur(d, 44, 100, "Super utilisateur", role="NEXT LTD")
 
-    for libelle, y in (
-        ("Créer / modifier / désactiver un compte", 188),
-        ("Rattacher un compte agent à sa fiche", 156),
-        ("Définir le périmètre d'un superviseur", 124),
-        ("Accéder à toutes les données, sans limite", 92),
-        ("Exercer tous les droits du superviseur", 60),
+    for libelle, y, saillant in (
+        ("Changer le rôle d'un compte existant", 160, True),
+        ("Administrer le référentiel clients", 128, True),
+        ("Réinitialiser n'importe quel mot de passe", 96, False),
+        ("Exercer tous les droits de l'administrateur", 64, False),
     ):
-        b = cas_utilisation(d, 145, y, 280, 24, libelle)
-        fleche(d, 58, 125, b.x, b.centre_y, pointe=False, couleur=GRIS_CLAIR)
+        b = cas_utilisation(
+            d, 142, y, 282, 24, libelle,
+            fond=BLEU if saillant else BLEU_TRES_CLAIR,
+            bordure=BLEU_SOMBRE if saillant else BLEU,
+            couleur_texte=BLANC if saillant else TEXTE,
+            police=POLICE_GRAS if saillant else POLICE,
+        )
+        fleche(d, 57, 110, b.x, b.centre_y, pointe=False, couleur=GRIS_CLAIR)
 
     note(
-        d, 145, 16, 280, 30,
-        "Seul rôle non territorialisé. C'est aussi le seul qui puisse "
-        "ouvrir un accès à la plateforme.",
+        d, 142, 12, 282, 30,
+        "Les deux cas en bleu soutenu sont les seuls que l'administrateur "
+        "SOCADEL n'a pas. Ils engagent le fonctionnement du système, et non "
+        "son exploitation quotidienne.",
+    )
+    return d
+
+
+def cas_administrateur() -> Drawing:
+    d = Drawing(LARGEUR, 224)
+    cadre_systeme(d, 108, 8, 352, 206, "Bordereau SOCADEL")
+    acteur(d, 44, 100, "Administrateur", role="SOCADEL")
+
+    for libelle, y in (
+        ("Approuver ou refuser une demande d'accès", 160),
+        ("Attribuer un périmètre à un superviseur", 128),
+        ("Réinitialiser le mot de passe de ses équipes", 96),
+        ("Exercer tous les droits du superviseur", 64),
+    ):
+        b = cas_utilisation(d, 142, y, 282, 24, libelle)
+        fleche(d, 57, 110, b.x, b.centre_y, pointe=False, couleur=GRIS_CLAIR)
+
+    note(
+        d, 142, 12, 282, 30,
+        "Portée nationale sur les données SOCADEL, mais aucune main sur un "
+        "pair ni sur le super utilisateur qui lui a ouvert l'accès.",
     )
     return d
 
@@ -501,6 +533,43 @@ def habilitations() -> Drawing:
         "Le rétrécissement en amont est délibéré : un contrôle a posteriori "
         "(« cet agent a-t-il le droit de voir cette ligne ? ») doit être appelé "
         "partout, et il suffit de l'oublier une fois pour tout exposer.",
+    )
+    return d
+
+
+def hierarchie_roles() -> Drawing:
+    """La règle qui dit sur qui chacun peut agir."""
+    d = Drawing(LARGEUR, 232)
+
+    rangs = [
+        ("Super utilisateur", "NEXT LTD", 3, 178, BLEU_SOMBRE, BLANC),
+        ("Administrateur", "SOCADEL", 2, 130, BLEU, BLANC),
+        ("Superviseur", "une agence", 1, 82, BLEU_CLAIR, BLEU_SOMBRE),
+        ("Agent de terrain", "sa production", 0, 34, BLEU_TRES_CLAIR, BLEU_SOMBRE),
+    ]
+
+    boites = []
+    for nom, portee, rang, y, fond, encre in rangs:
+        # La largeur décroît avec le rang : la portée se lit au premier regard.
+        largeur = 150 + rang * 62
+        b = boite(
+            d, 96, y, largeur, 36, f"rang {rang}  {nom}",
+            sous_titre=portee, fond=fond, bordure=BLEU_SOMBRE,
+            couleur_texte=encre, taille=8.5, police=POLICE_GRAS,
+        )
+        boites.append(b)
+
+    # Chaque rang n'atteint que celui d'en dessous, et par transitivité les
+    # suivants : une seule flèche par palier suffit à le dire.
+    for haut, bas in zip(boites, boites[1:]):
+        fleche(d, 80, haut.centre_y, 80, bas.centre_y + 4,
+               couleur=BLEU, epaisseur=1.2)
+    texte(d, 22, 118, "agit sur", taille=7, couleur=GRIS, police=POLICE_GRAS)
+
+    note(
+        d, 96, 2, 336, 26,
+        "Strictement inférieur : un administrateur ne crée pas un second "
+        "administrateur. L'escalade de privilèges est fermée par construction.",
     )
     return d
 

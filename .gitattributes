@@ -1,0 +1,9 @@
+# Git classait les PDF et les images comme du texte : a la sortie sur Windows,
+# la conversion des fins de ligne les corrompait. Ces formats sont binaires.
+*.pdf binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.ico binary
+*.xlsx binary
+*.pptx binary

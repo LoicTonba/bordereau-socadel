@@ -44,3 +44,7 @@ frontend-bordereau-socadel/dev.log
 .vercel
 .DS_Store
 Thumbs.db
+
+# Boite d envoi de developpement : les courriels de verification et de
+# reinitialisation y sont deposes en clair, jetons compris.
+backend-bordereau-socadel/courriels/

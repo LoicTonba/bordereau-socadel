@@ -87,7 +87,6 @@ def _sommaire() -> list:
 
 def _besoin() -> list:
     return [
-        PageBreak(),
         titre("1. Le besoin", "h1"),
         p(
             "SOCADEL distribue ses factures d'électricité sur support papier. Plus "
@@ -147,7 +146,6 @@ def _besoin() -> list:
 
 def _parties_prenantes() -> list:
     return [
-        PageBreak(),
         titre("2. Les parties prenantes", "h1"),
         p(
             "La réussite de la campagne tient à la coordination de six entités sur "
@@ -189,7 +187,6 @@ def _parties_prenantes() -> list:
 
 def _acteurs() -> list:
     return [
-        PageBreak(),
         titre("3. Les acteurs du système", "h1"),
         p(
             "Quatre rôles disposent d'un compte de connexion, répartis en deux "
@@ -257,53 +254,66 @@ def _acteurs() -> list:
             ],
             [110, 220, 140],
         ),
-        Spacer(1, 5 * mm),
+        Spacer(1, 4 * mm),
         titre("Comment lire ce diagramme", "h3"),
         p(
-            "Le rectangle bleu au centre est la plateforme. À sa gauche, les "
-            "bonshommes sont les personnes qui s'y connectent ; les flèches qui "
-            "en partent disent ce que chacun vient y faire. À droite, les trois "
-            "cadres pâles sont des systèmes qui existent indépendamment de "
-            "nous. <b>Les flèches en pointillé signalent ce que la plateforme ne "
-            "pilote pas</b> : le ChatBot et MRA appartiennent à d'autres "
-            "périmètres. La seule flèche pleine vers la droite, « vérifie », est "
-            "le lien que nous exerçons vraiment."
+            "Le rectangle bleu au centre est la plateforme. À sa gauche, "
+            "les bonshommes sont les personnes qui s'y connectent ; les "
+            "flèches qui en partent disent ce que chacun vient y faire. "
+            "À droite, les trois cadres pâles sont des systèmes qui "
+            "existent indépendamment de nous. <b>Les flèches en pointillé "
+            "signalent ce que la plateforme ne pilote pas</b> : le ChatBot "
+            "et MRA appartiennent à d'autres périmètres. La seule flèche "
+            "pleine vers la droite, « vérifie », est le lien que nous "
+            "exerçons vraiment."
         ),
-        diagrammes.contexte(),
-        legende(
-            "Diagramme de contexte, le système, ses acteurs et son écosystème. "
-            "Les liens pointillés marquent ce qui reste hors périmètre."
+        KeepTogether(
+            [
+                diagrammes.contexte(),
+                legende(
+                    "Diagramme de contexte : le système, ses quatre acteurs et "
+                    "son écosystème."
+                ),
+            ]
         ),
     ]
 
 
 def _cas_utilisation() -> list:
     return [
-        PageBreak(),
         titre("4. Cas d'utilisation par acteur", "h1"),
         p(
-            "Un diagramme par acteur plutôt qu'un seul diagramme global : la portée "
-            "de chaque rôle est justement ce qu'il faut faire ressortir, et un "
-            "diagramme unique la noierait."
+            "Un diagramme par acteur plutôt qu'un seul diagramme global : la "
+            "portée de chaque rôle est justement ce qu'il faut faire "
+            "ressortir, et un diagramme unique la noierait."
         ),
-        titre("4.1 Superviseur, l'acteur principal"),
-        titre("Comment lire ces diagrammes", "h3"),
-        p(
-            "Le grand cadre gris délimite la plateforme : ce qui est dedans est "
-            "réalisé par le logiciel. Chaque ovale est un <b>cas d'utilisation</b>, "
-            "c'est-à-dire un service rendu à l'acteur, formulé de son point de "
-            "vue et non du point de vue technique. Les traits relient l'acteur "
-            "aux cas qu'il peut déclencher : leur nombre donne d'un coup d'œil "
-            "l'étendue de son rôle. Comparez les trois pages qui suivent, la "
-            "différence de longueur des listes est le message principal."
+        KeepTogether(
+            [
+                titre("Comment lire ces diagrammes", "h3"),
+                p(
+                    "Le grand cadre gris délimite la plateforme : ce qui est "
+                    "dedans est réalisé par le logiciel. Chaque ovale est un "
+                    "<b>cas d'utilisation</b>, c'est-à-dire un service rendu à "
+                    "l'acteur, formulé de son point de vue et non du point de vue "
+                    "technique. Les traits relient l'acteur aux cas qu'il peut "
+                    "déclencher : leur nombre donne d'un coup d'œil l'étendue de "
+                    "son rôle. Comparez les quatre diagrammes qui suivent, la "
+                    "différence de longueur des listes est le message principal."
+                ),
+            ]
         ),
-        diagrammes.cas_superviseur(),
-        legende("Cas d'utilisation du superviseur."),
-        titre("Détail des cas"),
+        KeepTogether(
+            [
+                titre("4.1 Superviseur, l'acteur principal", "h2"),
+                diagrammes.cas_superviseur(),
+                legende("Cas d'utilisation du superviseur."),
+            ]
+        ),
+        titre("Détail des cas du superviseur", "h3"),
         tableau(
             [
                 ["Cas", "Déclencheur", "Résultat"],
-                ["Affecter des itinéraires", "L'agent se présente au briefing", "Affectations créées + une ligne de bordereau par client"],
+                ["Affecter des itinéraires", "L'agent se présente au briefing", "Affectations créées et une ligne de bordereau par client"],
                 ["Imprimer le bordereau terrain", "Départ de l'agent en tournée", "PDF filigrané, colonnes pré-remplies, colonne de relevé vierge"],
                 ["Saisir la production", "Retour du terrain, bordereau papier en main", "Statut, numéro relevé et origine enregistrés par ligne"],
                 ["Corriger en lot", "Plusieurs lignes au même statut", "Statut appliqué ; les lignes que le domaine refuse sont signalées"],
@@ -314,37 +324,104 @@ def _cas_utilisation() -> list:
             ],
             [95, 145, 230],
         ),
-        PageBreak(),
-        titre("4.2 Agent de terrain, consultation seule", "h2"),
-        diagrammes.cas_agent(),
-        legende("Cas d'utilisation de l'agent de terrain."),
+        KeepTogether(
+            [
+                titre("4.2 Agent de terrain, consultation seule", "h2"),
+                diagrammes.cas_agent(),
+                legende("Cas d'utilisation de l'agent de terrain."),
+            ]
+        ),
         encadre(
             "<b>Pourquoi si peu.</b> L'agent collecte sur le terrain, avec un "
-            "bordereau papier : c'est son outil de travail, et il n'a ni le temps ni "
-            "toujours le réseau pour saisir en mobilité. La plateforme ne lui sert "
-            "qu'à voir où il en est. Ce choix a une conséquence de sécurité "
-            "appréciable : son compte, même compromis, ne permet aucune écriture."
+            "bordereau papier : c'est son outil de travail, et il n'a ni le "
+            "temps ni toujours le réseau pour saisir en mobilité. La plateforme "
+            "ne lui sert qu'à voir où il en est. Ce choix a une conséquence de "
+            "sécurité appréciable : son compte, même compromis, ne permet aucune "
+            "écriture."
         ),
-        Spacer(1, 6 * mm),
-        titre("4.3 Administrateur, gouvernance des accès", "h2"),
-        diagrammes.cas_administrateur(),
-        legende("Cas d'utilisation de l'administrateur."),
+        KeepTogether(
+            [
+                titre("4.3 Administrateur SOCADEL, gouvernance des accès", "h2"),
+                diagrammes.cas_administrateur(),
+                legende("Cas d'utilisation de l'administrateur."),
+            ]
+        ),
+        KeepTogether(
+            [
+                titre("4.4 Super utilisateur NEXT LTD", "h2"),
+                p(
+                    "Deux cas seulement le distinguent de l'administrateur, mais "
+                    "ce sont ceux qui engagent le fonctionnement du système."
+                ),
+                diagrammes.cas_super_utilisateur(),
+                legende(
+                    "Cas d'utilisation du super utilisateur. En bleu soutenu, "
+                    "ce que lui seul peut faire."
+                ),
+            ]
+        ),
     ]
-
 
 def _domaine() -> list:
     return [
-        NextPageTemplate("paysage"),
-        PageBreak(),
         titre("5. Le modèle du domaine", "h1"),
         p(
-            "Le domaine est modélisé en objets porteurs de règles, pas en structures "
-            "de données anémiques. Les invariants sont dans les entités : une ligne "
-            "déclarée abonnée sans numéro relevé est refusée par "
-            "<font face='Courier'>LigneBordereau.declarer()</font>, pas par un "
-            "contrôle de formulaire."
+            "Le domaine est modélisé en objets porteurs de règles, pas en "
+            "structures de données anémiques. Les invariants sont dans les "
+            "entités : une ligne déclarée abonnée sans numéro relevé est refusée "
+            "par <font face='Courier'>LigneBordereau.declarer()</font>, pas par "
+            "un contrôle de formulaire."
         ),
-        titre("Comment lire ce diagramme", "h3"),
+        titre("Les objets-valeurs", "h2"),
+        p(
+            "Quatre notions métier sont modélisées en objets-valeurs immuables "
+            "et auto-validants, plutôt qu'en chaînes de caractères. Elles "
+            "portent leur propre normalisation, ce qui évite d'avoir à s'en "
+            "souvenir à chaque usage."
+        ),
+        tableau(
+            [
+                ["Objet-valeur", "Ce qu'il garantit", "Exemple"],
+                ["NumeroTelephone", "Format E.164 camerounais. Absorbe les saisies hétérogènes du terrain.", "« 694174768 » donne +237694174768"],
+                ["ServiceNo", "Identifiant de contrat. Clé de jointure avec le référentiel.", "203401046"],
+                ["RefGeo", "Adresse technique, et surtout <b>l'ordre de marche</b> : le tri par clé numérique restitue le parcours physique des maisons.", "807-09-01-994-00-001"],
+                ["CodeItineraire", "Unité de travail confiée à un agent.", "42422 (CSC_ESSOS)"],
+            ],
+            [95, 250, 125],
+        ),
+        encadre(
+            "<b>Pourquoi RefGeo mérite un objet.</b> Le bordereau papier doit "
+            "suivre l'ordre des maisons, sinon l'agent zigzague dans le "
+            "quartier. Trier sur la chaîne brute donnerait un ordre "
+            "lexicographique faux : « 960-20-11-92 » passerait avant "
+            "« 960-20-11-232 ». La propriété <font face='Courier'>cle_tri</font> "
+            "convertit chaque segment en entier et rétablit l'ordre réel."
+        ),
+        titre("La règle de vérification", "h2"),
+        p(
+            "C'est le cœur du dispositif. Elle est isolée dans un service de "
+            "domaine pur, sans base ni transport, et se lit en quelques lignes :"
+        ),
+        tableau(
+            [
+                ["Déclaration", "État du référentiel", "Verdict", "Payable"],
+                ["ABONNE", "Contrat absent du référentiel", "INTROUVABLE", "Non"],
+                ["ABONNE", "whatsapp_status différent de subscribed", "INFIRME", "Non"],
+                ["ABONNE", "subscribed, mais autre numéro", "INFIRME", "Non"],
+                ["ABONNE", "subscribed, numéro concordant", "CONFIRME", "<b>Oui</b>"],
+                ["ABSENT, REFUS, etc.", "Non abonné au référentiel", "CONFIRME", "Non"],
+                ["ABSENT, REFUS, etc.", "Abonné au référentiel", "INFIRME", "Non"],
+            ],
+            [95, 175, 100, 100],
+            aligne_a_droite=[2, 3],
+        ),
+        legende(
+            "Une nouvelle déclaration remet automatiquement le verdict à "
+            "NON_VERIFIE : corriger une ligne oblige à la re-confronter."
+        ),
+        # Le diagramme de classes ouvre le passage en paysage, que les
+        # séquences du chapitre suivant prolongent sans nouvelle bascule.
+        titre("Le diagramme de classes", "h2"),
         p(
             "Chaque rectangle est une <b>classe</b> : son nom en haut sur fond "
             "bleu, ses données en dessous. La mention entre guillemets doubles, "
@@ -357,69 +434,19 @@ def _domaine() -> list:
             "ce que le superviseur déclare, en orange ce que le référentiel "
             "établit, et entre les deux le service qui les confronte."
         ),
+        NextPageTemplate("paysage"),
+        PageBreak(),
         diagrammes.classes_domaine(),
         legende(
-            "Diagramme de classes du domaine. En vert la ligne de bordereau, ce que "
-            "le superviseur déclare ; en orange le client, ce que le référentiel "
-            "établit. Le service de vérification confronte les deux."
-        ),
-        NextPageTemplate("portrait"),
-        PageBreak(),
-        titre("Les objets-valeurs", "h2"),
-        p(
-            "Quatre notions métier sont modélisées en objets-valeurs immuables et "
-            "auto-validants, plutôt qu'en chaînes de caractères. Elles portent leur "
-            "propre normalisation, ce qui évite d'avoir à s'en souvenir à chaque "
-            "usage."
-        ),
-        tableau(
-            [
-                ["Objet-valeur", "Ce qu'il garantit", "Exemple"],
-                ["NumeroTelephone", "Format E.164 camerounais. Absorbe les saisies hétérogènes du terrain.", "« 694174768 » → +237694174768"],
-                ["ServiceNo", "Identifiant de contrat. Clé de jointure avec le référentiel.", "203401046"],
-                ["RefGeo", "Adresse technique, et surtout <b>l'ordre de marche</b> : le tri par clé numérique restitue le parcours physique des maisons.", "807-09-01-994-00-001"],
-                ["CodeItineraire", "Unité de travail confiée à un agent.", "42422 (CSC_ESSOS)"],
-            ],
-            [95, 250, 125],
-        ),
-        encadre(
-            "<b>Pourquoi RefGeo mérite un objet.</b> Le bordereau papier doit suivre "
-            "l'ordre des maisons, sinon l'agent zigzague dans le quartier. Trier sur "
-            "la chaîne brute donnerait un ordre lexicographique faux : « 960-20-11-92 » "
-            "passerait avant « 960-20-11-232 ». La propriété "
-            "<font face='Courier'>cle_tri</font> convertit chaque segment en entier "
-            "et rétablit l'ordre réel."
-        ),
-        Spacer(1, 5 * mm),
-        titre("La règle de vérification", "h2"),
-        p(
-            "C'est le cœur du dispositif. Elle est isolée dans un service de domaine "
-            "pur, sans base ni transport, et se lit en quelques lignes :"
-        ),
-        tableau(
-            [
-                ["Déclaration", "État du référentiel", "Verdict", "Payable"],
-                ["ABONNE", "Contrat absent du référentiel", "INTROUVABLE", "Non"],
-                ["ABONNE", "whatsapp_status ≠ subscribed", "INFIRME", "Non"],
-                ["ABONNE", "subscribed, mais autre numéro", "INFIRME", "Non"],
-                ["ABONNE", "subscribed, numéro concordant", "CONFIRME", "<b>Oui</b>"],
-                ["ABSENT / REFUS / …", "Non abonné au référentiel", "CONFIRME", "Non"],
-                ["ABSENT / REFUS / …", "Abonné au référentiel", "INFIRME", "Non"],
-            ],
-            [95, 175, 100, 100],
-            aligne_a_droite=[2, 3],
-        ),
-        legende(
-            "Une nouvelle déclaration remet automatiquement le verdict à "
-            "NON_VERIFIE : corriger une ligne oblige à la re-confronter."
+            "Diagramme de classes du domaine. En vert la ligne de bordereau, ce "
+            "que le superviseur déclare ; en orange le client, ce que le "
+            "référentiel établit."
         ),
     ]
 
-
 def _dynamique() -> list:
     return [
-        NextPageTemplate("paysage"),
-        PageBreak(),
+        # Toujours en paysage : le chapitre precedent a ouvert le passage.
         titre("6. La dynamique du système", "h1"),
         titre("6.1 Le briefing du matin", "h2"),
         p(
@@ -448,7 +475,6 @@ def _dynamique() -> list:
             "mettent à jour. L'unicité (agent, itinéraire, jour) empêche seulement de "
             "compter deux fois la même tournée."
         ),
-        PageBreak(),
         titre("6.2 La saisie et le recoupement", "h2"),
         diagrammes.sequence_verification(),
         legende(
@@ -490,7 +516,6 @@ def _dynamique() -> list:
 
 def _architecture() -> list:
     return [
-        PageBreak(),
         titre("7. L'architecture logicielle", "h1"),
         p(
             "Le backend suit la clean architecture. Ce n'est pas une préférence "
@@ -592,7 +617,6 @@ def _donnees() -> list:
 
 def _habilitations() -> list:
     return [
-        PageBreak(),
         titre("9. Les habilitations", "h1"),
         p(
             "Deux mécanismes répondent à deux questions distinctes. Les confondre est "
@@ -616,7 +640,6 @@ def _habilitations() -> list:
             "écrasé, et obtient zéro ligne. Un contrôle a posteriori aurait dû être "
             "appelé partout, et il aurait suffi de l'oublier une fois."
         ),
-        PageBreak(),
         titre("Matrice complète des permissions", "h2"),
         _matrice_permissions(),
         legende(
@@ -662,6 +685,25 @@ def _habilitations() -> list:
             "Règle vérifiée par un test qui parcourt les seize combinaisons "
             "possibles de rôle appelant et de rôle cible."
         ),
+        KeepTogether(
+            [
+                titre("Comment lire ce diagramme", "h3"),
+                p(
+                    "Les quatre rôles sont empilés du plus large au plus "
+                    "restreint. <b>La largeur de chaque boîte est "
+                    "proportionnelle à sa portée</b> : elle se lit sans lire le "
+                    "texte. La flèche verticale porte la règle « agit sur » et "
+                    "ne relie que des paliers voisins ; par transitivité, un "
+                    "rang atteint donc tous ceux qui sont sous lui, et jamais "
+                    "son propre niveau."
+                ),
+                diagrammes.hierarchie_roles(),
+                legende(
+                    "Hiérarchie des rôles. La largeur décroît avec le rang, "
+                    "l'escalade de privilèges est fermée par construction."
+                ),
+            ]
+        ),
     ]
 
 
@@ -702,7 +744,6 @@ def _matrice_permissions():
 
 def _charte() -> list:
     return [
-        PageBreak(),
         titre("12. La charte graphique", "h1"),
         p(
             "L'identité repose sur deux couleurs seulement : le <b>bleu du logo "
@@ -760,7 +801,6 @@ def _charte() -> list:
 
 def _decisions() -> list:
     return [
-        PageBreak(),
         titre("13. Les décisions de conception", "h1"),
         p(
             "Les choix ci-dessous ont été pris en connaissance de leurs alternatives. "
@@ -828,7 +868,6 @@ def _decision(titre_court: str, justification: str):
 
 def _limites() -> list:
     return [
-        PageBreak(),
         titre("14. Limites connues et suite", "h1"),
         p(
             "Ce qui suit est énoncé sans détour : un dossier de conception qui tairait "
@@ -880,7 +919,7 @@ def _limites() -> list:
         ),
         Spacer(1, 8 * mm),
         encadre(
-            "<b>Sur la qualité du logiciel.</b> Le backend est couvert par 91 tests "
+            "<b>Sur la qualité du logiciel.</b> Le backend est couvert par 96 tests "
             "automatisés, domaine, cas d'usage, adaptateurs de fichiers et API HTTP "
             "complète, habilitations comprises. Le parcours complet a par ailleurs été "
             "déroulé contre une instance PostgreSQL réelle chargée des 425 920 clients."
@@ -891,7 +930,6 @@ def _limites() -> list:
 
 def _cycle_de_vie_comptes() -> list:
     return [
-        PageBreak(),
         titre("10. L'ouverture des accès", "h1"),
         p(
             "La plateforme porte le référentiel clients de SOCADEL, plus de "
@@ -981,7 +1019,6 @@ def _cycle_de_vie_comptes() -> list:
             "même fonction que celle qui tranchera à l'enregistrement : "
             "l'évaluation montrée et la règle appliquée ne peuvent pas diverger."
         ),
-        PageBreak(),
         titre("Le mot de passe oublié", "h2"),
         p("Deux chemins, selon que le titulaire a encore accès à sa boîte."),
         tableau(
@@ -1054,7 +1091,6 @@ def _cycle_de_vie_comptes() -> list:
 
 def _bascule_source() -> list:
     return [
-        PageBreak(),
         titre("11. Changer de source de vérité", "h1"),
         p(
             "C'est la question posée dès le départ : la base actuelle est une "

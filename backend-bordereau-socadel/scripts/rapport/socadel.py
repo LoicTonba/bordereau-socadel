@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from reportlab.lib.units import mm  # noqa: E402
-from reportlab.platypus import NextPageTemplate, PageBreak, Spacer  # noqa: E402
+from reportlab.platypus import PageBreak, Spacer  # noqa: E402
 
 from .document import encadre, legende, p, puces, tableau, titre  # noqa: E402
 
@@ -191,7 +191,6 @@ def _organisation(arbre: dict, total: int) -> list:
         )
 
     return [
-        PageBreak(),
         titre("2. L'organisation territoriale", "h1"),
         p(
             "SOCADEL structure sa distribution en trois niveaux : la direction "
@@ -226,7 +225,6 @@ def _organisation(arbre: dict, total: int) -> list:
 
 def _regions_administratives() -> list:
     return [
-        PageBreak(),
         titre("3. Correspondance avec les régions du Cameroun", "h1"),
         p(
             "Le découpage de SOCADEL ne recoupe pas celui de l'administration : "
@@ -256,8 +254,6 @@ def _regions_administratives() -> list:
 def _annuaire(arbre: dict) -> list:
     """Annuaire complet, une page par direction."""
     elements: list = [
-        NextPageTemplate("portrait"),
-        PageBreak(),
         titre("4. Annuaire des agences", "h1"),
         p(
             "Les 181 agences du référentiel, groupées par direction et par "
@@ -308,7 +304,6 @@ def _noso(arbre: dict) -> list:
         lignes_so.append([agence, _milliers(n)])
 
     return [
-        PageBreak(),
         titre("5. Le Nord-Ouest et le Sud-Ouest", "h1"),
         p(
             "La question de la couverture dans ces deux régions se pose pour le "
@@ -353,7 +348,6 @@ def _noso(arbre: dict) -> list:
 
 def _consequences() -> list:
     return [
-        PageBreak(),
         titre("6. Ce que ce maillage implique pour la plateforme", "h1"),
         p(
             "Ce n'est pas un chapitre de contexte : le maillage territorial a "

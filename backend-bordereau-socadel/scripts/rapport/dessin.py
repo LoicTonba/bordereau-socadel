@@ -20,6 +20,7 @@ from reportlab.graphics.shapes import (
     String,
 )
 from reportlab.lib import colors
+from reportlab.pdfbase.pdfmetrics import stringWidth
 
 # --- Charte ----------------------------------------------------------------
 
@@ -151,6 +152,10 @@ def boite(
     hauteur_bloc = len(lignes) * (taille + 2)
     depart = y + hauteur / 2 + hauteur_bloc / 2 - taille
 
+    # Sur fond sombre le gris devient illisible : le sous-titre reprend
+    # alors une teinte claire au lieu du gris de lecture.
+    encre_secondaire = BLEU_CLAIR if couleur_texte is BLANC else GRIS
+
     for index, ligne in enumerate(lignes):
         principale = index < len(_lignes_ajustees(libelle, largeur - 8, taille))
         texte(
@@ -159,7 +164,7 @@ def boite(
             depart - index * (taille + 2),
             ligne,
             taille=taille if principale else taille - 1,
-            couleur=couleur_texte if principale else GRIS,
+            couleur=couleur_texte if principale else encre_secondaire,
             police=police if principale else POLICE,
             ancrage="middle",
         )
@@ -191,11 +196,25 @@ def fleche(
         _pointe(d, x1, y1, x2, y2, couleur)
 
     if libelle:
-        # Le libellé est posé au milieu, légèrement au-dessus du trait.
+        # Le libellé est posé au milieu, légèrement au-dessus du trait, sur un
+        # fond opaque : sans lui, une flèche oblique barre le mot.
+        cx = (x1 + x2) / 2
+        cy = (y1 + y2) / 2 + 3
+        largeur = stringWidth(libelle, POLICE, taille_libelle)
+        d.add(
+            Rect(
+                cx - largeur / 2 - 2,
+                cy - 1.5,
+                largeur + 4,
+                taille_libelle + 1,
+                fillColor=BLANC,
+                strokeColor=None,
+            )
+        )
         texte(
             d,
-            (x1 + x2) / 2,
-            (y1 + y2) / 2 + 3,
+            cx,
+            cy,
             libelle,
             taille=taille_libelle,
             couleur=GRIS,
@@ -254,6 +273,8 @@ def cas_utilisation(
     *,
     fond=BLEU_TRES_CLAIR,
     bordure=BLEU,
+    couleur_texte=TEXTE,
+    police=POLICE,
 ) -> Boite:
     """Ellipse de cas d'utilisation, approchée par un rectangle très arrondi.
 
@@ -269,6 +290,8 @@ def cas_utilisation(
         libelle,
         fond=fond,
         bordure=bordure,
+        couleur_texte=couleur_texte,
+        police=police,
         rayon=hauteur / 2,
         taille=7,
     )
