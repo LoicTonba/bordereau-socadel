@@ -27,12 +27,23 @@ def _couverture() -> list:
         tableau(
             [
                 ["Rubrique", "Valeur"],
-                ["Client", "SOCADEL — Société Camerounaise d'Electricité"],
-                ["Maître d'œuvre", "NEXT LTD — Numeric Export Technologies"],
+                [
+                    "Destinataire",
+                    "M. TONDJOU Patrick<br/>"
+                    "<font size='8'>Directeur des Systèmes d'Information et de "
+                    "la Technologie, NEXT LTD</font>",
+                ],
+                [
+                    "Rédigé par",
+                    "TONBA Loïc<br/>"
+                    "<font size='8'>Ingénieur des travaux informatiques, "
+                    "développeur web senior, NEXT LTD</font>",
+                ],
+                ["Client", "SOCADEL, Société Camerounaise d'Electricité"],
                 ["Objet", "Back-office de pilotage de la collecte de numéros WhatsApp"],
-                ["Version du document", "1.0"],
+                ["Version du document", "2.0"],
                 ["Date", date.today().strftime("%d/%m/%Y")],
-                ["Statut", "Document de conception — base de test en cours"],
+                ["Statut", "Document de conception, base de test en cours"],
             ],
             [110, 320],
             taille=8.5,
@@ -56,16 +67,18 @@ def _sommaire() -> list:
                 ["§", "Section", "Contenu"],
                 ["1", "Le besoin", "Constat, objectif chiffré, ce que le système résout"],
                 ["2", "Parties prenantes", "Six entités, leurs responsabilités, matrice RACI"],
-                ["3", "Acteurs du système", "Trois rôles applicatifs et trois systèmes externes"],
+                ["3", "Acteurs du système", "Quatre rôles applicatifs et trois systèmes externes"],
                 ["4", "Cas d'utilisation", "Un diagramme par acteur, avec le détail des cas"],
                 ["5", "Modèle du domaine", "Diagramme de classes et règles métier portées"],
                 ["6", "Dynamique", "Trois diagrammes de séquence, un diagramme d'activité"],
                 ["7", "Architecture", "Clean architecture, couches et règle de dépendance"],
                 ["8", "Modèle de données", "Tables PostgreSQL, cardinalités, volumétrie"],
-                ["9", "Habilitations", "RBAC, ABAC, matrice complète des permissions"],
-                ["10", "Charte graphique", "Couleurs, thèmes, palette des graphiques"],
-                ["11", "Décisions", "Choix structurants et leur justification"],
-                ["12", "Limites", "Ce qui reste ouvert et ce qui est hors périmètre"],
+                ["9", "Habilitations", "RBAC, ABAC, hiérarchie des rôles, matrice complète"],
+                ["10", "Ouverture des accès", "Inscription, courriels, mots de passe, hiérarchie"],
+                ["11", "Changer de source", "Ce que coûtera la bascule vers l'API NEXT"],
+                ["12", "Charte graphique", "Couleurs, thèmes, palette des graphiques"],
+                ["13", "Décisions", "Choix structurants et leur justification"],
+                ["14", "Limites", "Ce qui reste ouvert et ce qui est hors périmètre"],
             ],
             [26, 130, 274],
         ),
@@ -89,25 +102,26 @@ def _besoin() -> list:
             "numérique en moins de deux minutes. Reste à collecter les numéros : "
             "c'est l'objet de la campagne, et c'est ce que cette application pilote."
         ),
-        titre("L'objectif, par paliers"),
-        tableau(
-            [
-                ["Palier", "Cible", "Contacts qualifiés", "À collecter", "Rythme"],
-                ["Palier 1", "60 %", "556 023", "+ 127 156", "≈ 4 240 / jour"],
-                ["Palier 2", "75 %", "695 029", "+ 266 162", "≈ 8 870 / jour"],
-                ["Cible", "90 %", "834 034", "+ 405 167", "≈ 13 500 / jour"],
-            ],
-            [70, 55, 110, 100, 100],
-            aligne_a_droite=[1, 2, 3, 4],
+        titre("L'objectif"),
+        encadre(
+            "<b>Faciliter la redistribution des factures SOCADEL par WhatsApp</b>, "
+            "le réseau social le plus utilisé par les clients. Tout le reste, "
+            "le bordereau papier, les itinéraires, la vérification, n'existe "
+            "que pour servir cet objectif : mettre en face de chaque abonné un "
+            "numéro WhatsApp valide, par lequel sa facture lui parviendra."
         ),
-        legende(
-            "Les paliers rendent la progression lisible chaque semaine et permettent "
-            "de réajuster le dispositif avant la fin de la campagne."
+        Spacer(1, 5 * mm),
+        p(
+            "La collecte s'appuie sur un réseau déjà en place. SOCADEL compte "
+            "<b>181 agences</b> réparties sur les dix régions du Cameroun, "
+            "regroupées en 33 divisions et 9 directions régionales, pour un "
+            "portefeuille de <b>425 920 clients</b> dans le référentiel chargé. "
+            "Le détail de ce maillage fait l'objet d'un document séparé."
         ),
         titre("Le problème que l'application résout"),
         p(
-            "Les agents de terrain — les distributeurs, qui font déjà la tournée des "
-            "factures papier — parcourent des itinéraires de relève et accompagnent "
+            "Les agents de terrain, les distributeurs, qui font déjà la tournée des "
+            "factures papier, parcourent des itinéraires de relève et accompagnent "
             "les clients dans le parcours d'enrôlement. Ils travaillent sur papier. "
             "C'est le superviseur qui saisit leur production dans l'application, "
             "agent par agent, jour après jour."
@@ -116,7 +130,7 @@ def _besoin() -> list:
             "<b>Le principe fondateur.</b> Une déclaration de superviseur n'est pas "
             "une vérité. Quand un client s'abonne réellement, son contrat remonte au "
             "référentiel SOCADEL via le ChatBot et la plateforme MRA. Le système "
-            "confronte alors chaque déclaration à ce référentiel — et c'est ce "
+            "confronte alors chaque déclaration à ce référentiel, et c'est ce "
             "recoupement, jamais la déclaration seule, qui détermine ce qui sera payé "
             "à l'agent. La recommandation métier est explicite : « verser la prime "
             "uniquement sur les parcours menés jusqu'à la confirmation finale »."
@@ -143,11 +157,11 @@ def _parties_prenantes() -> list:
         tableau(
             [
                 ["Entité", "Responsabilité", "Utilise l'app ?"],
-                ["NEXT LTD", "ChatBot, plateforme, support technique, suivi des enrôlements", "Oui — administrateur"],
-                ["SOCADEL", "Donneur d'ordre, émetteur des factures", "Oui — superviseurs"],
-                ["Régions / Centres de relève / DPSR", "Impression, distribution des supports, collecte terrain", "Oui — agents"],
+                ["NEXT LTD", "ChatBot, plateforme, support technique, suivi des enrôlements", "Oui, administrateur"],
+                ["SOCADEL", "Donneur d'ordre, émetteur des factures", "Oui, superviseurs"],
+                ["Régions / Centres de relève / DPSR", "Impression, distribution des supports, collecte terrain", "Oui, agents"],
                 ["DASI", "Configuration du tunnel entre le ChatBot et la facturation", "Non"],
-                ["Facturation", "Push WhatsApp, traitement des données à J+1, ajustements", "Non — via MRA"],
+                ["Facturation", "Push WhatsApp, traitement des données à J+1, ajustements", "Non, via MRA"],
                 ["DCO / Marketing", "Communication de l'opération, interne et partenaires", "Non"],
             ],
             [110, 240, 80],
@@ -178,50 +192,86 @@ def _acteurs() -> list:
         PageBreak(),
         titre("3. Les acteurs du système", "h1"),
         p(
-            "Trois rôles disposent d'un compte de connexion, et trois systèmes "
-            "externes interviennent dans le flux sans que l'application les pilote."
+            "Quatre rôles disposent d'un compte de connexion, répartis en deux "
+            "camps. NEXT LTD édite et exploite la plateforme, d'où le super "
+            "utilisateur. SOCADEL s'en sert, d'où l'administrateur, les "
+            "superviseurs et les agents. Trois systèmes externes interviennent "
+            "dans le flux sans que l'application les pilote."
         ),
         titre("Acteurs humains"),
         tableau(
             [
-                ["Acteur", "Ce qu'il fait", "Portée des données"],
+                ["Acteur", "Chez qui", "Ce qu'il fait", "Portée des données"],
+                [
+                    "Super utilisateur",
+                    "NEXT LTD",
+                    "Exploite la plateforme. Seul à pouvoir changer le rôle d'un "
+                    "compte et administrer le référentiel, les deux leviers qui "
+                    "engagent le fonctionnement du système lui-même.",
+                    "Tout, sans restriction",
+                ],
                 [
                     "Administrateur",
-                    "Ouvre et ferme les accès, rattache les comptes agent à leur "
-                    "fiche, définit les périmètres. Exerce aussi tous les droits du "
-                    "superviseur.",
-                    "Toutes les données, sans restriction",
+                    "SOCADEL",
+                    "Responsable côté client. Approuve les demandes d'accès, "
+                    "attribue les périmètres, réinitialise les mots de passe de "
+                    "ses équipes. Exerce aussi tous les droits du superviseur.",
+                    "Toutes les données SOCADEL",
                 ],
                 [
                     "Superviseur",
+                    "SOCADEL, une agence",
                     "Affecte les itinéraires, imprime les bordereaux, saisit la "
-                    "production, importe, vérifie, exporte. Gère le répertoire des "
-                    "agents (CRUD complet).",
-                    "Son périmètre territorial, ou national si aucun n'est défini",
+                    "production, importe, vérifie, exporte. Gère le répertoire "
+                    "des agents.",
+                    "Son agence ou sa région, obligatoirement",
                 ],
                 [
                     "Agent de terrain",
-                    "Se connecte et consulte ses itinéraires confiés, ses KPI et son "
-                    "évolution. Rien d'autre : il travaille sur papier.",
-                    "Sa seule production, imposée par la garde ABAC",
+                    "SOCADEL, terrain",
+                    "Se connecte et consulte ses itinéraires confiés et ses "
+                    "chiffres. Rien d'autre : il travaille sur papier.",
+                    "Sa seule production",
                 ],
             ],
-            [90, 250, 130],
+            [72, 78, 200, 120],
+        ),
+        encadre(
+            "<b>La différence entre le super utilisateur et l'administrateur.</b> "
+            "Elle n'est pas de degré mais de nature. L'administrateur SOCADEL "
+            "<i>exploite</i> la plateforme : il ouvre les accès de ses équipes, "
+            "définit qui voit quelle agence, débloque un mot de passe oublié. Le "
+            "super utilisateur NEXT LTD en <i>répond</i> : il peut changer le "
+            "rôle d'un compte existant, y compris promouvoir un administrateur, "
+            "et administrer le référentiel sur lequel repose toute la "
+            "vérification. Ces deux leviers touchent au fonctionnement du "
+            "système, pas à son usage quotidien."
         ),
         titre("Systèmes externes"),
         tableau(
             [
                 ["Système", "Rôle", "Relation"],
-                ["ChatBot WhatsApp", "Enrôle le client en six étapes, dans WhatsApp", "Hors périmètre — NEXT LTD"],
-                ["Plateforme MRA", "Gestion des factures SOCADEL ; reçoit l'enrôlement", "Hors périmètre — SOCADEL"],
+                ["ChatBot WhatsApp", "Enrôle le client en six étapes, dans WhatsApp", "Hors périmètre, NEXT LTD"],
+                ["Plateforme MRA", "Gestion des factures SOCADEL ; reçoit l'enrôlement", "Hors périmètre, SOCADEL"],
                 ["Référentiel clients", "Source de vérité des abonnements confirmés", "Consommé en lecture"],
             ],
             [110, 220, 140],
         ),
         Spacer(1, 5 * mm),
+        titre("Comment lire ce diagramme", "h3"),
+        p(
+            "Le rectangle bleu au centre est la plateforme. À sa gauche, les "
+            "bonshommes sont les personnes qui s'y connectent ; les flèches qui "
+            "en partent disent ce que chacun vient y faire. À droite, les trois "
+            "cadres pâles sont des systèmes qui existent indépendamment de "
+            "nous. <b>Les flèches en pointillé signalent ce que la plateforme ne "
+            "pilote pas</b> : le ChatBot et MRA appartiennent à d'autres "
+            "périmètres. La seule flèche pleine vers la droite, « vérifie », est "
+            "le lien que nous exerçons vraiment."
+        ),
         diagrammes.contexte(),
         legende(
-            "Diagramme de contexte — le système, ses acteurs et son écosystème. "
+            "Diagramme de contexte, le système, ses acteurs et son écosystème. "
             "Les liens pointillés marquent ce qui reste hors périmètre."
         ),
     ]
@@ -236,7 +286,17 @@ def _cas_utilisation() -> list:
             "de chaque rôle est justement ce qu'il faut faire ressortir, et un "
             "diagramme unique la noierait."
         ),
-        titre("4.1 Superviseur — l'acteur principal"),
+        titre("4.1 Superviseur, l'acteur principal"),
+        titre("Comment lire ces diagrammes", "h3"),
+        p(
+            "Le grand cadre gris délimite la plateforme : ce qui est dedans est "
+            "réalisé par le logiciel. Chaque ovale est un <b>cas d'utilisation</b>, "
+            "c'est-à-dire un service rendu à l'acteur, formulé de son point de "
+            "vue et non du point de vue technique. Les traits relient l'acteur "
+            "aux cas qu'il peut déclencher : leur nombre donne d'un coup d'œil "
+            "l'étendue de son rôle. Comparez les trois pages qui suivent, la "
+            "différence de longueur des listes est le message principal."
+        ),
         diagrammes.cas_superviseur(),
         legende("Cas d'utilisation du superviseur."),
         titre("Détail des cas"),
@@ -255,7 +315,7 @@ def _cas_utilisation() -> list:
             [95, 145, 230],
         ),
         PageBreak(),
-        titre("4.2 Agent de terrain — consultation seule", "h2"),
+        titre("4.2 Agent de terrain, consultation seule", "h2"),
         diagrammes.cas_agent(),
         legende("Cas d'utilisation de l'agent de terrain."),
         encadre(
@@ -266,7 +326,7 @@ def _cas_utilisation() -> list:
             "appréciable : son compte, même compromis, ne permet aucune écriture."
         ),
         Spacer(1, 6 * mm),
-        titre("4.3 Administrateur — gouvernance des accès", "h2"),
+        titre("4.3 Administrateur, gouvernance des accès", "h2"),
         diagrammes.cas_administrateur(),
         legende("Cas d'utilisation de l'administrateur."),
     ]
@@ -284,10 +344,23 @@ def _domaine() -> list:
             "<font face='Courier'>LigneBordereau.declarer()</font>, pas par un "
             "contrôle de formulaire."
         ),
+        titre("Comment lire ce diagramme", "h3"),
+        p(
+            "Chaque rectangle est une <b>classe</b> : son nom en haut sur fond "
+            "bleu, ses données en dessous. La mention entre guillemets doubles, "
+            "« entité » ou « service », indique sa nature. Les flèches sont les "
+            "relations, et leur étiquette se lit dans le sens de la flèche : "
+            "« matérialise 1..* » signifie qu'une affectation donne naissance à "
+            "une ou plusieurs lignes de bordereau. Le petit losange plein marque "
+            "une <b>composition</b> : les lignes n'existent pas sans leur "
+            "affectation. Les couleurs portent le sens du dispositif : en vert "
+            "ce que le superviseur déclare, en orange ce que le référentiel "
+            "établit, et entre les deux le service qui les confronte."
+        ),
         diagrammes.classes_domaine(),
         legende(
-            "Diagramme de classes du domaine. En vert la ligne de bordereau — ce que "
-            "le superviseur déclare ; en orange le client — ce que le référentiel "
+            "Diagramme de classes du domaine. En vert la ligne de bordereau, ce que "
+            "le superviseur déclare ; en orange le client, ce que le référentiel "
             "établit. Le service de vérification confronte les deux."
         ),
         NextPageTemplate("portrait"),
@@ -321,7 +394,7 @@ def _domaine() -> list:
         titre("La règle de vérification", "h2"),
         p(
             "C'est le cœur du dispositif. Elle est isolée dans un service de domaine "
-            "pur — sans base ni transport — et se lit en quelques lignes :"
+            "pur, sans base ni transport, et se lit en quelques lignes :"
         ),
         tableau(
             [
@@ -355,8 +428,19 @@ def _dynamique() -> list:
             "qu'on lui confie. L'opération fait deux choses d'un coup : elle trace le "
             "briefing et elle <b>matérialise le bordereau</b>."
         ),
+        titre("Comment lire un diagramme de séquence", "h3"),
+        p(
+            "Les rectangles du haut sont les <b>participants</b>, et le trait "
+            "vertical pointillé sous chacun est sa ligne de vie : le temps "
+            "s'écoule vers le bas. Chaque flèche horizontale est un message, "
+            "envoyé par le participant de départ à celui d'arrivée. Les flèches "
+            "<b>pleines et bleues</b> sont des demandes, les <b>pointillées et "
+            "grises</b> des réponses. La barre bleue posée sur une ligne de vie "
+            "indique que ce participant est en train de travailler. Lire de haut "
+            "en bas donne donc l'ordre exact des opérations."
+        ),
         diagrammes.sequence_affectation(),
-        legende("Séquence — affectation d'un itinéraire et génération du bordereau."),
+        legende("Séquence, affectation d'un itinéraire et génération du bordereau."),
         encadre(
             "<b>Plusieurs itinéraires, plusieurs fois.</b> Un bon collecteur reçoit "
             "plusieurs tournées, parfois en cours de journée. Chaque appel ajoute des "
@@ -368,7 +452,7 @@ def _dynamique() -> list:
         titre("6.2 La saisie et le recoupement", "h2"),
         diagrammes.sequence_verification(),
         legende(
-            "Séquence — déclaration du superviseur, puis confrontation au référentiel."
+            "Séquence, déclaration du superviseur, puis confrontation au référentiel."
         ),
         Spacer(1, 4 * mm),
         titre("6.3 L'import en deux temps", "h2"),
@@ -378,7 +462,7 @@ def _dynamique() -> list:
             "superviseur confirme."
         ),
         diagrammes.sequence_import(),
-        legende("Séquence — import d'un bordereau rempli."),
+        legende("Séquence, import d'un bordereau rempli."),
         NextPageTemplate("portrait"),
         PageBreak(),
         titre("6.4 Le parcours d'enrôlement du client", "h2"),
@@ -387,9 +471,18 @@ def _dynamique() -> list:
             "est reproduit ici parce qu'il explique ce que « abonné » veut dire, et "
             "pourquoi le référentiel peut faire foi."
         ),
+        titre("Comment lire ce diagramme", "h3"),
+        p(
+            "Le disque plein en haut à gauche est le point de départ, le cercle "
+            "creux en bas à droite la fin. Chaque rectangle est une étape, les "
+            "flèches donnent l'ordre. Le <b>losange</b> au milieu est une "
+            "décision : deux issues en partent, étiquetées OUI et NON, et le "
+            "chemin NON boucle vers la saisie précédente pour que le client "
+            "corrige sans quitter la conversation."
+        ),
         diagrammes.activite_enrolement(),
         legende(
-            "Diagramme d'activité — l'enrôlement WhatsApp, de la présentation du QR "
+            "Diagramme d'activité, l'enrôlement WhatsApp, de la présentation du QR "
             "code à la remontée vers le référentiel."
         ),
     ]
@@ -405,14 +498,24 @@ def _architecture() -> list:
             "test et que la vraie source de vérité arrivera par une API tierce. Le "
             "système doit donc pouvoir changer de source sans être réécrit."
         ),
+        titre("Comment lire ce schéma", "h3"),
+        p(
+            "Les trois bandes empilées sont les couches du logiciel, la plus "
+            "intérieure en bas et la plus foncée. Les flèches verticales disent "
+            "« dépend de » et <b>pointent toutes vers le bas</b> : c'est la règle "
+            "de dépendance. La bande grise du dessous, l'infrastructure, n'a pas "
+            "de flèche vers le haut : elle fournit des implémentations sans "
+            "jamais être nommée par les couches supérieures, ce que figure le "
+            "trait qui la contourne."
+        ),
         diagrammes.architecture(),
         legende("Les quatre couches et le sens des dépendances."),
         tableau(
             [
                 ["Couche", "Contient", "Ne connaît pas"],
-                ["domain/", "Entités, objets-valeurs, services de domaine, politique d'habilitation", "Rien — aucun framework"],
+                ["domain/", "Entités, objets-valeurs, services de domaine, politique d'habilitation", "Rien, aucun framework"],
                 ["application/", "Cas d'usage, ports (protocoles), DTO", "Aucun framework ; seulement le domaine"],
-                ["infrastructure/", "PostgreSQL, bcrypt, JWT, openpyxl, reportlab, stockage média", "—"],
+                ["infrastructure/", "PostgreSQL, bcrypt, JWT, openpyxl, reportlab, stockage média", ", "],
                 ["interfaces/", "Routes HTTP, schémas Pydantic, mappage des erreurs", "La base de données"],
             ],
             [80, 250, 140],
@@ -450,6 +553,15 @@ def _donnees() -> list:
         NextPageTemplate("paysage"),
         PageBreak(),
         titre("8. Le modèle de données", "h1"),
+        titre("Comment lire ce diagramme", "h3"),
+        p(
+            "Même lecture que le diagramme de classes, appliquée aux tables. "
+            "<b>PK</b> désigne la clé primaire, <b>FK</b> une clé étrangère qui "
+            "pointe vers une autre table, <b>UQ</b> une contrainte d'unicité. "
+            "Les étiquettes des flèches sont les cardinalités : « 1..N » se lit "
+            "« un enregistrement de gauche correspond à un ou plusieurs à "
+            "droite ». Les deux tables en couleur sont les volumineuses."
+        ),
         diagrammes.modele_donnees(),
         legende(
             "Modèle physique PostgreSQL. Les volumétries indiquées sont celles de la "
@@ -469,7 +581,7 @@ def _donnees() -> list:
                 ["Table de 425 920 lignes", "Filtres, tri et pagination traduits en SQL, jamais appliqués en mémoire"],
                 ["Vérification d'un lot", "Chargement des clients en une seule requête groupée, au lieu d'un accès par ligne"],
                 ["Limite de 32 767 paramètres liés (PostgreSQL)", "Insertions découpées en lots calculés à partir du nombre de colonnes"],
-                ["Import du référentiel (46 Mo)", "Lecture en flux, écriture par paquets de 5 000 — le classeur n'est jamais chargé entier"],
+                ["Import du référentiel (46 Mo)", "Lecture en flux, écriture par paquets de 5 000, le classeur n'est jamais chargé entier"],
                 ["Exports potentiellement massifs", "Plafond de 50 000 lignes, signalé au client par un en-tête dédié"],
                 ["Cinq requêtes de KPI en parallèle", "Une session par requête : une session SQLAlchemy ne supporte qu'une opération à la fois"],
             ],
@@ -486,8 +598,17 @@ def _habilitations() -> list:
             "Deux mécanismes répondent à deux questions distinctes. Les confondre est "
             "la source habituelle des fuites de données."
         ),
+        titre("Comment lire ce schéma", "h3"),
+        p(
+            "Une requête entre par le haut et se voit attribuer un contexte "
+            "d'accès. Deux chemins en partent : à gauche le contrôle RBAC, qui "
+            "répond par oui ou non et peut refuser la requête ; à droite la "
+            "garde ABAC, qui ne refuse rien mais <b>réécrit le périmètre</b> de "
+            "la demande. Les deux encadrés du bas montrent les issues : un refus "
+            "à gauche, un périmètre rétréci à droite."
+        ),
         diagrammes.habilitations(),
-        legende("RBAC et ABAC — le « quoi » et le « sur quoi »."),
+        legende("RBAC et ABAC : le « quoi » et le « sur quoi »."),
         encadre(
             "<b>Le choix décisif.</b> L'ABAC ne valide pas un accès déjà formulé : il "
             "<b>réécrit le filtre</b> avant qu'il n'atteigne la base. Un agent qui "
@@ -501,23 +622,55 @@ def _habilitations() -> list:
         legende(
             "Matrice RBAC appliquée dans le code "
             "(<font face='Courier'>domain/securite/permissions.py</font>). "
-            "L'administrateur porte l'intégralité des permissions."
+            "Seul le super utilisateur NEXT LTD porte l'intégralité des permissions. Les deux que l'administrateur SOCADEL n'a pas, changer un rôle et administrer le référentiel, engagent le fonctionnement de la plateforme."
         ),
         titre("Règles ABAC", "h2"),
         tableau(
             [
-                ["Rôle", "Rétrécissement appliqué"],
-                ["Administrateur", "Aucun — périmètre complet"],
-                ["Superviseur", "Sa région et son agence, si un périmètre lui est défini ; sinon national"],
-                ["Agent de terrain", "Son propre agent_id, imposé quoi qu'il demande"],
+                ["Rôle", "Rétrécissement appliqué au filtre"],
+                ["Super utilisateur", "Aucun, portée nationale"],
+                ["Administrateur", "Aucun, portée nationale sur les données SOCADEL"],
+                [
+                    "Superviseur",
+                    "Son agence et sa région, imposées. <b>Sans périmètre défini, "
+                    "la requête est refusée</b> plutôt que d'ouvrir le national : "
+                    "SOCADEL compte 181 agences, et un superviseur de Kribi n'a "
+                    "pas à voir la production de Ngaoundéré.",
+                ],
+                ["Agent de terrain", "Son propre identifiant d'agent, imposé quoi qu'il demande"],
             ],
             [110, 360],
+        ),
+        titre("La hiérarchie des rôles", "h2"),
+        p(
+            "Le RBAC dit ce qu'un rôle peut faire, l'ABAC sur quelles données. "
+            "Une troisième règle dit <b>sur qui</b> : chacun n'agit que sur les "
+            "rangs strictement inférieurs au sien."
+        ),
+        tableau(
+            [
+                ["Rang", "Rôle", "Peut agir sur", "Ne peut pas agir sur"],
+                ["3", "Super utilisateur", "Les trois rangs inférieurs", "Un autre super utilisateur"],
+                ["2", "Administrateur", "Superviseur, agent", "Un pair, le super utilisateur"],
+                ["1", "Superviseur", "Agent de terrain", "Un pair, et au-dessus"],
+                ["0", "Agent de terrain", "Personne", "Tout le monde"],
+            ],
+            [45, 110, 150, 165],
+            aligne_a_droite=[0],
+        ),
+        legende(
+            "Règle vérifiée par un test qui parcourt les seize combinaisons "
+            "possibles de rôle appelant et de rôle cible."
         ),
     ]
 
 
 def _matrice_permissions():
-    """Matrice construite depuis le code, pas recopiée à la main."""
+    """Matrice construite depuis le code, pas recopiée à la main.
+
+    Elle est lue dans `domain.securite.MATRICE` au moment de la génération :
+    le document ne peut donc pas diverger de ce que la plateforme applique.
+    """
     import sys
     from pathlib import Path
 
@@ -525,29 +678,32 @@ def _matrice_permissions():
     from bordereau.domain.enums import Role
     from bordereau.domain.securite import MATRICE, Permission
 
-    lignes = [["Permission", "Admin.", "Superviseur", "Agent"]]
+    ordre = (
+        Role.SUPER_UTILISATEUR,
+        Role.ADMINISTRATEUR,
+        Role.SUPERVISEUR,
+        Role.AGENT_TERRAIN,
+    )
+    lignes = [["Permission", "Super utilis.", "Admin.", "Superviseur", "Agent"]]
     for permission in Permission:
         lignes.append(
             [
                 permission.value,
                 *[
-                    "✓" if permission in MATRICE[role] else "—"
-                    for role in (
-                        Role.ADMINISTRATEUR,
-                        Role.SUPERVISEUR,
-                        Role.AGENT_TERRAIN,
-                    )
+                    "oui" if permission in MATRICE[role] else "."
+                    for role in ordre
                 ],
             ]
         )
 
-    return tableau(lignes, [200, 80, 100, 90], aligne_a_droite=[1, 2, 3], taille=7.5)
-
+    return tableau(
+        lignes, [170, 80, 70, 85, 65], aligne_a_droite=[1, 2, 3, 4], taille=7
+    )
 
 def _charte() -> list:
     return [
         PageBreak(),
-        titre("10. La charte graphique", "h1"),
+        titre("12. La charte graphique", "h1"),
         p(
             "L'identité repose sur deux couleurs seulement : le <b>bleu du logo "
             "SOCADEL</b> et le <b>blanc</b>. Le bleu a été échantillonné directement "
@@ -567,8 +723,8 @@ def _charte() -> list:
         titre("Thèmes clair et sombre"),
         p(
             "Le thème sombre n'est pas une inversion automatique : ses valeurs sont "
-            "choisies pour leur propre surface. L'utilisateur dispose de trois états — "
-            "clair, sombre, ou suivre le système — et son choix est conservé."
+            "choisies pour leur propre surface. L'utilisateur dispose de trois états, "
+            "clair, sombre, ou suivre le système, et son choix est conservé."
         ),
         titre("Couleurs des graphiques"),
         p(
@@ -594,7 +750,7 @@ def _charte() -> list:
         titre("Internationalisation"),
         p(
             "L'interface est intégralement disponible en français et en anglais. Le "
-            "français est la langue de référence — celle du métier SOCADEL — et le "
+            "français est la langue de référence, celle du métier SOCADEL, et le "
             "type des clés de traduction est dérivé du dictionnaire français : une clé "
             "oubliée en anglais devient une erreur de compilation, pas une chaîne "
             "manquante découverte en production."
@@ -605,7 +761,7 @@ def _charte() -> list:
 def _decisions() -> list:
     return [
         PageBreak(),
-        titre("11. Les décisions de conception", "h1"),
+        titre("13. Les décisions de conception", "h1"),
         p(
             "Les choix ci-dessous ont été pris en connaissance de leurs alternatives. "
             "Ils sont listés avec ce qui les motive."
@@ -626,7 +782,7 @@ def _decisions() -> list:
             "Un seul objet de filtre",
             "Le même objet sert le listing, les exports et les KPI. C'est ce qui "
             "garantit qu'un export contient exactement ce que le superviseur voit à "
-            "l'écran — un écart entre les deux serait invisible et coûteux.",
+            "l'écran, un écart entre les deux serait invisible et coûteux.",
         ),
         _decision(
             "Lecture et écriture séparées pour les indicateurs",
@@ -673,7 +829,7 @@ def _decision(titre_court: str, justification: str):
 def _limites() -> list:
     return [
         PageBreak(),
-        titre("12. Limites connues et suite", "h1"),
+        titre("14. Limites connues et suite", "h1"),
         p(
             "Ce qui suit est énoncé sans détour : un dossier de conception qui tairait "
             "ses zones d'ombre ne servirait à rien."
@@ -725,9 +881,265 @@ def _limites() -> list:
         Spacer(1, 8 * mm),
         encadre(
             "<b>Sur la qualité du logiciel.</b> Le backend est couvert par 91 tests "
-            "automatisés — domaine, cas d'usage, adaptateurs de fichiers et API HTTP "
+            "automatisés, domaine, cas d'usage, adaptateurs de fichiers et API HTTP "
             "complète, habilitations comprises. Le parcours complet a par ailleurs été "
             "déroulé contre une instance PostgreSQL réelle chargée des 425 920 clients."
+        ),
+    ]
+
+
+
+def _cycle_de_vie_comptes() -> list:
+    return [
+        PageBreak(),
+        titre("10. L'ouverture des accès", "h1"),
+        p(
+            "La plateforme porte le référentiel clients de SOCADEL, plus de "
+            "quatre cent mille noms et numéros de téléphone. Un accès ne "
+            "s'obtient donc pas en remplissant un formulaire : <b>s'inscrire "
+            "dépose une demande</b>, elle n'ouvre rien."
+        ),
+        titre("Les quatre étapes"),
+        tableau(
+            [
+                ["Étape", "Qui agit", "Ce qui se passe", "État du compte"],
+                [
+                    "1. Inscription",
+                    "Le demandeur",
+                    "Il choisit son identifiant, son adresse et son propre mot "
+                    "de passe, saisi deux fois.",
+                    "En attente de vérification",
+                ],
+                [
+                    "2. Confirmation",
+                    "Le demandeur",
+                    "Il ouvre le lien reçu par courriel, valable trois jours.",
+                    "En attente d'approbation",
+                ],
+                [
+                    "3. Approbation",
+                    "Un responsable",
+                    "Il attribue le rôle et, pour un superviseur, le périmètre.",
+                    "Actif",
+                ],
+                [
+                    "4. Notification",
+                    "La plateforme",
+                    "Un second courriel confirme l'ouverture de l'accès.",
+                    "Actif",
+                ],
+            ],
+            [80, 75, 200, 115],
+        ),
+        legende(
+            "Tant que le compte n'est pas actif, la connexion est refusée même "
+            "avec le bon mot de passe, et le message explique précisément à "
+            "quelle étape le dossier est bloqué."
+        ),
+        encadre(
+            "<b>Pourquoi l'approbation ne peut pas être automatique.</b> Deux "
+            "informations manquent au formulaire d'inscription et ne peuvent "
+            "venir que d'un responsable : le <i>rôle</i>, car personne ne "
+            "s'attribue ses propres droits, et le <i>périmètre</i>, car il "
+            "faut savoir de quelle agence relève ce superviseur parmi les 181 "
+            "du réseau. Un compte agent doit en outre être rattaché à sa fiche "
+            "terrain, faute de quoi la garde ABAC ne saurait pas quelles "
+            "données lui montrer."
+        ),
+        titre("La politique de mot de passe", "h2"),
+        p(
+            "Elle suit les recommandations actuelles du NIST : privilégier la "
+            "<b>longueur</b> et refuser les mots notoirement compromis, plutôt "
+            "qu'imposer un jeu de caractères qui pousse surtout à écrire "
+            "« Password1! » sur un papier collé à l'écran."
+        ),
+        tableau(
+            [
+                ["Règle", "Motif"],
+                ["Au moins dix caractères", "La longueur protège plus que la variété"],
+                [
+                    "Ni mot courant, ni terme du projet",
+                    "« socadel », « bordereau » et leurs variantes accentuées "
+                    "sont les premiers essais d'un attaquant",
+                ],
+                [
+                    "Ni reprise de l'identifiant ou de l'adresse",
+                    "Un mot de passe déductible du login n'en est pas un",
+                ],
+                [
+                    "Double saisie à l'inscription",
+                    "Une faute de frappe verrouillerait le titulaire dehors",
+                ],
+            ],
+            [175, 255],
+        ),
+        p(
+            "La règle vit dans le domaine, pas dans un validateur de "
+            "formulaire : elle s'applique donc à l'identique à l'inscription, "
+            "au changement volontaire et à la réinitialisation. L'interface "
+            "affiche une jauge en direct pendant la saisie, alimentée par la "
+            "même fonction que celle qui tranchera à l'enregistrement : "
+            "l'évaluation montrée et la règle appliquée ne peuvent pas diverger."
+        ),
+        PageBreak(),
+        titre("Le mot de passe oublié", "h2"),
+        p("Deux chemins, selon que le titulaire a encore accès à sa boîte."),
+        tableau(
+            [
+                ["Situation", "Mécanisme", "Garde-fou"],
+                [
+                    "Il a accès à sa boîte",
+                    "Lien de réinitialisation envoyé par courriel, valable deux "
+                    "heures et utilisable une seule fois.",
+                    "La réponse est toujours identique, que l'adresse existe ou "
+                    "non : dire « adresse inconnue » indiquerait qui possède un "
+                    "compte.",
+                ],
+                [
+                    "Il n'y a plus accès",
+                    "Un responsable réinitialise. La plateforme génère un mot "
+                    "de passe provisoire sans I, l, O ni 0, pour qu'il se dicte "
+                    "au téléphone sans confusion.",
+                    "Le provisoire n'est jamais écrit dans le courriel, et le "
+                    "titulaire doit le remplacer dès la connexion suivante.",
+                ],
+            ],
+            [95, 180, 155],
+        ),
+        titre("Qui peut réinitialiser pour qui", "h2"),
+        p(
+            "La même règle qu'ailleurs : <b>strictement au-dessus</b>. Elle est "
+            "vérifiée par un test qui parcourt les seize combinaisons possibles."
+        ),
+        tableau(
+            [
+                ["Le rôle...", "peut agir sur", "ne peut pas agir sur"],
+                ["Super utilisateur", "Administrateur, superviseur, agent", "Un autre super utilisateur"],
+                ["Administrateur", "Superviseur, agent", "Un autre administrateur, le super utilisateur"],
+                ["Superviseur", "Agent", "Un autre superviseur, et au-dessus"],
+                ["Agent de terrain", "Personne", "Tout le monde"],
+            ],
+            [110, 165, 155],
+        ),
+        encadre(
+            "<b>Ce que cette règle empêche concrètement.</b> Un compte "
+            "d'administrateur compromis ne permet pas de se créer un complice "
+            "au même rang, ni de toucher au compte NEXT LTD qui l'a ouvert. "
+            "L'escalade de privilèges par création de compte est structurellement "
+            "fermée, ce n'est pas une vérification qu'on pourrait oublier "
+            "d'appeler quelque part."
+        ),
+        titre("Les courriels", "h2"),
+        p(
+            "Quatre messages transactionnels : confirmation d'adresse, "
+            "ouverture d'accès, refus, réinitialisation. Ils sont courts et "
+            "disent qui écrit, pourquoi, et quoi faire."
+        ),
+        p(
+            "L'envoi passe par un port applicatif, avec deux implémentations. "
+            "En développement, les messages sont <b>écrits sur disque</b>, un "
+            "fichier par courriel : on relit le lien sans configurer de serveur. "
+            "En production, un adaptateur SMTP prend le relais, et rien d'autre "
+            "ne change dans le code."
+        ),
+        encadre(
+            "<b>Un envoi qui échoue ne fait jamais échouer l'opération.</b> Un "
+            "compte créé dont le courriel n'est pas parti reste un compte créé, "
+            "et le lien peut être renvoyé. Faire tomber une inscription parce "
+            "que le serveur de messagerie tousse serait un mauvais échange."
+        ),
+    ]
+
+
+
+def _bascule_source() -> list:
+    return [
+        PageBreak(),
+        titre("11. Changer de source de vérité", "h1"),
+        p(
+            "C'est la question posée dès le départ : la base actuelle est une "
+            "base de test, et la vraie source de vérité arrivera par l'API que "
+            "NEXT LTD exposera sur la base MRA. Ce chapitre montre ce que cette "
+            "bascule coûtera réellement."
+        ),
+        titre("Ce qui est déjà en place"),
+        p(
+            "La couche application ne connaît pas PostgreSQL. Elle déclare un "
+            "<b>port</b>, c'est-à-dire un contrat, et l'infrastructure fournit "
+            "une implémentation. Le contrat qui porte la source de vérité tient "
+            "en cinq méthodes :"
+        ),
+        tableau(
+            [
+                ["Méthode du port ClientRepository", "Ce qu'elle rend"],
+                ["par_service_no(numero)", "Un client, ou rien"],
+                ["par_services_no(numeros)", "Plusieurs clients d'un coup, indexés par contrat"],
+                ["par_itineraire(code)", "Les clients d'une tournée"],
+                ["compter_par_itineraire(code)", "Leur nombre"],
+                ["enregistrer_en_lot(clients)", "Écriture de masse, pour l'import initial"],
+            ],
+            [190, 240],
+        ),
+        titre("Ce que la bascule demandera"),
+        tableau(
+            [
+                ["Élément", "À faire", "Ampleur"],
+                [
+                    "Adaptateur d'API",
+                    "Une classe qui implémente les cinq méthodes ci-dessus en "
+                    "appelant l'API NEXT au lieu d'interroger la table.",
+                    "Un fichier nouveau",
+                ],
+                [
+                    "Conteneur",
+                    "Une ligne à changer, celle qui associe le port à son "
+                    "implémentation.",
+                    "Une ligne",
+                ],
+                [
+                    "Domaine, cas d'usage, routes, interface",
+                    "Rien.",
+                    "Aucune modification",
+                ],
+                [
+                    "Tests",
+                    "Les 96 tests existants restent valables : ils s'exécutent "
+                    "déjà contre un double en mémoire, preuve que la couche "
+                    "métier ne dépend d'aucune base.",
+                    "Aucune modification",
+                ],
+            ],
+            [130, 230, 70],
+        ),
+        encadre(
+            "<b>La preuve est déjà faite, pas seulement annoncée.</b> La suite "
+            "de tests exerce l'API HTTP complète, authentification et "
+            "habilitations comprises, en remplaçant PostgreSQL par des objets "
+            "en mémoire. Si le métier était couplé à la base, ces tests ne "
+            "pourraient pas s'écrire. Qu'ils passent démontre que la "
+            "substitution fonctionne : l'adaptateur d'API NEXT sera un troisième "
+            "interlocuteur, au même titre."
+        ),
+        Spacer(1, 5 * mm),
+        titre("Une bascule progressive reste possible", "h2"),
+        p(
+            "Rien n'oblige à basculer d'un bloc. Un adaptateur composite peut "
+            "interroger l'API en premier et retomber sur la table locale quand "
+            "l'API ne répond pas ou ne connaît pas le contrat. Le reste du "
+            "système ne verra aucune différence, puisqu'il ne voit que le "
+            "contrat."
+        ),
+        titre("Ce qui restera à décider avec la DSI"),
+        *puces(
+            [
+                "Le format de réponse de l'API et le champ qui porte l'état "
+                "d'abonnement WhatsApp, aujourd'hui « whatsapp_status ».",
+                "Le mode d'authentification à l'API, et où loger le secret.",
+                "La tolérance en cas d'indisponibilité : refuser la "
+                "vérification, ou la différer et la rejouer.",
+                "La fréquence de rafraîchissement, si l'on conserve une copie "
+                "locale pour les écrans de consultation.",
+            ]
         ),
     ]
 
@@ -746,6 +1158,8 @@ def contenu() -> list:
         *_architecture(),
         *_donnees(),
         *_habilitations(),
+        *_cycle_de_vie_comptes(),
+        *_bascule_source(),
         *_charte(),
         *_decisions(),
         *_limites(),

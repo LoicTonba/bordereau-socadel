@@ -52,10 +52,33 @@ class UtilisateurRepositoryPg:
         row = await self._session.get(UtilisateurORM, utilisateur_id)
         return utilisateur_vers_domaine(row) if row else None
 
-    async def lister(self) -> Sequence[Utilisateur]:
-        resultat = await self._session.scalars(
-            select(UtilisateurORM).order_by(UtilisateurORM.nom_complet.asc())
+    async def par_email(self, email: str) -> Utilisateur | None:
+        row = await self._session.scalar(
+            select(UtilisateurORM).where(
+                UtilisateurORM.email == email.strip().lower()
+            )
         )
+        return utilisateur_vers_domaine(row) if row else None
+
+    async def par_jeton_verification(self, jeton: str) -> Utilisateur | None:
+        row = await self._session.scalar(
+            select(UtilisateurORM).where(UtilisateurORM.jeton_verification == jeton)
+        )
+        return utilisateur_vers_domaine(row) if row else None
+
+    async def par_jeton_reinitialisation(self, jeton: str) -> Utilisateur | None:
+        row = await self._session.scalar(
+            select(UtilisateurORM).where(
+                UtilisateurORM.jeton_reinitialisation == jeton
+            )
+        )
+        return utilisateur_vers_domaine(row) if row else None
+
+    async def lister(self, *, statut: str | None = None) -> Sequence[Utilisateur]:
+        requete = select(UtilisateurORM).order_by(UtilisateurORM.nom_complet.asc())
+        if statut is not None:
+            requete = requete.where(UtilisateurORM.statut == statut)
+        resultat = await self._session.scalars(requete)
         return [utilisateur_vers_domaine(row) for row in resultat]
 
     async def enregistrer(self, utilisateur: Utilisateur) -> None:

@@ -4,7 +4,7 @@ Deux documents distincts :
 
 * le **bordereau de terrain**, imprimé et confié à l'agent. Sa mise en page
   reproduit fidèlement `bordereau.xlsx / Feuil3` : titre de campagne, puis un
-  bloc par itinéraire — en-tête `ITINERAIRE / Total client / OK-MRA`, colonnes
+  bloc par itinéraire, en-tête `ITINERAIRE / Total client / OK-MRA`, colonnes
   `REF GEO / METER_NO / NOMS / CONTRAT / RAPPORT`, la dernière laissée vide
   pour la saisie manuscrite. C'est le document que les agents connaissent
   déjà ; le changer les obligerait à réapprendre leur outil de travail.
@@ -116,8 +116,8 @@ class ExportateurPdfReportlab:
             rightMargin=12 * mm,
             topMargin=26 * mm,
             bottomMargin=16 * mm,
-            title=f"Bordereau de collecte — {nom_agent}",
-            author="NEXT LTD — Numeric Export Technologies",
+            title=f"Bordereau de collecte, {nom_agent}",
+            author="NEXT LTD, Numeric Export Technologies",
             subject=TITRE_CAMPAGNE,
         )
 
@@ -134,7 +134,7 @@ class ExportateurPdfReportlab:
         if not blocs:
             elements.extend(
                 _bloc_itineraire(
-                    BlocItineraire(0, "—", []), nom_agent, date_travail, styles
+                    BlocItineraire(0, ", ", []), nom_agent, date_travail, styles
                 )
             )
 
@@ -158,18 +158,18 @@ class ExportateurPdfReportlab:
             topMargin=24 * mm,
             bottomMargin=14 * mm,
             title=titre,
-            author="NEXT LTD — Numeric Export Technologies",
+            author="NEXT LTD, Numeric Export Technologies",
         )
 
         styles = _styles()
         elements = [
             Paragraph(titre.upper(), styles["titre"]),
             Paragraph(
-                "SOCADEL &mdash; Société Camerounaise d'Electricité",
+                "SOCADEL, Société Camerounaise d'Electricité",
                 styles["sous_titre"],
             ),
             Paragraph(
-                f"{len(lignes)} ligne(s) &middot; document généré par la "
+                f"{len(lignes)} ligne(s) · document généré par la "
                 f"plateforme de collecte NEXT LTD",
                 styles["mention"],
             ),
@@ -273,8 +273,8 @@ def _bloc_itineraire(
             [
                 Paragraph(TITRE_CAMPAGNE, styles["titre"]),
                 Paragraph(
-                    "SOCADEL &mdash; Société Camerounaise d'Electricité "
-                    "&middot; opération NEXT LTD",
+                    "SOCADEL, Société Camerounaise d'Electricité "
+                    "· opération NEXT LTD",
                     styles["sous_titre"],
                 ),
                 Spacer(1, 4 * mm),
@@ -456,8 +456,8 @@ def _habiller_page(canevas, document) -> None:
     canevas.drawString(
         12 * mm,
         7.5 * mm,
-        "SOCADEL — Société Camerounaise d'Electricité  |  Solution NEXT LTD "
-        "— Numeric Export Technologies",
+        "SOCADEL, Société Camerounaise d'Electricité  |  Solution NEXT LTD "
+        ", Numeric Export Technologies",
     )
     canevas.drawRightString(
         largeur - 12 * mm, 7.5 * mm, f"Page {canevas.getPageNumber()}"

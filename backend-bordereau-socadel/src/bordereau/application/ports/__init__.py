@@ -6,6 +6,7 @@ retournement : l'application les déclare, l'infrastructure s'y conforme.
 """
 
 from .analytics import RequetesAnalytiques
+from .messagerie import Courriel, GenerateurJeton, Messagerie
 from .fichiers import (
     ExportateurCsv,
     ExportateurPdf,
@@ -28,6 +29,8 @@ __all__ = [
     "AgentRepository",
     "ClientRepository",
     "ContenuJeton",
+    "Courriel",
+    "GenerateurJeton",
     "ExportateurCsv",
     "ExportateurPdf",
     "GenerateurModeleImport",
@@ -36,6 +39,7 @@ __all__ = [
     "ItineraireRepository",
     "LecteurTabulaire",
     "LigneBordereauRepository",
+    "Messagerie",
     "RequetesAnalytiques",
     "ServiceJeton",
     "UnitOfWork",

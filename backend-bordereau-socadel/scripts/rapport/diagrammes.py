@@ -303,7 +303,7 @@ def sequence_verification() -> Drawing:
 
     activation(d, api, 248, 56)
 
-    message(d, sup, api, 248, "PATCH /bordereau/{id} — statut ABONNE")
+    message(d, sup, api, 248, "PATCH /bordereau/{id}, statut ABONNE")
     message(d, api, dom, 230, "ligne.declarer(ABONNE, numéro)")
     message(d, dom, api, 212, "verdict remis à NON_VERIFIE", retour=True)
     message(d, api, bd, 194, "UPDATE de la ligne")
@@ -311,7 +311,7 @@ def sequence_verification() -> Drawing:
     trait = Line(40, 178, 660, 178, strokeColor=GRIS_CLAIR, strokeWidth=0.8)
     trait.strokeDashArray = [4, 3]
     d.add(trait)
-    texte(d, 40, 182, "— plus tard : le contrôle —", taille=6.5, couleur=GRIS)
+    texte(d, 40, 182, ", plus tard : le contrôle, ", taille=6.5, couleur=GRIS)
 
     message(d, sup, api, 158, "POST /bordereau/verification")
     message(d, api, bd, 140, "clients par SERVICE_NO, en un seul lot")
@@ -348,7 +348,7 @@ def sequence_import() -> Drawing:
     trait = Line(40, 128, 660, 128, strokeColor=GRIS_CLAIR, strokeWidth=0.8)
     trait.strokeDashArray = [4, 3]
     d.add(trait)
-    texte(d, 40, 132, "— rien n'est encore écrit —", taille=6.5, couleur=GRIS)
+    texte(d, 40, 132, ", rien n'est encore écrit, ", taille=6.5, couleur=GRIS)
 
     message(d, sup, ui, 108, "confirme")
     message(d, ui, api, 90, "POST /imports")
@@ -429,9 +429,9 @@ def architecture() -> Drawing:
     d = Drawing(LARGEUR, 300)
 
     couches = [
-        ("interfaces/ — routes HTTP, schémas Pydantic", 240, BLEU_TRES_CLAIR, BLEU),
-        ("application/ — cas d'usage, ports, DTO", 180, BLEU_CLAIR, BLEU),
-        ("domain/ — entités, objets-valeurs, règles", 120, BLEU, BLEU_SOMBRE),
+        ("interfaces/, routes HTTP, schémas Pydantic", 240, BLEU_TRES_CLAIR, BLEU),
+        ("application/, cas d'usage, ports, DTO", 180, BLEU_CLAIR, BLEU),
+        ("domain/, entités, objets-valeurs, règles", 120, BLEU, BLEU_SOMBRE),
     ]
     for libelle, y, fond, bordure in couches:
         blanc = fond == BLEU
@@ -441,7 +441,7 @@ def architecture() -> Drawing:
               taille=8.5, police=POLICE_GRAS)
 
     boite(d, 90, 40, 290, 46,
-          "infrastructure/ — PostgreSQL, bcrypt, JWT, openpyxl, reportlab",
+          "infrastructure/, PostgreSQL, bcrypt, JWT, openpyxl, reportlab",
           fond=GRIS_FOND, bordure=GRIS, taille=8)
 
     fleche(d, 235, 240, 235, 226, libelle="dépend de")
@@ -477,11 +477,11 @@ def habilitations() -> Drawing:
           fond=BLEU_CLAIR, taille=8.5, police=POLICE_GRAS)
 
     rbac = boite(d, 40, 110, 180, 62,
-                 "RBAC — exiger(permission)",
+                 "RBAC, exiger(permission)",
                  sous_titre="Le rôle porte-t-il ce droit ? Réponse booléenne.",
                  fond=BLANC, bordure=BLEU, taille=8.5, police=POLICE_GRAS)
     abac = boite(d, 250, 110, 180, 62,
-                 "ABAC — restreindre(filtre)",
+                 "ABAC, restreindre(filtre)",
                  sous_titre="Sur quelles données ? Le filtre est réécrit.",
                  fond=BLANC, bordure=ORANGE, taille=8.5, police=POLICE_GRAS)
 

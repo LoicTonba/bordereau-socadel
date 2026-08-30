@@ -40,8 +40,10 @@ class UtilisateurORM(Base, HorodatageMixin):
     identifiant: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     nom_complet: Mapped[str] = mapped_column(String(160), nullable=False)
     empreinte_mot_de_passe: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str] = mapped_column(String(20), nullable=False, default="SUPERVISEUR")
-    actif: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    role: Mapped[str] = mapped_column(String(24), nullable=False, default="SUPERVISEUR")
+    statut: Mapped[str] = mapped_column(
+        String(28), nullable=False, default="EN_ATTENTE_VERIFICATION", index=True
+    )
 
     # Rattachement d'un compte agent à sa fiche terrain : c'est lui qui
     # délimite, côté ABAC, les données que le titulaire pourra voir.
@@ -52,9 +54,32 @@ class UtilisateurORM(Base, HorodatageMixin):
     agence: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
     photo_url: Mapped[str | None] = mapped_column(String(400), nullable=True)
-    email: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    email: Mapped[str] = mapped_column(String(160), nullable=False, unique=True)
+    telephone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
+    # Jetons à usage unique. Indexés : ils servent de clé de recherche quand
+    # l'utilisateur suit un lien reçu par courriel.
+    jeton_verification: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True
+    )
+    jeton_verification_expire_le: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    jeton_reinitialisation: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True
+    )
+    jeton_reinitialisation_expire_le: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     doit_changer_mot_de_passe: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
+    )
+    approuve_le: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    approuve_par: Mapped[UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), nullable=True
     )
     derniere_connexion: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

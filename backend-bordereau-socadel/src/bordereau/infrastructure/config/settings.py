@@ -69,6 +69,22 @@ class Settings(BaseSettings):
     taille_max_import_mo: int = 25
     lignes_max_export: int = 50_000
 
+    # --- Messagerie --------------------------------------------------------
+    url_publique: str = "http://localhost:3000"
+    """Base des liens envoyés par courriel. C'est l'adresse du back-office,
+    pas celle de l'API : le destinataire clique et arrive sur une page."""
+
+    smtp_hote: str | None = None
+    """Laissé vide, les courriels sont écrits sur disque au lieu d'être
+    expédiés. C'est le mode de développement."""
+
+    smtp_port: int = 587
+    smtp_utilisateur: str | None = None
+    smtp_mot_de_passe: str | None = None
+    smtp_tls: bool = True
+    expediteur_courriel: str = "no-reply@numericexport.com"
+    repertoire_courriels: str = "courriels"
+
     # --- Média -------------------------------------------------------------
     repertoire_media: str = "media"
     """Répertoire des photos de profil, servi en statique sous `/media`."""

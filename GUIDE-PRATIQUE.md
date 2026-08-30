@@ -1,4 +1,4 @@
-# Guide pratique — suivre les flux pas à pas
+# Guide pratique, suivre les flux pas à pas
 
 Ce guide se suit dans l'ordre, écran par écran. Chaque étape indique ce que
 vous faites, ce que le système fait derrière, et comment vérifier que c'est
@@ -10,7 +10,7 @@ bien arrivé.
 # 1. La base
 docker compose up -d db
 
-# 2. L'API — port 8001, car 8000 est occupé par votre projet Django
+# 2. L'API, port 8001, car 8000 est occupé par votre projet Django
 cd backend-bordereau-socadel
 python -m uvicorn bordereau.main:app --app-dir src --reload --port 8001
 
@@ -32,33 +32,103 @@ python scripts/seed.py --tout                              # schéma, agents, co
 python scripts/seed.py --referentiel ../Documents/bordereau2.xlsx   # 425 920 clients
 ```
 
-## Les trois connexions
+## Les quatre profils
 
-| Acteur | Identifiant | Mot de passe | Ce qu'il voit |
+| Profil | Chez qui | Portée | Ce qu'il fait de plus que le rang inférieur |
 |---|---|---|---|
-| **Administrateur** | `admin` | `Admin@2026` | Tout, sans restriction. Seul à gérer les comptes. |
-| **Superviseur** | `superviseur` | `Socadel@2026` | Son périmètre. Pilote les agents et le bordereau. |
-| **Agent de terrain** | `ag001` | `Terrain@2026` | Sa seule production. Consultation uniquement. |
+| **Super utilisateur** | NEXT LTD | Nationale, sans limite | Change les rôles, administre le référentiel, réinitialise n'importe quel mot de passe |
+| **Administrateur** | SOCADEL | Nationale | Approuve les demandes d'accès, attribue les périmètres, réinitialise les mots de passe de ses équipes |
+| **Superviseur** | SOCADEL, une agence | Son agence ou sa région | Affecte les itinéraires, saisit la production, gère le répertoire des agents |
+| **Agent de terrain** | SOCADEL, sur le terrain | Sa propre production | Consulte ses chiffres. Rien d'autre |
 
-> Ces mots de passe sont ceux de la mise en route. Chaque titulaire doit les
-> remplacer à sa première connexion, et `SECRET_KEY` doit être régénérée avant
-> toute mise en production :
+**La règle qui gouverne tout** : chacun n'agit que sur les rangs
+**strictement inférieurs** au sien. Un administrateur SOCADEL ne peut donc ni
+créer un second administrateur, ni toucher au compte du super utilisateur NEXT
+LTD qui lui a ouvert l'accès.
+
+### Comptes de mise en route
+
+| Profil | Identifiant | Mot de passe |
+|---|---|---|
+| Super utilisateur | `sudo` | `Ngaoundal-Kribi-88` |
+| Administrateur | `admin` | `Bandjoun-Maroua-77` |
+| Superviseur | `superviseur` | `Ngaoundere-Sud-2026` |
+| Agent de terrain | `ag001` | `Terrain-Essos-2026` |
+
+> Ces comptes servent à la mise en route. Chaque titulaire doit changer son
+> mot de passe à la première connexion, et `SECRET_KEY` doit être régénérée
+> avant toute mise en production :
 > `python -c "import secrets; print(secrets.token_urlsafe(48))"`
 
 ---
 
-## Flux 1 — Le briefing du matin
+## Flux 0 : S'inscrire sur la plateforme
+
+**S'inscrire ne donne pas accès.** La plateforme porte le référentiel clients
+de SOCADEL, plus de quatre cent mille noms et numéros : un accès ne s'obtient
+pas en remplissant un formulaire. Le parcours compte quatre étapes.
+
+1. **L'utilisateur s'inscrit** sur la page d'inscription. Il choisit son
+   identifiant, son adresse électronique et **son propre mot de passe**, saisi
+   deux fois. Une jauge lui indique en direct si le mot de passe tient : au
+   moins dix caractères, sans mot courant ni reprise de son identifiant.
+
+2. **Il confirme son adresse.** Un courriel part avec un lien valable trois
+   jours. Tant qu'il ne l'a pas ouvert, la connexion est refusée, même avec le
+   bon mot de passe.
+
+3. **Un responsable approuve.** L'administrateur voit la demande dans l'écran
+   Comptes, lui attribue un rôle et, s'il s'agit d'un superviseur, **un
+   périmètre**. Sans périmètre, un superviseur verrait la production des 181
+   agences : la plateforme refuse donc de le laisser passer.
+
+4. **Le titulaire est prévenu** par un second courriel et peut se connecter.
+
+### Où lire les courriels en développement
+
+Aucun serveur SMTP n'est configuré par défaut : les messages sont **écrits sur
+disque**, un fichier par courriel, dans `backend-bordereau-socadel/courriels/`.
+Ouvrez le plus récent pour récupérer le lien de confirmation.
+
+Pour envoyer réellement, renseignez `SMTP_HOTE`, `SMTP_PORT`,
+`SMTP_UTILISATEUR` et `SMTP_MOT_DE_PASSE` dans `.env`. Rien d'autre ne change :
+le code ne sait pas lequel des deux adaptateurs est en place.
+
+### Mot de passe oublié
+
+Deux chemins, selon la situation.
+
+- **Le titulaire a encore accès à sa boîte** : il clique « Mot de passe
+  oublié », reçoit un lien valable deux heures et choisit un nouveau mot de
+  passe. La plateforme répond toujours la même chose, que l'adresse existe ou
+  non : dire « adresse inconnue » offrirait un moyen simple de savoir qui a un
+  compte.
+
+- **Il n'y a plus accès, ou il faut débloquer tout de suite** : un responsable
+  réinitialise pour lui depuis l'écran Comptes. La plateforme génère un mot de
+  passe provisoire lisible au téléphone, sans I, l, O ni 0 pour éviter les
+  confusions à l'oral. Ce mot de passe **n'est jamais écrit dans le courriel** :
+  le responsable le communique de vive voix, et le titulaire doit le remplacer
+  à sa prochaine connexion.
+
+  La hiérarchie s'applique ici aussi : un superviseur ne réinitialise que ses
+  agents, un administrateur ses superviseurs et ses agents, le super
+  utilisateur tout le monde.
+
+---
+
+## Flux 1 : Le briefing du matin
 
 **Vous êtes le superviseur. L'agent se présente et vous donne ses itinéraires.**
 
 1. Connectez-vous avec `superviseur`. Vous arrivez **directement sur
-   Affectations** — pas sur le tableau de bord. C'est voulu : c'est le premier
+   Affectations**, pas sur le tableau de bord. C'est voulu : c'est le premier
    geste de votre journée.
 
 2. Choisissez l'agent dans la liste déroulante. Seuls les agents **actifs**
    y figurent.
 
-3. Dans le champ de recherche, tapez un code d'itinéraire — essayez `42422`
+3. Dans le champ de recherche, tapez un code d'itinéraire, essayez `42422`
    (CSC_ESSOS, 25 clients) ou `118194` (CSC_BANDJOUN, 25 clients). La recherche
    part à partir de deux caractères.
 
@@ -70,7 +140,7 @@ python scripts/seed.py --referentiel ../Documents/bordereau2.xlsx   # 425 920 cl
 
 **Ce qui se passe derrière.** Une transaction unique crée l'affectation *et*
 une ligne de bordereau par client de chaque itinéraire, triées par référence
-géographique — c'est-à-dire dans l'ordre de marche réel des maisons. Si
+géographique, c'est-à-dire dans l'ordre de marche réel des maisons. Si
 quoi que ce soit échoue, rien n'est écrit.
 
 **Comment vérifier.** Le bandeau de confirmation annonce le nombre de lignes
@@ -82,12 +152,11 @@ créées. Allez ensuite sur **Bordereau** : elles y sont, toutes au statut
 L'agent revient en cours de journée avec une tournée supplémentaire ?
 Recommencez simplement le flux 1 avec le même agent. Les affectations
 s'accumulent, ses chiffres se mettent à jour. La seule chose interdite est
-d'affecter **deux fois le même itinéraire au même agent le même jour** —
-sinon sa production serait comptée en double. L'API renvoie alors un conflit.
+d'affecter **deux fois le même itinéraire au même agent le même jour**, sinon sa production serait comptée en double. L'API renvoie alors un conflit.
 
 ---
 
-## Flux 2 — Imprimer le bordereau papier
+## Flux 2 : Imprimer le bordereau papier
 
 **Toujours superviseur. L'agent part sur le terrain.**
 
@@ -120,13 +189,13 @@ Un bloc par itinéraire, enchaînés : l'agent part avec une seule liasse.
 
 ---
 
-## Flux 3 — Saisir la production au retour
+## Flux 3 : Saisir la production au retour
 
 **Superviseur, le soir, bordereau papier en main.**
 
 ### Ligne par ligne
 
-1. Allez sur **Bordereau**. Filtrez si besoin — par date, par statut, ou
+1. Allez sur **Bordereau**. Filtrez si besoin, par date, par statut, ou
    cherchez un nom, un contrat, un compteur.
 2. Triez sur **Réf. géo** pour retrouver l'ordre du papier.
 3. Cliquez **Saisir** sur une ligne.
@@ -134,7 +203,7 @@ Un bloc par itinéraire, enchaînés : l'agent part avec une seule liasse.
    remarque éventuelle. Enregistrez.
 
 **La règle à connaître.** Un client déclaré **Abonné** exige le numéro
-collecté. Sans lui, l'enregistrement est refusé — le formulaire le signale, et
+collecté. Sans lui, l'enregistrement est refusé, le formulaire le signale, et
 l'API le refuserait de toute façon. Vous pouvez saisir le numéro sans
 indicatif (`677889900`), il sera normalisé en `+237677889900`.
 
@@ -154,7 +223,7 @@ message vous dit combien restent à saisir individuellement.
 
 ---
 
-## Flux 4 — Vérifier auprès du référentiel
+## Flux 4 : Vérifier auprès du référentiel
 
 **C'est le cœur du dispositif.**
 
@@ -180,16 +249,16 @@ jusqu'à la confirmation finale »*.
 **Ce que vous verrez aujourd'hui.** La base actuelle est une base de test :
 aucun client n'y est `subscribed`. Tout abonnement déclaré ressort donc
 **Infirmé**, et la fiabilité de l'agent tombe à 0 %. C'est le comportement
-correct — il deviendra utile le jour où l'API MRA alimentera le vrai statut.
+correct, il deviendra utile le jour où l'API MRA alimentera le vrai statut.
 
 Corriger une ligne déjà vérifiée remet automatiquement son verdict à « Non
 vérifié » : il faudra la re-confronter.
 
 ---
 
-## Flux 5 — Suivre et exporter
+## Flux 5 : Suivre et exporter
 
-**Tableau de bord** — cinq indicateurs avec leur variation, la courbe
+**Tableau de bord** : cinq indicateurs avec leur variation, la courbe
 d'évolution sur 7 / 14 / 30 / 90 jours, la répartition par statut, la
 couverture des itinéraires et la performance de chaque agent.
 
@@ -197,21 +266,21 @@ La colonne **Fiabilité** du classement est la plus importante : c'est la part
 des abonnements déclarés que le référentiel confirme. Un fort volume assorti
 d'une fiabilité basse signale des déclarations qui ne se matérialisent pas.
 
-**Exports** — les boutons CSV et PDF de l'écran Bordereau exportent
+**Exports**, les boutons CSV et PDF de l'écran Bordereau exportent
 **exactement le périmètre affiché**, filtres compris. Le PDF porte le
 filigrane et le titre centré. Au-delà de 50 000 lignes l'export est tronqué,
 et l'interface vous le dit.
 
 ---
 
-## Flux 6 — Gérer les agents
+## Flux 6 : Gérer les agents
 
 **Superviseur**, écran **Agents** : créer, modifier, retirer du service,
 remettre en service. La photo de profil se dépose séparément et s'affiche en
 aperçu avant que vous validiez le formulaire.
 
 Le **matricule n'est pas modifiable** : tous les bordereaux passés le
-référencent. Et un agent n'est **jamais supprimé** — « retirer du service »
+référencent. Et un agent n'est **jamais supprimé**, « retirer du service »
 le désactive, son historique reste intact puisqu'il fonde sa rémunération.
 
 Cliquez **Voir le portefeuille** pour ouvrir ce que l'agent porte : ses
@@ -220,41 +289,57 @@ lui confier une tournée de plus.
 
 ---
 
-## Flux 7 — L'agent consulte ses chiffres
+## Flux 7 : L'agent consulte ses chiffres
 
 **Connectez-vous avec `ag001` / `Terrain@2026`.**
 
 Vous n'avez qu'une entrée de menu : **Mon espace**. Vous y voyez vos
-itinéraires confiés avec leur avancement, et vos cinq chiffres — clients
+itinéraires confiés avec leur avancement, et vos cinq chiffres, clients
 confiés, démarchés, abonnements déclarés, confirmés, fiabilité.
 
 **Essayez de sortir de votre périmètre**, c'est instructif : ajoutez
 `?agent=<id d'un autre agent>` à l'URL de l'API. Vous obtiendrez vos propres
-lignes, pas les siennes. Le filtre est réécrit avant d'atteindre la base — ce
+lignes, pas les siennes. Le filtre est réécrit avant d'atteindre la base, ce
 n'est pas un contrôle qu'on peut oublier d'appeler.
 
 Vous ne pouvez ni saisir, ni exporter, ni modifier quoi que ce soit.
 
 ---
 
-## Flux 8 — L'administrateur ouvre les accès
+## Flux 8 : L'administrateur gouverne les accès
 
-**Connectez-vous avec `admin` / `Admin@2026`.**
+**Connectez-vous avec `admin`.**
 
-Vous avez en plus l'entrée **Comptes**. Vous y ouvrez les accès des
-superviseurs et des agents.
+Vous avez en plus l'entrée **Comptes**. Vous y voyez les demandes d'accès en
+attente, et vous approuvez celles de vos superviseurs et de vos agents.
 
 Pour un compte agent, vous devez **désigner l'agent de terrain rattaché** :
 c'est ce rattachement qui délimite ce que le titulaire verra. Sans lui, le
-système refuse la création — un compte agent sans périmètre verrait par
+système refuse la création, un compte agent sans périmètre verrait par
 défaut la production de tous.
 
 Vous pouvez aussi attribuer une **région** ou une **agence** à un superviseur
 pour le territorialiser. Tant qu'aucune n'est définie, il voit tout le
 national.
 
-Une garde vous empêche de désactiver votre propre compte : vous vous
-verrouilleriez dehors.
+Deux gardes vous protègent : vous ne pouvez ni suspendre votre propre
+compte, ni approuver quelqu'un au rang d'administrateur. La seconde n'est pas
+une limitation arbitraire, c'est ce qui empêche une escalade de privilèges par
+un compte compromis.
+
+### Ce que seul le super utilisateur peut faire
+
+Connectez-vous avec `sudo` pour voir la différence. Deux permissions de plus,
+et elles engagent le fonctionnement de la plateforme, pas seulement son
+exploitation :
+
+- **changer le rôle d'un compte existant**, y compris promouvoir un
+  administrateur ;
+- **administrer le référentiel**, c'est-à-dire la source sur laquelle repose
+  toute la vérification.
+
+C'est la frontière entre exploiter la plateforme, ce que fait SOCADEL, et en
+répondre, ce que fait NEXT LTD.
 
 ---
 
@@ -263,6 +348,6 @@ verrouilleriez dehors.
 | Sujet | État |
 |---|---|
 | API de recoupement NEXT / MRA | Non ouverte. La vérification tourne sur la base de test. Un seul adaptateur restera à écrire. |
-| Périmètres territoriaux | Le mécanisme existe et est testé, mais aucun superviseur n'en a. |
+| Périmètres territoriaux | Le mécanisme est en place et un superviseur sans périmètre est bloqué. Reste à attribuer les 181 agences aux superviseurs réels. |
 | Migrations Alembic | Configurées ; la révision initiale reste à générer avant production. |
 | Mots de passe et `SECRET_KEY` | Valeurs de mise en route, à remplacer. |

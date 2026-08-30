@@ -1,0 +1,18 @@
+À      : ag001@socadel.cm
+Sujet  : Votre accès est ouvert, Bordereau SOCADEL
+----------------------------------------------------------------------
+
+Bonjour MBALLA Jean Pierre,
+
+Votre demande d'accès a été approuvée.
+
+  Identifiant : ag001
+  Rôle        : AGENT_TERRAIN
+  Périmètre   : national
+
+Connectez-vous sur http://localhost:3000/login avec le mot de passe que vous avez choisi lors de votre inscription.
+
+---
+Bordereau SOCADEL, plateforme de collecte des numéros WhatsApp.
+Solution NEXT LTD, Numeric Export Technologies.
+Ce message est automatique, merci de ne pas y répondre.

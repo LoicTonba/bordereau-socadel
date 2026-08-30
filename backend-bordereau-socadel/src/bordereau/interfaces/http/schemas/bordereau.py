@@ -10,7 +10,13 @@ from pydantic import Field
 
 from ....application.dto import AnomalieImport, ApercuImport
 from ....domain.entities import AgentTerrain, Itineraire, LigneBordereau
-from ....domain.enums import Responsable, Role, StatutCollecte, VerdictVerification
+from ....domain.enums import (
+    Responsable,
+    Role,
+    StatutCollecte,
+    StatutCompte,
+    VerdictVerification,
+)
 from .commun import SchemaBase
 
 # --- Authentification ------------------------------------------------------
@@ -39,6 +45,7 @@ class ProfilUtilisateur(SchemaBase):
     agence: str | None = None
     email: str | None = None
     photo_url: str | None = None
+    statut: StatutCompte = StatutCompte.ACTIF
     doit_changer_mot_de_passe: bool = False
     permissions: list[str] = Field(
         default_factory=list,
@@ -377,7 +384,6 @@ class PortefeuilleSortie(SchemaBase):
             ),
         )
 
-
 # --- Comptes de connexion --------------------------------------------------
 
 
@@ -385,14 +391,18 @@ class CompteSortie(SchemaBase):
     id: UUID
     identifiant: str
     nom_complet: str
+    email: str
     role: Role
+    statut: StatutCompte
     actif: bool
     agent_id: UUID | None
     region: str | None
     agence: str | None
-    email: str | None
+    telephone: str | None
     photo_url: str | None
     doit_changer_mot_de_passe: bool
+    cree_le: datetime | None
+    approuve_le: datetime | None
     derniere_connexion: datetime | None
 
     @classmethod
@@ -401,44 +411,102 @@ class CompteSortie(SchemaBase):
             id=compte.id,
             identifiant=compte.identifiant,
             nom_complet=compte.nom_complet,
+            email=compte.email,
             role=compte.role,
+            statut=compte.statut,
             actif=compte.actif,
             agent_id=compte.agent_id,
             region=compte.region,
             agence=compte.agence,
-            email=compte.email,
+            telephone=compte.telephone,
             photo_url=compte.photo_url,
             doit_changer_mot_de_passe=compte.doit_changer_mot_de_passe,
+            cree_le=compte.cree_le,
+            approuve_le=compte.approuve_le,
             derniere_connexion=compte.derniere_connexion,
         )
 
 
-class RequeteCreationCompte(SchemaBase):
-    identifiant: str = Field(min_length=1, max_length=64)
-    nom_complet: str = Field(min_length=1, max_length=160)
-    mot_de_passe: str = Field(min_length=8, max_length=128)
-    role: Role
-    agent_id: UUID | None = Field(
+class RequeteInscription(SchemaBase):
+    """Formulaire d'inscription.
+
+    La longueur minimale reprend celle du domaine ; la politique complète, qui
+    refuse aussi les mots courants et la reprise de l'identifiant, est
+    appliquée par le cas d'usage.
+    """
+
+    identifiant: str = Field(min_length=3, max_length=64)
+    nom_complet: str = Field(min_length=2, max_length=160)
+    email: str = Field(min_length=5, max_length=160)
+    mot_de_passe: str = Field(min_length=10, max_length=128)
+    confirmation: str = Field(min_length=10, max_length=128)
+    telephone: str | None = None
+    role_souhaite: Role | None = Field(
         default=None,
-        description=(
-            "Obligatoire pour un compte AGENT_TERRAIN : c'est lui qui delimite "
-            "les donnees visibles par le titulaire."
-        ),
+        description="Indication pour le responsable qui approuvera. "
+        "Jamais appliquée telle quelle.",
     )
+
+
+class ReponseInscription(SchemaBase):
+    identifiant: str
+    email: str
+    statut: StatutCompte
+    message: str
+
+
+class RequeteVerificationForce(SchemaBase):
+    mot_de_passe: str = Field(max_length=128)
+    identifiant: str | None = None
+    email: str | None = None
+
+
+class ReponseForceMotDePasse(SchemaBase):
+    score: int = Field(ge=0, le=4)
+    libelle: str
+    acceptable: bool
+    motifs: list[str]
+
+
+class RequeteApprobation(SchemaBase):
+    role: Role
     region: str | None = Field(default=None, max_length=80)
     agence: str | None = Field(default=None, max_length=80)
-    email: str | None = Field(default=None, max_length=160)
-    photo_url: str | None = Field(default=None, max_length=400)
+    agent_id: UUID | None = Field(
+        default=None,
+        description="Obligatoire pour un compte AGENT_TERRAIN : c'est lui qui "
+        "delimite les donnees visibles par le titulaire.",
+    )
 
 
 class RequeteModificationCompte(SchemaBase):
-    nom_complet: str | None = Field(default=None, min_length=1, max_length=160)
+    nom_complet: str | None = Field(default=None, min_length=2, max_length=160)
     email: str | None = Field(default=None, max_length=160)
+    telephone: str | None = None
     photo_url: str | None = Field(default=None, max_length=400)
     region: str | None = Field(default=None, max_length=80)
     agence: str | None = Field(default=None, max_length=80)
+    role: Role | None = None
 
 
 class RequeteChangementMotDePasse(SchemaBase):
     ancien_mot_de_passe: str = Field(min_length=1, max_length=128)
-    nouveau_mot_de_passe: str = Field(min_length=8, max_length=128)
+    nouveau_mot_de_passe: str = Field(min_length=10, max_length=128)
+    confirmation: str = Field(min_length=10, max_length=128)
+
+
+class RequeteDemandeReinitialisation(SchemaBase):
+    email: str = Field(min_length=5, max_length=160)
+
+
+class RequeteReinitialisation(SchemaBase):
+    jeton: str = Field(min_length=8, max_length=128)
+    nouveau_mot_de_passe: str = Field(min_length=10, max_length=128)
+    confirmation: str = Field(min_length=10, max_length=128)
+
+
+class ReponseMotDePasseProvisoire(SchemaBase):
+    identifiant: str
+    nom_complet: str
+    mot_de_passe_provisoire: str
+    consigne: str

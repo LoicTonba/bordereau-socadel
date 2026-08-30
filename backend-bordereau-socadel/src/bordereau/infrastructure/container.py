@@ -28,11 +28,17 @@ from ..application.use_cases.collectes import (
     VerifierDeclarations,
 )
 from ..application.use_cases.comptes import (
+    ApprouverCompte,
     BasculerActivationCompte,
     ChangerMotDePasse,
-    CreerCompte,
+    DemanderReinitialisation,
+    InscrireUtilisateur,
     ListerComptes,
     ModifierCompte,
+    RefuserCompte,
+    ReinitialiserAvecJeton,
+    ReinitialiserParResponsable,
+    VerifierAdresse,
 )
 from ..application.use_cases.exports import ExporterBordereau, TelechargerModeleImport
 from ..application.use_cases.imports import PrevisualiserImport, ValiderImport
@@ -50,6 +56,11 @@ from .files.exporters.modele_import import GenerateurModeleXlsx
 from .files.exporters.pdf_exporter import ExportateurPdfReportlab
 from .files.parsers.tabulaire import LecteurTabulaireOpenpyxl
 from .files.stockage_media import StockageMediaLocal
+from .messagerie import (
+    GenerateurJetonAleatoire,
+    MessagerieFichier,
+    MessagerieSmtp,
+)
 from .security.adapters import HacheurBcrypt, HorlogeSysteme, ServiceJetonJwt
 
 
@@ -113,6 +124,29 @@ class Container:
     def stockage_media(self) -> StockageMediaLocal:
         return StockageMediaLocal(Path(self.settings.repertoire_media))
 
+    @cached_property
+    def generateur_jetons(self) -> GenerateurJetonAleatoire:
+        return GenerateurJetonAleatoire()
+
+    @cached_property
+    def messagerie(self):
+        """SMTP si un serveur est configuré, sinon écriture sur disque.
+
+        Le choix se fait ici et nulle part ailleurs : les cas d'usage ne
+        savent pas lequel des deux est en place.
+        """
+        if not self.settings.smtp_hote:
+            return MessagerieFichier(Path(self.settings.repertoire_courriels))
+
+        return MessagerieSmtp(
+            self.settings.smtp_hote,
+            self.settings.smtp_port,
+            self.settings.expediteur_courriel,
+            utilisateur=self.settings.smtp_utilisateur,
+            mot_de_passe=self.settings.smtp_mot_de_passe,
+            tls=self.settings.smtp_tls,
+        )
+
     # --- Authentification et comptes --------------------------------------
 
     def connecter_superviseur(self) -> ConnecterSuperviseur:
@@ -130,17 +164,61 @@ class Container:
     def lister_comptes(self) -> ListerComptes:
         return ListerComptes(self.unit_of_work())
 
-    def creer_compte(self) -> CreerCompte:
-        return CreerCompte(self.unit_of_work(), self.hacheur)
-
     def modifier_compte(self) -> ModifierCompte:
         return ModifierCompte(self.unit_of_work())
 
     def basculer_activation_compte(self) -> BasculerActivationCompte:
         return BasculerActivationCompte(self.unit_of_work())
 
+    # --- Inscription et cycle de vie --------------------------------------
+
+    def inscrire_utilisateur(self) -> InscrireUtilisateur:
+        return InscrireUtilisateur(
+            self.unit_of_work(),
+            self.hacheur,
+            self.generateur_jetons,
+            self.messagerie,
+            self.horloge,
+            self.settings.url_publique,
+        )
+
+    def verifier_adresse(self) -> VerifierAdresse:
+        return VerifierAdresse(self.unit_of_work(), self.messagerie, self.horloge)
+
+    def approuver_compte(self) -> ApprouverCompte:
+        return ApprouverCompte(
+            self.unit_of_work(),
+            self.messagerie,
+            self.horloge,
+            self.settings.url_publique,
+        )
+
+    def refuser_compte(self) -> RefuserCompte:
+        return RefuserCompte(self.unit_of_work(), self.messagerie)
+
+    # --- Mots de passe -----------------------------------------------------
+
     def changer_mot_de_passe(self) -> ChangerMotDePasse:
         return ChangerMotDePasse(self.unit_of_work(), self.hacheur)
+
+    def demander_reinitialisation(self) -> DemanderReinitialisation:
+        return DemanderReinitialisation(
+            self.unit_of_work(),
+            self.generateur_jetons,
+            self.messagerie,
+            self.horloge,
+            self.settings.url_publique,
+        )
+
+    def reinitialiser_avec_jeton(self) -> ReinitialiserAvecJeton:
+        return ReinitialiserAvecJeton(
+            self.unit_of_work(), self.hacheur, self.horloge
+        )
+
+    def reinitialiser_par_responsable(self) -> ReinitialiserParResponsable:
+        return ReinitialiserParResponsable(
+            self.unit_of_work(), self.hacheur, self.messagerie
+        )
 
     # --- Bordereau ---------------------------------------------------------
 

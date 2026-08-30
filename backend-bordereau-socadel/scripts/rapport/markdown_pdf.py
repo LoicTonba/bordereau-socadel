@@ -1,7 +1,7 @@
 """Rendu PDF d'un document Markdown, aux couleurs SOCADEL.
 
 Volontairement limité à la syntaxe réellement employée par les guides du
-dépôt — titres, paragraphes, listes, tableaux, blocs de code, citations et
+dépôt, titres, paragraphes, listes, tableaux, blocs de code, citations et
 filets. Embarquer un moteur Markdown complet pour six constructions serait
 disproportionné, et le rendu serait moins maîtrisé.
 """

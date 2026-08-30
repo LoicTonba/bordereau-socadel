@@ -66,6 +66,38 @@ class _Utilisateurs:
     async def par_id(self, utilisateur_id: UUID) -> Utilisateur | None:
         return self._e.utilisateurs.get(utilisateur_id)
 
+    async def par_email(self, email: str) -> Utilisateur | None:
+        cible = email.strip().lower()
+        return next(
+            (u for u in self._e.utilisateurs.values() if u.email == cible), None
+        )
+
+    async def par_jeton_verification(self, jeton: str) -> Utilisateur | None:
+        return next(
+            (
+                u
+                for u in self._e.utilisateurs.values()
+                if u.jeton_verification == jeton
+            ),
+            None,
+        )
+
+    async def par_jeton_reinitialisation(self, jeton: str) -> Utilisateur | None:
+        return next(
+            (
+                u
+                for u in self._e.utilisateurs.values()
+                if u.jeton_reinitialisation == jeton
+            ),
+            None,
+        )
+
+    async def lister(self, *, statut: str | None = None) -> Sequence[Utilisateur]:
+        comptes = list(self._e.utilisateurs.values())
+        if statut is not None:
+            comptes = [u for u in comptes if u.statut.value == statut]
+        return sorted(comptes, key=lambda u: u.nom_complet)
+
     async def enregistrer(self, utilisateur: Utilisateur) -> None:
         self._e.utilisateurs[utilisateur.id] = utilisateur
 

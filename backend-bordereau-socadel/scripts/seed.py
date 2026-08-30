@@ -25,7 +25,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import openpyxl  # noqa: E402
 
 from bordereau.domain.entities import AgentTerrain, Client, Itineraire, Utilisateur  # noqa: E402
-from bordereau.domain.enums import CategorieClient, Role, WhatsappStatus  # noqa: E402
+from bordereau.domain.enums import (  # noqa: E402
+    CategorieClient,
+    Role,
+    StatutCompte,
+    WhatsappStatus,
+)
 from bordereau.domain.value_objects import (  # noqa: E402
     CodeItineraire,
     NumeroTelephone,
@@ -213,8 +218,14 @@ async def semer_comptes_acteurs(container: Container) -> None:
     les remplacer à sa première connexion (drapeau `doit_changer_mot_de_passe`).
     """
     comptes = [
-        ("admin", "Administrateur NEXT LTD", Role.ADMINISTRATEUR, "Admin@2026", None),
-        ("superviseur", "Superviseur SOCADEL", Role.SUPERVISEUR, "Socadel@2026", None),
+        ("sudo", "Super utilisateur NEXT LTD", Role.SUPER_UTILISATEUR,
+         "Ngaoundal-Kribi-88", None, None),
+        ("admin", "Administrateur SOCADEL", Role.ADMINISTRATEUR,
+         "Bandjoun-Maroua-77", None, None),
+        # Le superviseur recoit un perimetre : sans lui, la plateforme le
+        # bloque plutot que de lui ouvrir les 181 agences.
+        ("superviseur", "Superviseur SOCADEL", Role.SUPERVISEUR,
+         "Ngaoundere-Sud-2026", None, "CSC_NGAOUNDERE SUD"),
     ]
 
     async with container.unit_of_work() as uow:
@@ -227,22 +238,26 @@ async def semer_comptes_acteurs(container: Container) -> None:
                     agents[0].matricule.lower(),
                     agents[0].nom_complet,
                     Role.AGENT_TERRAIN,
-                    "Terrain@2026",
+                    "Terrain-Essos-2026",
                     agents[0].id,
+                    None,
                 )
             )
 
         crees = []
-        for identifiant, nom, role, mot_de_passe, agent_id in comptes:
+        for identifiant, nom, role, mot_de_passe, agent_id, agence in comptes:
             if await uow.utilisateurs.par_identifiant(identifiant) is not None:
                 continue
             await uow.utilisateurs.enregistrer(
                 Utilisateur(
                     identifiant=identifiant,
                     nom_complet=nom,
+                    email=f"{identifiant}@socadel.cm",
                     empreinte_mot_de_passe=container.hacheur.hacher(mot_de_passe),
                     role=role,
+                    statut=StatutCompte.ACTIF,
                     agent_id=agent_id,
+                    agence=agence,
                     doit_changer_mot_de_passe=True,
                 )
             )
@@ -321,8 +336,6 @@ async def principal() -> None:
     try:
         if arguments.tables or arguments.tout:
             await creer_tables(container)
-        if arguments.compte or arguments.tout:
-            await semer_compte(container)
         if arguments.agents_demo or arguments.tout:
             await semer_agents_demo(container)
         if arguments.acteurs or arguments.tout:

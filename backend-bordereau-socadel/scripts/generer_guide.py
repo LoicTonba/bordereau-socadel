@@ -44,8 +44,8 @@ def main() -> None:
                 SOUS_TITRE,
                 [
                     ["Rubrique", "Valeur"],
-                    ["Client", "SOCADEL — Société Camerounaise d'Electricité"],
-                    ["Maître d'œuvre", "NEXT LTD — Numeric Export Technologies"],
+                    ["Client", "SOCADEL, Société Camerounaise d'Electricité"],
+                    ["Maître d'œuvre", "NEXT LTD, Numeric Export Technologies"],
                     ["Objet", "Suivre les flux de la plateforme, écran par écran"],
                     ["Public", "Superviseurs, administrateurs, agents de terrain"],
                     ["Version", "1.0"],
@@ -60,7 +60,7 @@ def main() -> None:
     construire(
         sortie,
         contenu,
-        titre=f"Bordereau SOCADEL — {SOUS_TITRE}",
+        titre=f"Bordereau SOCADEL, {SOUS_TITRE}",
         sujet="Guide d'utilisation pas à pas de la plateforme de collecte",
         pied=SOUS_TITRE,
     )

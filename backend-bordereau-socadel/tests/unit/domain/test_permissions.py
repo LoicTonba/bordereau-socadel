@@ -27,9 +27,19 @@ def _contexte(role: Role, **kwargs) -> ContexteAcces:
 
 
 class TestRbac:
-    def test_l_administrateur_a_tout(self) -> None:
-        contexte = _contexte(Role.ADMINISTRATEUR)
+    def test_le_super_utilisateur_a_tout(self) -> None:
+        contexte = _contexte(Role.SUPER_UTILISATEUR)
         assert all(contexte.a(p) for p in Permission)
+
+    def test_l_administrateur_gouverne_sans_tout_pouvoir(self) -> None:
+        contexte = _contexte(Role.ADMINISTRATEUR)
+        assert contexte.a(Permission.COMPTE_APPROUVER)
+        assert contexte.a(Permission.COMPTE_REINITIALISER)
+        assert contexte.a(Permission.PERIMETRE_DEFINIR)
+        # Changer un role et administrer le referentiel engagent le
+        # fonctionnement de la plateforme : cela reste chez NEXT LTD.
+        assert not contexte.a(Permission.COMPTE_CHANGER_ROLE)
+        assert not contexte.a(Permission.REFERENTIEL_ADMINISTRER)
 
     def test_le_superviseur_pilote_mais_ne_gere_pas_les_comptes(self) -> None:
         contexte = _contexte(Role.SUPERVISEUR)
@@ -87,13 +97,15 @@ class TestAbac:
 
         assert obtenu.region == "DRNEA"
 
-    def test_un_superviseur_national_garde_sa_demande(self) -> None:
+    def test_un_superviseur_sans_perimetre_est_bloque(self) -> None:
+        """SOCADEL compte 181 agences : un superviseur sans perimetre verrait
+        la production de tout le pays."""
         contexte = _contexte(Role.SUPERVISEUR)
-        demande = FiltreBordereau(region="DCUY", recherche="MBALLA")
 
-        assert restreindre(contexte, demande) == demande
+        with pytest.raises(AccesRefuse, match="rim"):
+            restreindre(contexte, FiltreBordereau())
 
-    def test_l_administrateur_n_est_jamais_restreint(self) -> None:
+    def test_les_roles_a_portee_nationale_ne_sont_pas_restreints(self) -> None:
         contexte = _contexte(Role.ADMINISTRATEUR)
         demande = FiltreBordereau(agent_ids=(uuid4(),), region="DCUY")
 
@@ -119,11 +131,25 @@ class TestPorteeSurLesFiches:
 
     def test_chacun_agit_sur_son_propre_compte(self) -> None:
         contexte = _contexte(Role.SUPERVISEUR)
-        assert peut_agir_sur_compte(contexte, contexte.utilisateur_id)
-        assert not peut_agir_sur_compte(contexte, uuid4())
+        assert peut_agir_sur_compte(
+            contexte, contexte.utilisateur_id, Role.SUPERVISEUR
+        )
+        # Sur un pair, en revanche, non : la hierarchie est stricte.
+        assert not peut_agir_sur_compte(contexte, uuid4(), Role.SUPERVISEUR)
 
-    def test_l_administrateur_agit_sur_tous_les_comptes(self) -> None:
-        assert peut_agir_sur_compte(_contexte(Role.ADMINISTRATEUR), uuid4())
+    def test_la_hierarchie_est_strictement_descendante(self) -> None:
+        admin = _contexte(Role.ADMINISTRATEUR)
+        assert peut_agir_sur_compte(admin, uuid4(), Role.SUPERVISEUR)
+        assert peut_agir_sur_compte(admin, uuid4(), Role.AGENT_TERRAIN)
+        # Un administrateur SOCADEL ne touche ni a un pair, ni au super
+        # utilisateur NEXT LTD qui lui a ouvert l'acces.
+        assert not peut_agir_sur_compte(admin, uuid4(), Role.ADMINISTRATEUR)
+        assert not peut_agir_sur_compte(admin, uuid4(), Role.SUPER_UTILISATEUR)
+
+    def test_le_super_utilisateur_atteint_tous_les_rangs_inferieurs(self) -> None:
+        sudo = _contexte(Role.SUPER_UTILISATEUR)
+        for role in (Role.ADMINISTRATEUR, Role.SUPERVISEUR, Role.AGENT_TERRAIN):
+            assert peut_agir_sur_compte(sudo, uuid4(), role)
 
 
 class TestCompteAgent:
@@ -132,6 +158,7 @@ class TestCompteAgent:
             Utilisateur(
                 identifiant="ag001",
                 nom_complet="MBALLA Jean Pierre",
+                email="ag001@socadel.cm",
                 empreinte_mot_de_passe="x",
                 role=Role.AGENT_TERRAIN,
             )
@@ -140,6 +167,7 @@ class TestCompteAgent:
         utilisateur = Utilisateur(
             identifiant="sup-est",
             nom_complet="Superviseur Est",
+            email="sup.est@socadel.cm",
             empreinte_mot_de_passe="x",
             role=Role.SUPERVISEUR,
             region="DRE",

@@ -1,7 +1,8 @@
-"""Cas d'usage des comptes de connexion.
+"""Cas d'usage de consultation et de suspension des comptes.
 
-Réservés à l'administrateur, à une exception près : chacun peut changer son
-propre mot de passe.
+L'ouverture d'un compte passe par `inscription.py`, les mots de passe par
+`mots_de_passe.py`. Ce module ne garde que ce qui relève de l'exploitation
+courante : lister, modifier un profil, suspendre, réactiver.
 """
 
 from __future__ import annotations
@@ -11,27 +12,17 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from ....domain.entities import Utilisateur
-from ....domain.enums import Role
-from ....domain.securite import ContexteAcces, Permission, peut_agir_sur_compte
+from ....domain.enums import Role, StatutCompte
+from ....domain.securite import (
+    ContexteAcces,
+    Permission,
+    dans_le_perimetre,
+    peut_agir_sur_compte,
+    peut_agir_sur_role,
+)
 from ....domain.securite.permissions import AccesRefuse
-from ...errors import ConflitRessource, IdentifiantsInvalides, RessourceIntrouvable
-from ...ports import HacheurMotDePasse, UnitOfWork
-
-#: Longueur minimale d'un mot de passe choisi par l'utilisateur.
-LONGUEUR_MIN_MOT_DE_PASSE = 8
-
-
-@dataclass(frozen=True, slots=True)
-class CommandeCreationCompte:
-    identifiant: str
-    nom_complet: str
-    mot_de_passe: str
-    role: Role
-    agent_id: UUID | None = None
-    region: str | None = None
-    agence: str | None = None
-    email: str | None = None
-    photo_url: str | None = None
+from ...errors import ConflitRessource, RessourceIntrouvable
+from ...ports import UnitOfWork
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,118 +30,90 @@ class CommandeModificationCompte:
     compte_id: UUID
     nom_complet: str | None = None
     email: str | None = None
+    telephone: str | None = None
     photo_url: str | None = None
     region: str | None = None
     agence: str | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class CommandeChangementMotDePasse:
-    compte_id: UUID
-    ancien_mot_de_passe: str
-    nouveau_mot_de_passe: str
+    role: Role | None = None
 
 
 class ListerComptes:
+    """Annuaire des comptes, restreint au périmètre de l'appelant."""
+
     def __init__(self, uow: UnitOfWork) -> None:
         self._uow = uow
 
-    async def executer(self, contexte: ContexteAcces) -> Sequence[Utilisateur]:
-        contexte.exiger(Permission.COMPTE_LIRE)
-        async with self._uow as uow:
-            return await uow.utilisateurs.lister()
-
-
-class CreerCompte:
-    """Ouvre un compte de connexion.
-
-    Un compte d'agent est créé avec un mot de passe initial que son titulaire
-    devra remplacer : le superviseur le lui communique de vive voix, et le
-    drapeau `doit_changer_mot_de_passe` force la reprise en main.
-    """
-
-    def __init__(self, uow: UnitOfWork, hacheur: HacheurMotDePasse) -> None:
-        self._uow = uow
-        self._hacheur = hacheur
-
     async def executer(
-        self, contexte: ContexteAcces, commande: CommandeCreationCompte
-    ) -> Utilisateur:
-        contexte.exiger(Permission.COMPTE_CREER)
-
-        identifiant = commande.identifiant.strip().lower()
-        if len(commande.mot_de_passe) < LONGUEUR_MIN_MOT_DE_PASSE:
-            raise ConflitRessource(
-                f"Le mot de passe doit faire au moins "
-                f"{LONGUEUR_MIN_MOT_DE_PASSE} caractères"
-            )
+        self, contexte: ContexteAcces, *, statut: StatutCompte | None = None
+    ) -> Sequence[Utilisateur]:
+        contexte.exiger(Permission.COMPTE_LIRE)
 
         async with self._uow as uow:
-            if await uow.utilisateurs.par_identifiant(identifiant) is not None:
-                raise ConflitRessource(f"L'identifiant {identifiant} est déjà pris")
-
-            if commande.role is Role.AGENT_TERRAIN:
-                if commande.agent_id is None:
-                    raise ConflitRessource(
-                        "Un compte agent doit désigner l'agent de terrain rattaché"
-                    )
-                if await uow.agents.par_id(commande.agent_id) is None:
-                    raise RessourceIntrouvable(
-                        "Agent de terrain", commande.agent_id
-                    )
-
-            compte = Utilisateur(
-                identifiant=identifiant,
-                nom_complet=commande.nom_complet,
-                empreinte_mot_de_passe=self._hacheur.hacher(commande.mot_de_passe),
-                role=commande.role,
-                agent_id=commande.agent_id,
-                region=commande.region,
-                agence=commande.agence,
-                email=commande.email,
-                photo_url=commande.photo_url,
-                doit_changer_mot_de_passe=True,
+            comptes = await uow.utilisateurs.lister(
+                statut=statut.value if statut else None
             )
-            await uow.utilisateurs.enregistrer(compte)
-            await uow.valider()
 
-        return compte
+        # On ne montre que les comptes sur lesquels on pourrait agir, plus le
+        # sien : afficher un compte qu'on ne peut pas toucher n'apporte rien
+        # et renseigne sur la hiérarchie au-dessus de soi.
+        return [
+            compte
+            for compte in comptes
+            if compte.id == contexte.utilisateur_id
+            or (
+                peut_agir_sur_role(contexte, compte.role)
+                and dans_le_perimetre(contexte, compte.region, compte.agence)
+            )
+        ]
 
 
 class ModifierCompte:
+    """Met à jour un profil."""
+
     def __init__(self, uow: UnitOfWork) -> None:
         self._uow = uow
 
     async def executer(
         self, contexte: ContexteAcces, commande: CommandeModificationCompte
     ) -> Utilisateur:
-        # Modifier son propre profil ne demande pas la permission « comptes ».
         est_le_sien = commande.compte_id == contexte.utilisateur_id
         contexte.exiger(
             Permission.PROFIL_MODIFIER if est_le_sien else Permission.COMPTE_MODIFIER
         )
-        if not peut_agir_sur_compte(contexte, commande.compte_id):
-            raise AccesRefuse("Vous ne pouvez pas modifier ce compte")
 
         async with self._uow as uow:
             compte = await uow.utilisateurs.par_id(commande.compte_id)
             if compte is None:
                 raise RessourceIntrouvable("Compte", commande.compte_id)
 
+            if not peut_agir_sur_compte(contexte, compte.id, compte.role):
+                raise AccesRefuse("Vous ne pouvez pas modifier ce compte")
+
             if commande.nom_complet is not None:
                 compte.nom_complet = commande.nom_complet
             if commande.email is not None:
-                compte.email = commande.email
+                compte.email = commande.email.strip().lower()
+            if commande.telephone is not None:
+                compte.telephone = commande.telephone
             if commande.photo_url is not None:
                 compte.photo_url = commande.photo_url
 
-            # Le périmètre territorial est une prérogative d'administrateur :
-            # se l'attribuer soi-même reviendrait à élargir sa propre portée.
-            if contexte.est_administrateur:
+            # Le périmètre et le rôle sont des prérogatives de responsable :
+            # se les attribuer soi-même reviendrait à élargir sa propre portée.
+            if not est_le_sien and contexte.a(Permission.PERIMETRE_DEFINIR):
                 if commande.region is not None:
                     compte.region = commande.region
                 if commande.agence is not None:
                     compte.agence = commande.agence
+
+            if commande.role is not None:
+                contexte.exiger(Permission.COMPTE_CHANGER_ROLE)
+                if not peut_agir_sur_role(contexte, commande.role):
+                    raise AccesRefuse(
+                        f"Votre rôle ne permet pas d'attribuer "
+                        f"{commande.role.value}"
+                    )
+                compte.role = commande.role
 
             await uow.utilisateurs.enregistrer(compte)
             await uow.valider()
@@ -159,6 +122,8 @@ class ModifierCompte:
 
 
 class BasculerActivationCompte:
+    """Suspend un compte, ou le remet en service."""
+
     def __init__(self, uow: UnitOfWork) -> None:
         self._uow = uow
 
@@ -168,52 +133,19 @@ class BasculerActivationCompte:
         contexte.exiger(Permission.COMPTE_SUPPRIMER)
 
         if compte_id == contexte.utilisateur_id and not actif:
-            # Se désactiver soi-même verrouillerait l'accès à la plateforme.
-            raise ConflitRessource("Vous ne pouvez pas désactiver votre propre compte")
+            # Se suspendre soi-même verrouillerait l'accès à la plateforme.
+            raise ConflitRessource("Vous ne pouvez pas suspendre votre propre compte")
 
         async with self._uow as uow:
             compte = await uow.utilisateurs.par_id(compte_id)
             if compte is None:
                 raise RessourceIntrouvable("Compte", compte_id)
 
-            compte.actif = actif
+            if not peut_agir_sur_role(contexte, compte.role):
+                raise AccesRefuse("Vous ne pouvez pas agir sur ce compte")
+
+            compte.reactiver() if actif else compte.suspendre()
             await uow.utilisateurs.enregistrer(compte)
             await uow.valider()
 
         return compte
-
-
-class ChangerMotDePasse:
-    """Chacun change le sien, en prouvant qu'il connaît l'ancien."""
-
-    def __init__(self, uow: UnitOfWork, hacheur: HacheurMotDePasse) -> None:
-        self._uow = uow
-        self._hacheur = hacheur
-
-    async def executer(
-        self, contexte: ContexteAcces, commande: CommandeChangementMotDePasse
-    ) -> None:
-        if commande.compte_id != contexte.utilisateur_id:
-            raise AccesRefuse("Un mot de passe ne se change que sur son propre compte")
-
-        if len(commande.nouveau_mot_de_passe) < LONGUEUR_MIN_MOT_DE_PASSE:
-            raise ConflitRessource(
-                f"Le mot de passe doit faire au moins "
-                f"{LONGUEUR_MIN_MOT_DE_PASSE} caractères"
-            )
-
-        async with self._uow as uow:
-            compte = await uow.utilisateurs.par_id(commande.compte_id)
-            if compte is None:
-                raise RessourceIntrouvable("Compte", commande.compte_id)
-
-            if not self._hacheur.verifier(
-                commande.ancien_mot_de_passe, compte.empreinte_mot_de_passe
-            ):
-                raise IdentifiantsInvalides()
-
-            compte.changer_mot_de_passe(
-                self._hacheur.hacher(commande.nouveau_mot_de_passe)
-            )
-            await uow.utilisateurs.enregistrer(compte)
-            await uow.valider()

@@ -19,7 +19,7 @@ from bordereau.domain.entities import (
     Itineraire,
     Utilisateur,
 )
-from bordereau.domain.enums import Role
+from bordereau.domain.enums import Role, StatutCompte
 from bordereau.infrastructure.config.settings import Settings
 from bordereau.infrastructure.container import Container
 from bordereau.main import creer_application
@@ -53,8 +53,10 @@ def compte_agent(
     compte = Utilisateur(
         identifiant="ag001",
         nom_complet=agent.nom_complet,
+        email="ag001@socadel.cm",
         empreinte_mot_de_passe=container.hacheur.hacher(MOT_DE_PASSE_TEST),
         role=Role.AGENT_TERRAIN,
+        statut=StatutCompte.ACTIF,
         agent_id=agent.id,
     )
     entrepot.utilisateurs[compte.id] = compte
@@ -182,7 +184,7 @@ class TestAgentConnecte:
             ("post", "/bordereau/verification", None),
             ("post", "/itineraires/affectations", {}),
             ("post", "/agents", {}),
-            ("post", "/comptes", {}),
+            ("post", "/comptes/AAAAAAAA-0000-0000-0000-000000000000/approbation", {}),
         ],
     )
     async def test_les_actions_d_ecriture_lui_sont_fermees(
@@ -290,58 +292,178 @@ class TestAdministrateur:
     ) -> Utilisateur:
         compte = Utilisateur(
             identifiant="admin",
-            nom_complet="Administrateur NEXT",
+            nom_complet="Administrateur SOCADEL",
+            email="admin@socadel.cm",
             empreinte_mot_de_passe=container.hacheur.hacher(MOT_DE_PASSE_TEST),
             role=Role.ADMINISTRATEUR,
+            statut=StatutCompte.ACTIF,
         )
         entrepot.utilisateurs[compte.id] = compte
         return compte
 
-    async def test_il_ouvre_un_compte_agent(
+    async def test_le_parcours_complet_d_inscription(
         self,
         client_http: AsyncClient,
         administrateur: Utilisateur,
         agent: AgentTerrain,
+        entrepot: EntrepotMemoire,
     ) -> None:
-        entetes = await _entetes(client_http, "admin")
-
-        reponse = await client_http.post(
-            f"{PREFIXE}/comptes",
-            headers=entetes,
+        """S'inscrire, confirmer son adresse, être approuvé, puis se connecter."""
+        # 1. L'inscription est publique et ne demande aucune session.
+        inscription = await client_http.post(
+            f"{PREFIXE}/comptes/inscription",
             json={
                 "identifiant": "ag001",
                 "nomComplet": agent.nom_complet,
-                "motDePasse": "Terrain@2026",
-                "role": "AGENT_TERRAIN",
-                "agentId": str(agent.id),
+                "email": "ag001@socadel.cm",
+                "motDePasse": "Ngaoundal-Kribi-88",
+                "confirmation": "Ngaoundal-Kribi-88",
             },
         )
+        assert inscription.status_code == 201, inscription.text
+        assert inscription.json()["statut"] == "EN_ATTENTE_VERIFICATION"
 
-        assert reponse.status_code == 201, reponse.text
-        corps = reponse.json()
-        assert corps["role"] == "AGENT_TERRAIN"
-        assert corps["agentId"] == str(agent.id)
-        # Le titulaire devra choisir son propre mot de passe.
-        assert corps["doitChangerMotDePasse"] is True
+        # 2. À ce stade, aucun accès : le mot de passe est pourtant le bon.
+        refus = await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "ag001", "motDePasse": "Ngaoundal-Kribi-88"},
+        )
+        assert refus.status_code == 401
+
+        compte = next(
+            c for c in entrepot.utilisateurs.values() if c.identifiant == "ag001"
+        )
+
+        # 3. Confirmation de l'adresse par le lien reçu.
+        verification = await client_http.get(
+            f"{PREFIXE}/comptes/verification",
+            params={"jeton": compte.jeton_verification},
+        )
+        assert verification.status_code == 200
+        assert verification.json()["statut"] == "EN_ATTENTE_APPROBATION"
+
+        # 4. L'administrateur attribue rôle et rattachement.
+        entetes = await _entetes(client_http, "admin")
+        approbation = await client_http.post(
+            f"{PREFIXE}/comptes/{compte.id}/approbation",
+            headers=entetes,
+            json={"role": "AGENT_TERRAIN", "agentId": str(agent.id)},
+        )
+        assert approbation.status_code == 200, approbation.text
+        assert approbation.json()["statut"] == "ACTIF"
+
+        # 5. La connexion passe enfin.
+        connexion = await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "ag001", "motDePasse": "Ngaoundal-Kribi-88"},
+        )
+        assert connexion.status_code == 200
+        assert connexion.json()["role"] == "AGENT_TERRAIN"
 
     async def test_un_compte_agent_sans_rattachement_est_refuse(
-        self, client_http: AsyncClient, administrateur: Utilisateur
+        self,
+        client_http: AsyncClient,
+        administrateur: Utilisateur,
+        entrepot: EntrepotMemoire,
     ) -> None:
-        entetes = await _entetes(client_http, "admin")
-
-        reponse = await client_http.post(
-            f"{PREFIXE}/comptes",
-            headers=entetes,
+        await client_http.post(
+            f"{PREFIXE}/comptes/inscription",
             json={
                 "identifiant": "fantome",
                 "nomComplet": "Agent sans fiche",
-                "motDePasse": "Terrain@2026",
-                "role": "AGENT_TERRAIN",
+                "email": "fantome@socadel.cm",
+                "motDePasse": "Ngaoundal-Kribi-88",
+                "confirmation": "Ngaoundal-Kribi-88",
+            },
+        )
+        compte = next(
+            c for c in entrepot.utilisateurs.values() if c.identifiant == "fantome"
+        )
+        await client_http.get(
+            f"{PREFIXE}/comptes/verification",
+            params={"jeton": compte.jeton_verification},
+        )
+
+        entetes = await _entetes(client_http, "admin")
+        reponse = await client_http.post(
+            f"{PREFIXE}/comptes/{compte.id}/approbation",
+            headers=entetes,
+            json={"role": "AGENT_TERRAIN"},
+        )
+
+        assert reponse.status_code == 422
+        assert "rattaché" in reponse.json()["message"].lower()
+
+    async def test_il_ne_peut_pas_creer_son_egal(
+        self,
+        client_http: AsyncClient,
+        administrateur: Utilisateur,
+        entrepot: EntrepotMemoire,
+    ) -> None:
+        """La hiérarchie est stricte : pas d'administrateur créé par un pair."""
+        await client_http.post(
+            f"{PREFIXE}/comptes/inscription",
+            json={
+                "identifiant": "second.admin",
+                "nomComplet": "Second responsable",
+                "email": "second@socadel.cm",
+                "motDePasse": "Ngaoundal-Kribi-88",
+                "confirmation": "Ngaoundal-Kribi-88",
+            },
+        )
+        compte = next(
+            c
+            for c in entrepot.utilisateurs.values()
+            if c.identifiant == "second.admin"
+        )
+        await client_http.get(
+            f"{PREFIXE}/comptes/verification",
+            params={"jeton": compte.jeton_verification},
+        )
+
+        entetes = await _entetes(client_http, "admin")
+        reponse = await client_http.post(
+            f"{PREFIXE}/comptes/{compte.id}/approbation",
+            headers=entetes,
+            json={"role": "ADMINISTRATEUR"},
+        )
+
+        assert reponse.status_code == 403
+        assert reponse.json()["code"] == "acces_refuse"
+
+    async def test_un_mot_de_passe_faible_est_refuse(
+        self, client_http: AsyncClient
+    ) -> None:
+        reponse = await client_http.post(
+            f"{PREFIXE}/comptes/inscription",
+            json={
+                "identifiant": "essai.faible",
+                "nomComplet": "Essai",
+                "email": "essai@socadel.cm",
+                "motDePasse": "socadel2026",
+                "confirmation": "socadel2026",
             },
         )
 
-        assert reponse.status_code == 409
-        assert "agent de terrain rattaché" in reponse.json()["message"].lower()
+        # Le mot reprend le nom du projet : la politique le refuse.
+        assert reponse.status_code == 422, reponse.text
+
+    async def test_les_deux_saisies_doivent_concorder(
+        self, client_http: AsyncClient
+    ) -> None:
+        reponse = await client_http.post(
+            f"{PREFIXE}/comptes/inscription",
+            json={
+                "identifiant": "essai.confirm",
+                "nomComplet": "Essai",
+                "email": "essai2@socadel.cm",
+                "motDePasse": "Ngaoundal-Kribi-88",
+                "confirmation": "Ngaoundal-Kribi-99",
+            },
+        )
+
+        assert reponse.status_code == 422
+        assert "correspondent" in reponse.json()["message"].lower()
 
     async def test_il_ne_peut_pas_se_desactiver_lui_meme(
         self, client_http: AsyncClient, administrateur: Utilisateur

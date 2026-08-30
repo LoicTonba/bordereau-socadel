@@ -8,15 +8,26 @@ from enum import Enum
 class Role(str, Enum):
     """Acteurs disposant d'un compte de connexion.
 
-    L'agent de terrain en fait partie, mais avec un accès volontairement réduit
-    à la consultation de ses propres chiffres : son travail se fait sur le
-    terrain, bordereau papier en main, et c'est le superviseur qui saisit sa
-    production.
+    Quatre rôles, en deux camps. NEXT LTD édite et exploite la plateforme,
+    d'où le super utilisateur ; SOCADEL s'en sert, d'où l'administrateur, les
+    superviseurs et les agents.
+
+    L'agent de terrain a un accès volontairement réduit à la consultation de
+    ses propres chiffres : son travail se fait sur le terrain, bordereau papier
+    en main, et c'est le superviseur qui saisit sa production.
     """
 
+    SUPER_UTILISATEUR = "SUPER_UTILISATEUR"
+    """NEXT LTD, éditeur de la plateforme. Portée totale."""
+
     ADMINISTRATEUR = "ADMINISTRATEUR"
+    """Responsable chez SOCADEL. Gouverne les accès de ses équipes."""
+
     SUPERVISEUR = "SUPERVISEUR"
+    """Pilote les agents d'une agence ou d'une région."""
+
     AGENT_TERRAIN = "AGENT_TERRAIN"
+    """Collecteur. Consultation de ses propres chiffres uniquement."""
 
 
 class StatutCollecte(str, Enum):
@@ -99,3 +110,26 @@ class CategorieClient(str, Enum):
             return cls(str(valeur).strip().upper())
         except ValueError:
             return cls.AUTRE
+
+
+class StatutCompte(str, Enum):
+    """Cycle de vie d'un compte de connexion.
+
+    Une inscription ne donne pas accès : elle dépose une demande. Sur une
+    plateforme qui porte le référentiel clients de SOCADEL, un accès ne
+    s'obtient pas en remplissant un formulaire.
+    """
+
+    EN_ATTENTE_VERIFICATION = "EN_ATTENTE_VERIFICATION"
+    """Inscrit, mais l'adresse électronique n'est pas encore confirmée."""
+
+    EN_ATTENTE_APPROBATION = "EN_ATTENTE_APPROBATION"
+    """Adresse confirmée. Un responsable doit attribuer rôle et périmètre."""
+
+    ACTIF = "ACTIF"
+    SUSPENDU = "SUSPENDU"
+    REFUSE = "REFUSE"
+
+
+#: Seul cet état ouvre l'accès à la plateforme.
+STATUTS_AUTORISES: frozenset[StatutCompte] = frozenset({StatutCompte.ACTIF})

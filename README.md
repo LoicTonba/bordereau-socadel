@@ -73,11 +73,14 @@ Le back-office est sur <http://localhost:3000>.
 
 ### Identifiants de connexion
 
-| Acteur | Identifiant | Mot de passe |
+| Profil | Identifiant | Mot de passe |
 |---|---|---|
-| Administrateur | `admin` | `Admin@2026` |
-| Superviseur | `superviseur` | `Socadel@2026` |
-| Agent de terrain | `ag001` | `Terrain@2026` |
+| Super utilisateur, NEXT LTD | `sudo` | `Ngaoundal-Kribi-88` |
+| Administrateur, SOCADEL | `admin` | `Bandjoun-Maroua-77` |
+| Superviseur | `superviseur` | `Ngaoundere-Sud-2026` |
+| Agent de terrain | `ag001` | `Terrain-Essos-2026` |
+
+Les nouveaux utilisateurs s'inscrivent eux-mêmes ; un responsable approuve.
 
 Le [guide pratique](./GUIDE-PRATIQUE.md) déroule chaque flux pas à pas.
 
@@ -118,7 +121,7 @@ Chaque projet a son propre README détaillant son architecture :
 ## Vérifications
 
 ```bash
-cd backend-bordereau-socadel && python -m pytest      # 91 tests
+cd backend-bordereau-socadel && python -m pytest      # 96 tests
 cd frontend-bordereau-socadel && pnpm typecheck && pnpm build
 ```
 

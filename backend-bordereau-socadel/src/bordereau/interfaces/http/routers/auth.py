@@ -63,6 +63,7 @@ async def profil(utilisateur: UtilisateurDep) -> ProfilUtilisateur:
         identifiant=utilisateur.identifiant,
         nom_complet=utilisateur.nom_complet,
         role=utilisateur.role,
+        statut=utilisateur.statut,
         agent_id=utilisateur.agent_id,
         region=utilisateur.region,
         agence=utilisateur.agence,

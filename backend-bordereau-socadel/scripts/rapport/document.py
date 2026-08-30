@@ -177,7 +177,7 @@ _PIED = "Dossier de conception"
 
 
 def _habiller(canevas, document) -> None:
-    """Filigrane, logo, pied de page — sur chaque page sauf la couverture."""
+    """Filigrane, logo, pied de page, sur chaque page sauf la couverture."""
     largeur, hauteur = document.pagesize
     canevas.saveState()
 
@@ -194,7 +194,7 @@ def _habiller(canevas, document) -> None:
         canevas.setFillColor(GRIS_DOUX)
         canevas.drawString(
             18 * mm, 9 * mm,
-            f"Bordereau SOCADEL — {_PIED}  |  NEXT LTD × SOCADEL",
+            f"Bordereau SOCADEL, {_PIED}  |  NEXT LTD × SOCADEL",
         )
         canevas.drawRightString(
             largeur - 18 * mm, 9 * mm, f"Page {canevas.getPageNumber()}"
@@ -220,7 +220,7 @@ def _habiller(canevas, document) -> None:
         canevas.drawCentredString(
             largeur / 2,
             22 * mm,
-            "NEXT LTD — Numeric Export Technologies  ·  team@numericexport.com",
+            "NEXT LTD, Numeric Export Technologies  ·  team@numericexport.com",
         )
 
     canevas.restoreState()
@@ -230,7 +230,7 @@ def construire(
     chemin: Path,
     contenu_fabrique,
     *,
-    titre: str = "Bordereau SOCADEL — Dossier de conception",
+    titre: str = "Bordereau SOCADEL, Dossier de conception",
     sujet: str = "Analyse, architecture et modélisation UML",
     pied: str = "Dossier de conception",
 ) -> None:
@@ -246,7 +246,7 @@ def construire(
         str(chemin),
         pagesize=A4,
         title=titre,
-        author="NEXT LTD — Numeric Export Technologies",
+        author="NEXT LTD, Numeric Export Technologies",
         subject=sujet,
     )
 

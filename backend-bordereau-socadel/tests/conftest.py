@@ -7,7 +7,12 @@ from datetime import date
 import pytest
 
 from bordereau.domain.entities import AgentTerrain, Client, Itineraire, Utilisateur
-from bordereau.domain.enums import CategorieClient, WhatsappStatus
+from bordereau.domain.enums import (
+    CategorieClient,
+    Role,
+    StatutCompte,
+    WhatsappStatus,
+)
 from bordereau.domain.value_objects import (
     CodeItineraire,
     NumeroTelephone,
@@ -19,7 +24,9 @@ from bordereau.infrastructure.container import Container
 
 from .doubles import EntrepotMemoire, HorlogeFigee, UnitOfWorkMemoire
 
-MOT_DE_PASSE_TEST = "Socadel@2026"
+#: Conforme a la politique du domaine : au moins dix caracteres,
+#: sans mot courant ni reprise de l'identifiant.
+MOT_DE_PASSE_TEST = "Kribi-Ngaoundal-77"
 
 
 @pytest.fixture
@@ -64,7 +71,13 @@ def superviseur(container: Container, entrepot: EntrepotMemoire) -> Utilisateur:
     utilisateur = Utilisateur(
         identifiant="superviseur",
         nom_complet="Superviseur SOCADEL",
+        email="superviseur@socadel.cm",
         empreinte_mot_de_passe=container.hacheur.hacher(MOT_DE_PASSE_TEST),
+        role=Role.SUPERVISEUR,
+        statut=StatutCompte.ACTIF,
+        # SOCADEL couvre 181 agences : un superviseur recoit un perimetre,
+        # celui des clients de jeu d'essai.
+        agence="CSC_NGAOUNDERE SUD",
     )
     entrepot.utilisateurs[utilisateur.id] = utilisateur
     return utilisateur

@@ -19,6 +19,7 @@ from ....domain.enums import (
     CategorieClient,
     Responsable,
     Role,
+    StatutCompte,
     StatutAffectation,
     StatutCollecte,
     VerdictVerification,
@@ -49,13 +50,21 @@ def utilisateur_vers_domaine(row: UtilisateurORM) -> Utilisateur:
         nom_complet=row.nom_complet,
         empreinte_mot_de_passe=row.empreinte_mot_de_passe,
         role=Role(row.role),
-        actif=row.actif,
+        statut=StatutCompte(row.statut),
         agent_id=row.agent_id,
         region=row.region,
         agence=row.agence,
         photo_url=row.photo_url,
         email=row.email,
+        telephone=row.telephone,
+        jeton_verification=row.jeton_verification,
+        jeton_verification_expire_le=row.jeton_verification_expire_le,
+        jeton_reinitialisation=row.jeton_reinitialisation,
+        jeton_reinitialisation_expire_le=row.jeton_reinitialisation_expire_le,
         doit_changer_mot_de_passe=row.doit_changer_mot_de_passe,
+        cree_le=row.cree_le,
+        approuve_le=row.approuve_le,
+        approuve_par=row.approuve_par,
         derniere_connexion=row.derniere_connexion,
     )
 
@@ -66,13 +75,20 @@ def utilisateur_vers_orm(entite: Utilisateur, row: UtilisateurORM | None = None)
     row.nom_complet = entite.nom_complet
     row.empreinte_mot_de_passe = entite.empreinte_mot_de_passe
     row.role = entite.role.value
-    row.actif = entite.actif
+    row.statut = entite.statut.value
     row.agent_id = entite.agent_id
     row.region = entite.region
     row.agence = entite.agence
     row.photo_url = entite.photo_url
     row.email = entite.email
+    row.telephone = entite.telephone
+    row.jeton_verification = entite.jeton_verification
+    row.jeton_verification_expire_le = entite.jeton_verification_expire_le
+    row.jeton_reinitialisation = entite.jeton_reinitialisation
+    row.jeton_reinitialisation_expire_le = entite.jeton_reinitialisation_expire_le
     row.doit_changer_mot_de_passe = entite.doit_changer_mot_de_passe
+    row.approuve_le = entite.approuve_le
+    row.approuve_par = entite.approuve_par
     row.derniere_connexion = entite.derniere_connexion
     return row
 
