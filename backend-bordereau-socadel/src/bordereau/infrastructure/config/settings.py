@@ -71,6 +71,16 @@ class Settings(BaseSettings):
 
     # --- Messagerie --------------------------------------------------------
     url_publique: str = "http://localhost:3000"
+
+    mode_demo: bool = False
+    """Ouvre un mode de démonstration au premier écran de connexion.
+
+    Il expose les comptes de mise en route et leurs mots de passe à un
+    visiteur non authentifié. C'est acceptable sur une instance de
+    démonstration, jamais en production : le réglage est donc **faux par
+    défaut** et l'application le signale bruyamment au démarrage quand il est
+    activé.
+    """
     """Base des liens envoyés par courriel. C'est l'adresse du back-office,
     pas celle de l'API : le destinataire clique et arrive sur une page."""
 

@@ -28,7 +28,7 @@ router = APIRouter(prefix="/territoire", tags=["Territoire"])
 async def lire(
     container: ContainerDep,
     contexte: ContexteDep,
-    ouvertes_seulement: Annotated[bool, Query()] = False,
+    ouvertes_seulement: Annotated[bool, Query(alias="ouvertesSeulement")] = False,
 ) -> TerritoireDetail:
     """Les agences, avec leurs divisions et leurs directions régionales."""
     territoire = await container.lister_territoire().executer(

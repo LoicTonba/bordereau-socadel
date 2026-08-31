@@ -13,6 +13,8 @@ from typing import Protocol, runtime_checkable
 
 from .repositories import (
     AgenceRepository,
+    AuditRepository,
+    RestrictionRepository,
     AffectationRepository,
     AgentRepository,
     ClientRepository,
@@ -29,6 +31,8 @@ class UnitOfWork(Protocol):
     utilisateurs: UtilisateurRepository
     agents: AgentRepository
     agences: AgenceRepository
+    audit: AuditRepository
+    restrictions: RestrictionRepository
     clients: ClientRepository
     itineraires: ItineraireRepository
     affectations: AffectationRepository

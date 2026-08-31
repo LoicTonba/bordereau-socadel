@@ -253,6 +253,21 @@ def administrateur(container: Container, entrepot: EntrepotMemoire) -> Utilisate
     return compte
 
 
+@pytest.fixture
+def super_utilisateur(container: Container, entrepot: EntrepotMemoire) -> Utilisateur:
+    """Le compte NEXT LTD, seul à pouvoir restreindre un rôle."""
+    compte = Utilisateur(
+        identifiant="sudo",
+        nom_complet="TONBA Loic",
+        email="tonbaloic6@gmail.com",
+        empreinte_mot_de_passe=container.hacheur.hacher(MOT_DE_PASSE_TEST),
+        role=Role.SUPER_UTILISATEUR,
+        statut=StatutCompte.ACTIF,
+    )
+    entrepot.utilisateurs[compte.id] = compte
+    return compte
+
+
 class TestMaillageTerritorial:
     """SOCADEL tient son réseau : ouvrir, corriger, fermer, rouvrir.
 
@@ -337,3 +352,165 @@ class TestMaillageTerritorial:
         )
 
         assert reponse.status_code == 403
+
+
+class TestJournalAudit:
+    """Le journal répond à « qui a fait quoi », et à personne d'autre.
+
+    Il consigne les écritures et les tentatives de connexion, jamais les
+    consultations : un tableau de bord ouvert deux minutes produit des dizaines
+    de lectures, et personne ne cherche qui l'a regardé.
+    """
+
+    async def _entetes_admin(self, client_http: AsyncClient) -> dict[str, str]:
+        reponse = await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "admin", "motDePasse": MOT_DE_PASSE_TEST},
+        )
+        return {"Authorization": f"Bearer {reponse.json()['jeton']}"}
+
+    async def test_une_ecriture_laisse_une_trace(
+        self, client_http: AsyncClient, administrateur
+    ) -> None:
+        entetes = await self._entetes_admin(client_http)
+        await client_http.post(
+            f"{PREFIXE}/territoire", headers=entetes, json={"nom": "CSC_TRACEE"}
+        )
+
+        journal = await client_http.get(f"{PREFIXE}/audit", headers=entetes)
+
+        assert journal.status_code == 200, journal.text
+        actions = [t["action"] for t in journal.json()["elements"]]
+        assert "POST /territoire" in actions
+
+    async def test_une_connexion_refusee_est_consignee(
+        self, client_http: AsyncClient, administrateur
+    ) -> None:
+        """C'est justement ce qu'on veut retrouver : les tentatives ratées."""
+        await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "admin", "motDePasse": "faux"},
+        )
+        entetes = await self._entetes_admin(client_http)
+
+        journal = await client_http.get(
+            f"{PREFIXE}/audit", headers=entetes, params={"echecsSeulement": True}
+        )
+
+        traces = journal.json()["elements"]
+        assert any(t["action"] == "POST /auth/connexion" for t in traces)
+        assert all(t["reussi"] is False for t in traces)
+
+    async def test_le_superviseur_n_y_a_pas_acces(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        jeton = (await _connexion(client_http)).json()["jeton"]
+
+        journal = await client_http.get(
+            f"{PREFIXE}/audit", headers={"Authorization": f"Bearer {jeton}"}
+        )
+
+        assert journal.status_code == 403
+
+    async def test_aucun_mot_de_passe_ne_figure_au_journal(
+        self, client_http: AsyncClient, administrateur
+    ) -> None:
+        """Le corps de requête n'est jamais conservé : le journal ne doit pas
+        devenir une seconde base de données personnelles."""
+        await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "admin", "motDePasse": MOT_DE_PASSE_TEST},
+        )
+        entetes = await self._entetes_admin(client_http)
+
+        journal = await client_http.get(f"{PREFIXE}/audit", headers=entetes)
+
+        assert MOT_DE_PASSE_TEST not in journal.text
+
+
+class TestRestrictionsDeRole:
+    """La base peut retrancher un droit, jamais en ajouter un.
+
+    C'est ce qui rend l'escalade de privilèges impossible par écriture en base :
+    la matrice du code reste le plafond, y compris après restauration d'une
+    sauvegarde.
+    """
+
+    async def _entetes_super(self, client_http: AsyncClient) -> dict[str, str]:
+        reponse = await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "sudo", "motDePasse": MOT_DE_PASSE_TEST},
+        )
+        assert reponse.status_code == 200, reponse.text
+        return {"Authorization": f"Bearer {reponse.json()['jeton']}"}
+
+    async def test_il_lit_la_matrice(
+        self, client_http: AsyncClient, super_utilisateur
+    ) -> None:
+        entetes = await self._entetes_super(client_http)
+
+        reponse = await client_http.get(f"{PREFIXE}/roles", headers=entetes)
+
+        assert reponse.status_code == 200, reponse.text
+        roles = {r["role"]: r for r in reponse.json()}
+        assert roles["SUPER_UTILISATEUR"]["rang"] == 3
+        assert roles["AGENT_TERRAIN"]["rang"] == 0
+        # L'agent est volontairement le plus pauvre.
+        assert (
+            roles["AGENT_TERRAIN"]["nombreEffectif"]
+            < roles["SUPERVISEUR"]["nombreEffectif"]
+        )
+
+    async def test_retrancher_ferme_le_droit_immediatement(
+        self, client_http: AsyncClient, super_utilisateur, superviseur: Utilisateur
+    ) -> None:
+        entetes = await self._entetes_super(client_http)
+
+        await client_http.put(
+            f"{PREFIXE}/roles/SUPERVISEUR/restrictions",
+            headers=entetes,
+            json={"restrictions": ["itineraire:gerer"]},
+        )
+
+        # Le superviseur se connecte après coup : le droit doit être fermé.
+        jeton = (await _connexion(client_http)).json()["jeton"]
+        reponse = await client_http.post(
+            f"{PREFIXE}/itineraires",
+            headers={"Authorization": f"Bearer {jeton}"},
+            json={"code": 995001},
+        )
+
+        assert reponse.status_code == 403
+
+    async def test_le_super_utilisateur_ne_se_restreint_pas(
+        self, client_http: AsyncClient, super_utilisateur
+    ) -> None:
+        """Une fausse manœuvre fermerait la plateforme sans moyen de rouvrir."""
+        entetes = await self._entetes_super(client_http)
+
+        reponse = await client_http.put(
+            f"{PREFIXE}/roles/SUPER_UTILISATEUR/restrictions",
+            headers=entetes,
+            json={"restrictions": ["compte:creer"]},
+        )
+
+        assert reponse.status_code == 409
+
+    async def test_l_administrateur_lit_mais_ne_restreint_pas(
+        self, client_http: AsyncClient, administrateur
+    ) -> None:
+        """Il exploite la plateforme, il n'en redéfinit pas les règles."""
+        reponse = await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "admin", "motDePasse": MOT_DE_PASSE_TEST},
+        )
+        entetes = {"Authorization": f"Bearer {reponse.json()['jeton']}"}
+
+        assert (await client_http.get(f"{PREFIXE}/roles", headers=entetes)).status_code == 200
+
+        refus = await client_http.put(
+            f"{PREFIXE}/roles/SUPERVISEUR/restrictions",
+            headers=entetes,
+            json={"restrictions": []},
+        )
+        assert refus.status_code == 403

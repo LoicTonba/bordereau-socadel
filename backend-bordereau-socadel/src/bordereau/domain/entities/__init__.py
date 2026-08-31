@@ -6,6 +6,7 @@ from .agent_terrain import AgentTerrain
 from .client import Client
 from .itineraire import Itineraire
 from .ligne_bordereau import LigneBordereau
+from .trace_audit import TraceAudit
 from .utilisateur import Utilisateur
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "Client",
     "Itineraire",
     "LigneBordereau",
+    "TraceAudit",
     "Utilisateur",
 ]

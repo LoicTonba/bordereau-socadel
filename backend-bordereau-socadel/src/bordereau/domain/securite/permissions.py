@@ -63,6 +63,9 @@ class Permission(str, Enum):
     # Périmètres territoriaux
     PERIMETRE_DEFINIR = "perimetre:definir"
     TERRITOIRE_GERER = "territoire:gerer"
+    AUDIT_LIRE = "audit:lire"
+    ROLE_LIRE = "role:lire"
+    ROLE_RESTREINDRE = "role:restreindre"
 
     # Import de fichiers
     IMPORT_EXECUTER = "import:executer"
@@ -124,6 +127,12 @@ _ADMINISTRATEUR = _SUPERVISEUR | {
     Permission.COMPTE_REINITIALISER,
     Permission.PERIMETRE_DEFINIR,
     Permission.TERRITOIRE_GERER,
+    # Savoir qui a fait quoi releve de la gouvernance, pas de
+    # l'exploitation : le superviseur n'y a pas acces.
+    Permission.AUDIT_LIRE,
+    # Lire la matrice, oui : c'est ce qui rend les refus
+    # comprehensibles. La modifier, non : voir le super utilisateur.
+    Permission.ROLE_LIRE,
     Permission.ANALYTICS_NATIONAL,
 }
 
@@ -173,8 +182,24 @@ class ContexteAcces:
     agence: str | None = None
     """Périmètre territorial. `None` pour les rôles à portée nationale."""
 
+    restrictions: frozenset[Permission] = frozenset()
+    """Permissions retirées au rôle par le super utilisateur.
+
+    Elles **retranchent**, jamais elles n'ajoutent : la matrice écrite dans le
+    code reste le plafond, et aucune donnée en base ne peut ouvrir un droit
+    qu'un rôle n'a pas. C'est ce qui rend l'escalade de privilèges impossible
+    par simple écriture dans la table des restrictions.
+    """
+
     def a(self, permission: Permission) -> bool:
+        if permission in self.restrictions:
+            return False
         return permission in MATRICE.get(self.role, frozenset())
+
+    @property
+    def permissions(self) -> frozenset[Permission]:
+        """Ce que ce rôle porte réellement, restrictions déduites."""
+        return MATRICE.get(self.role, frozenset()) - self.restrictions
 
     def exiger(self, permission: Permission) -> None:
         """Garde RBAC.

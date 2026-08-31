@@ -18,6 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from .infrastructure.config.settings import Settings, get_settings
 from .infrastructure.container import Container
 from .interfaces.http.api import creer_routeur
+from .interfaces.http.audit import IntercepteurAudit
 from .interfaces.http.errors import enregistrer_gestionnaires
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,20 @@ def creer_application(settings: Settings | None = None) -> FastAPI:
         openapi_url="/openapi.json" if not settings.est_production else None,
         lifespan=cycle_de_vie,
     )
+
+    # Le journal est monte avant CORS : il observe la requete telle qu'elle
+    # ressort, code de statut compris.
+    if settings.mode_demo:
+        # Bruyant a dessein : ce reglage expose les mots de passe de mise en
+        # route a un visiteur non authentifie. Il n'a rien a faire en
+        # production, et personne ne doit pouvoir dire qu'il l'ignorait.
+        logger.warning(
+            "MODE DEMONSTRATION ACTIF : les comptes de mise en route et leurs "
+            "mots de passe sont exposes publiquement. A desactiver "
+            "imperativement en production (MODE_DEMO=false)."
+        )
+
+    app.add_middleware(IntercepteurAudit)
 
     app.add_middleware(
         CORSMiddleware,

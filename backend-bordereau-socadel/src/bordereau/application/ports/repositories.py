@@ -9,12 +9,13 @@ cas d'usage.
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from datetime import date
+from datetime import date, datetime
 from typing import Protocol, runtime_checkable
 from uuid import UUID
 
 from ...domain.entities import (
     Agence,
+    TraceAudit,
     Affectation,
     AgentTerrain,
     Client,
@@ -55,6 +56,39 @@ class AgentRepository(Protocol):
     async def lister(self, *, actifs_seulement: bool = False) -> Sequence[AgentTerrain]: ...
 
     async def enregistrer(self, agent: AgentTerrain) -> None: ...
+
+
+@runtime_checkable
+class RestrictionRepository(Protocol):
+    """Permissions retirées aux rôles. Ne peut que retrancher."""
+
+    async def lister(self) -> dict[str, set[str]]:
+        """Les restrictions en vigueur, indexées par rôle."""
+        ...
+
+    async def pour(self, role: str) -> set[str]: ...
+
+    async def definir(self, role: str, permissions: set[str]) -> None:
+        """Remplace les restrictions d'un rôle par celles fournies."""
+        ...
+
+
+@runtime_checkable
+class AuditRepository(Protocol):
+    """Journal des gestes posés. On y ajoute, on n'en retire jamais."""
+
+    async def enregistrer(self, trace: TraceAudit) -> None: ...
+
+    async def rechercher(
+        self,
+        *,
+        identifiant: str | None = None,
+        action: str | None = None,
+        depuis: datetime | None = None,
+        jusqu_a: datetime | None = None,
+        echecs_seulement: bool = False,
+        pagination: PaginationParams | None = None,
+    ) -> Page[TraceAudit]: ...
 
 
 @runtime_checkable

@@ -34,7 +34,7 @@ router = APIRouter(prefix="/agents", tags=["Agents de terrain"])
 async def lister(
     container: ContainerDep,
     contexte: ContexteDep,
-    actifs_seulement: Annotated[bool, Query()] = False,
+    actifs_seulement: Annotated[bool, Query(alias="actifsSeulement")] = False,
 ) -> list[AgentSortie]:
     """Répertoire, restreint au périmètre de l'appelant."""
     agents = await container.lister_agents().executer(

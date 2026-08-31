@@ -19,6 +19,7 @@ from bordereau.application.dto import (
 )
 from bordereau.domain.entities import (
     Agence,
+    TraceAudit,
     Affectation,
     AgentTerrain,
     Client,
@@ -50,6 +51,8 @@ class EntrepotMemoire:
         self.agents: dict[UUID, AgentTerrain] = {}
         self.clients: dict[UUID, Client] = {}
         self.agences: dict[str, Agence] = {}
+        self.audit: list[TraceAudit] = []
+        self.restrictions: dict[str, set[str]] = {}
         self.itineraires: dict[int, Itineraire] = {}
         self.affectations: dict[UUID, Affectation] = {}
         self.lignes: dict[UUID, LigneBordereau] = {}
@@ -172,6 +175,58 @@ class _Clients(_ClientsAnnuaire):
             self._e.clients[client.id] = client
             total += 1
         return total
+
+
+class _Restrictions:
+    def __init__(self, entrepot: EntrepotMemoire) -> None:
+        self._e = entrepot
+
+    async def lister(self) -> dict[str, set[str]]:
+        return {role: set(p) for role, p in self._e.restrictions.items()}
+
+    async def pour(self, role: str) -> set[str]:
+        return set(self._e.restrictions.get(role, set()))
+
+    async def definir(self, role: str, permissions: set[str]) -> None:
+        self._e.restrictions[role] = set(permissions)
+
+
+class _Audit:
+    def __init__(self, entrepot: EntrepotMemoire) -> None:
+        self._e = entrepot
+
+    async def enregistrer(self, trace) -> None:
+        self._e.audit.append(trace)
+
+    async def rechercher(
+        self,
+        *,
+        identifiant=None,
+        action=None,
+        depuis=None,
+        jusqu_a=None,
+        echecs_seulement=False,
+        pagination=None,
+    ):
+        params = pagination or PaginationParams()
+        traces = list(reversed(self._e.audit))
+
+        if identifiant:
+            motif = identifiant.lower()
+            traces = [t for t in traces if motif in (t.identifiant or "").lower()]
+        if action:
+            motif = action.lower()
+            traces = [t for t in traces if motif in t.action.lower()]
+        if echecs_seulement:
+            traces = [t for t in traces if not t.reussi]
+
+        debut = params.offset
+        return Page(
+            elements=traces[debut : debut + params.limite],
+            total=len(traces),
+            page=params.page,
+            taille=params.taille,
+        )
 
 
 class _Agences:
@@ -376,6 +431,8 @@ class UnitOfWorkMemoire:
         self.agents = _Agents(self._e)
         self.clients = _Clients(self._e)
         self.agences = _Agences(self._e)
+        self.audit = _Audit(self._e)
+        self.restrictions = _Restrictions(self._e)
         self.itineraires = _Itineraires(self._e)
         self.affectations = _Affectations(self._e)
         self.lignes = _Lignes(self._e)

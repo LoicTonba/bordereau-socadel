@@ -61,6 +61,67 @@ class ReponseConnexion(SchemaBase):
     region: str | None = None
 
 
+class DroitSortie(SchemaBase):
+    permission: str
+    accordee_par_le_code: bool
+    restreinte: bool
+    effective: bool
+
+
+class VueRoleSortie(SchemaBase):
+    role: str
+    rang: int
+    nombre_effectif: int
+    droits: list[DroitSortie]
+
+    @classmethod
+    def depuis_vue(cls, vue) -> "VueRoleSortie":
+        return cls(
+            role=vue.role,
+            rang=vue.rang,
+            nombre_effectif=vue.nombre_effectif,
+            droits=[
+                DroitSortie(
+                    permission=d.permission,
+                    accordee_par_le_code=d.accordee_par_le_code,
+                    restreinte=d.restreinte,
+                    effective=d.effective,
+                )
+                for d in vue.droits
+            ],
+        )
+
+
+class RequeteRestriction(SchemaBase):
+    """Les permissions à retrancher, remplaçant d'un bloc les précédentes."""
+
+    restrictions: list[str] = Field(default_factory=list, max_length=100)
+
+
+class TraceAuditSortie(SchemaBase):
+    quand: datetime
+    action: str
+    cible: str | None
+    auteur: str
+    role: str | None
+    statut_http: int
+    reussi: bool
+    adresse_ip: str | None
+
+    @classmethod
+    def depuis_entite(cls, trace) -> "TraceAuditSortie":
+        return cls(
+            quand=trace.quand,
+            action=trace.action,
+            cible=trace.cible,
+            auteur=trace.auteur,
+            role=trace.role,
+            statut_http=trace.statut_http,
+            reussi=trace.reussi,
+            adresse_ip=trace.adresse_ip,
+        )
+
+
 class RequeteAgence(SchemaBase):
     """Ouverture ou correction d'une agence.
 

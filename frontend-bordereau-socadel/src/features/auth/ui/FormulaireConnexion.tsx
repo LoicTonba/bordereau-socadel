@@ -23,6 +23,7 @@ import { ErreurApi } from "@infra/http/client";
 import { Alerte, Bouton, Champ, cx } from "@shared/ui/primitives";
 
 import { authApi } from "../infrastructure/auth-api";
+import type { CompteDemo } from "../infrastructure/auth-api";
 import {
   PROFILS,
   destination,
@@ -53,6 +54,8 @@ export function FormulaireConnexion() {
   const [enCours, setEnCours] = useState(false);
 
   const { agences, chargement, indisponible } = useAnnuaire();
+  const { comptes: comptesDemo, avertissement } = useDemonstration();
+  const [mode, setMode] = useState<"demo" | "reel">("reel");
   const { codes, invalide } = useMemo(
     () => lireCodesItineraires(saisieItineraires),
     [saisieItineraires],
@@ -60,8 +63,23 @@ export function FormulaireConnexion() {
 
   function choisirProfil(suivant: Role) {
     setRole(suivant);
-    setAgence(null);
     setErreur(null);
+
+    const demo =
+      mode === "demo" ? comptesDemo.find((c) => c.role === suivant) : undefined;
+
+    if (demo) {
+      // Prise en main : tout est déjà su, il ne reste qu'à valider.
+      setAgence(demo.agence);
+      setIdentifiant(demo.email);
+      setMotDePasse(demo.motDePasse);
+      setEtape("identifiants");
+      return;
+    }
+
+    setAgence(null);
+    setIdentifiant("");
+    setMotDePasse("");
     setEtape("agence");
   }
 
@@ -97,6 +115,11 @@ export function FormulaireConnexion() {
             titre={t("poste.profil.titre")}
             aide={t("poste.profil.aide")}
           />
+
+          {comptesDemo.length > 0 && (
+            <ChoixMode mode={mode} onChanger={setMode} avertissement={avertissement} />
+          )}
+
           <ul className="space-y-2.5">
             {PROFILS.map((p) => (
               <li key={p.role}>
@@ -204,7 +227,7 @@ export function FormulaireConnexion() {
             <Bouton
               type="button"
               variante="secondaire"
-              onClick={() => setEtape("agence")}
+              onClick={() => setEtape(mode === "demo" ? "profil" : "agence")}
             >
               {t("poste.retour")}
             </Bouton>
@@ -378,6 +401,82 @@ function Recapitulatif({
       >
         {t("poste.changer")}
       </button>
+    </div>
+  );
+}
+
+/**
+ * Les comptes de démonstration, si l'instance en propose.
+ *
+ * Une instance de production répond 404 : le sélecteur n'apparaît alors pas,
+ * et il n'y a rien à expliquer à l'utilisateur.
+ */
+function useDemonstration() {
+  const [comptes, setComptes] = useState<CompteDemo[]>([]);
+  const [avertissement, setAvertissement] = useState("");
+
+  useEffect(() => {
+    let annule = false;
+    authApi.modeDemonstration().then((reponse) => {
+      if (annule || !reponse?.actif) return;
+      setComptes(reponse.comptes);
+      setAvertissement(reponse.avertissement);
+    });
+    return () => {
+      annule = true;
+    };
+  }, []);
+
+  return { comptes, avertissement };
+}
+
+function ChoixMode({
+  mode,
+  onChanger,
+  avertissement,
+}: {
+  mode: "demo" | "reel";
+  onChanger: (mode: "demo" | "reel") => void;
+  avertissement: string;
+}) {
+  const t = useT();
+
+  return (
+    <div className="space-y-2">
+      <div
+        role="radiogroup"
+        aria-label={t("mode.titre")}
+        className="grid grid-cols-2 gap-2"
+      >
+        {(["demo", "reel"] as const).map((valeur) => (
+          <button
+            key={valeur}
+            type="button"
+            role="radio"
+            aria-checked={mode === valeur}
+            onClick={() => onChanger(valeur)}
+            className={cx(
+              "rounded-lg border px-3 py-2 text-left transition-colors",
+              mode === valeur
+                ? "border-socadel-500 bg-socadel-50 dark:bg-socadel-950"
+                : "border-[var(--bordure)] hover:bg-[var(--fond-survol)]",
+            )}
+          >
+            <span className="block text-sm font-medium">
+              {t(valeur === "demo" ? "mode.demo" : "mode.reel")}
+            </span>
+            <span className="block text-xs text-[var(--texte-tres-doux)]">
+              {t(valeur === "demo" ? "mode.demoAide" : "mode.reelAide")}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {mode === "demo" && avertissement && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+          {avertissement}
+        </p>
+      )}
     </div>
   );
 }

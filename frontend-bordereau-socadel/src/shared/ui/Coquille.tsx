@@ -98,6 +98,20 @@ const NAVIGATION: Entree[] = [
     saufAgent: true,
   },
   {
+    href: "/roles",
+    libelle: "nav.roles",
+    aide: "nav.roles.aide",
+    permission: "role:lire",
+    saufAgent: true,
+  },
+  {
+    href: "/audit",
+    libelle: "nav.audit",
+    aide: "nav.audit.aide",
+    permission: "audit:lire",
+    saufAgent: true,
+  },
+  {
     href: "/comptes",
     libelle: "nav.comptes",
     aide: "nav.comptes.aide",
@@ -429,6 +443,8 @@ const TRACES: Record<string, string> = {
   "/agents": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9",
   "/imports": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
   "/territoire": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18",
+  "/roles": "M12 2 4 6v6c0 5 3.4 8.9 8 10 4.6-1.1 8-5 8-10V6l-8-4zM9 12l2 2 4-4",
+  "/audit": "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4",
   "/comptes": "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
 };
 

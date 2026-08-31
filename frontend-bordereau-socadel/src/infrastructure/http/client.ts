@@ -124,6 +124,11 @@ export const api = {
     return reponse.json() as Promise<T>;
   },
 
+  async put<T>(chemin: string, corps?: unknown): Promise<T> {
+    const reponse = await requete(chemin, { method: "PUT", json: corps });
+    return reponse.json() as Promise<T>;
+  },
+
   async patch<T>(chemin: string, corps?: unknown): Promise<T> {
     const reponse = await requete(chemin, { method: "PATCH", json: corps });
     return reponse.json() as Promise<T>;

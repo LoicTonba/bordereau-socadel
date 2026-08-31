@@ -86,6 +86,54 @@ class UtilisateurORM(Base, HorodatageMixin):
     )
 
 
+class RestrictionRoleORM(Base, HorodatageMixin):
+    """Permissions retirées à un rôle par le super utilisateur.
+
+    Cette table ne peut que **retrancher**. La matrice écrite dans le code
+    reste le plafond : y ajouter une ligne ferme un droit, jamais elle n'en
+    ouvre un. C'est ce qui rend l'escalade de privilèges impossible par simple
+    écriture en base, y compris depuis une sauvegarde restaurée.
+    """
+
+    __tablename__ = "restrictions_role"
+    __table_args__ = (
+        UniqueConstraint("role", "permission", name="unicite_restriction"),
+    )
+
+    id: Mapped[UUID] = _cle_primaire()
+    role: Mapped[str] = mapped_column(String(24), nullable=False, index=True)
+    permission: Mapped[str] = mapped_column(String(48), nullable=False)
+
+
+class TraceAuditORM(Base):
+    """Journal des gestes posés. Écrit une fois, jamais modifié.
+
+    L'auteur est recopié plutôt que joint : un compte supprimé ne doit pas
+    effacer la trace de ce qu'il a fait. Aucun corps de requête n'est conservé,
+    voir l'entité correspondante.
+    """
+
+    __tablename__ = "journal_audit"
+    __table_args__ = (
+        Index("ix_audit_quand", "quand"),
+        Index("ix_audit_auteur", "identifiant", "quand"),
+    )
+
+    id: Mapped[UUID] = _cle_primaire()
+    quand: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+    action: Mapped[str] = mapped_column(String(200), nullable=False)
+    cible: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    utilisateur_id: Mapped[UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), nullable=True
+    )
+    identifiant: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    role: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    statut_http: Mapped[int] = mapped_column(Integer, nullable=False, default=200)
+    adresse_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
+
+
 class AgenceORM(Base, HorodatageMixin):
     """Maille de base du périmètre : le centre de service client.
 

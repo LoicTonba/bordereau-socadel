@@ -21,6 +21,7 @@ from ....domain.entities import (
     Agence,
     AgentTerrain,
     Itineraire,
+    TraceAudit,
     Utilisateur,
 )
 from ....domain.value_objects import CodeItineraire, Periode
@@ -36,6 +37,8 @@ from ..mappers.mappers import (
 from ..models.tables import (
     AffectationORM,
     AgenceORM,
+    RestrictionRoleORM,
+    TraceAuditORM,
     AgentTerrainORM,
     ItineraireORM,
     UtilisateurORM,
@@ -360,3 +363,117 @@ def _agence_vers_orm(agence: Agence) -> AgenceORM:
         motif_fermeture=agence.motif_fermeture,
         fermee_le=agence.fermee_le,
     )
+
+
+class AuditRepositoryPg:
+    """Implémentation du port `AuditRepository`."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def enregistrer(self, trace: TraceAudit) -> None:
+        self._session.add(
+            TraceAuditORM(
+                id=trace.id,
+                quand=trace.quand,
+                action=trace.action,
+                cible=trace.cible,
+                utilisateur_id=trace.utilisateur_id,
+                identifiant=trace.identifiant,
+                role=trace.role,
+                statut_http=trace.statut_http,
+                adresse_ip=trace.adresse_ip,
+            )
+        )
+
+    async def rechercher(
+        self,
+        *,
+        identifiant: str | None = None,
+        action: str | None = None,
+        depuis=None,
+        jusqu_a=None,
+        echecs_seulement: bool = False,
+        pagination: PaginationParams | None = None,
+    ) -> Page[TraceAudit]:
+        params = pagination or PaginationParams()
+        requete = select(TraceAuditORM)
+
+        if identifiant:
+            requete = requete.where(
+                TraceAuditORM.identifiant.ilike(f"%{identifiant.strip()}%")
+            )
+        if action:
+            requete = requete.where(TraceAuditORM.action.ilike(f"%{action.strip()}%"))
+        if depuis is not None:
+            requete = requete.where(TraceAuditORM.quand >= depuis)
+        if jusqu_a is not None:
+            requete = requete.where(TraceAuditORM.quand <= jusqu_a)
+        if echecs_seulement:
+            requete = requete.where(TraceAuditORM.statut_http >= 400)
+
+        total = await self._session.scalar(
+            select(func.count()).select_from(requete.subquery())
+        )
+        if not total:
+            return Page.vide(params)
+
+        resultat = await self._session.scalars(
+            requete.order_by(TraceAuditORM.quand.desc())
+            .offset(params.offset)
+            .limit(params.limite)
+        )
+        return Page(
+            elements=[_trace_vers_domaine(row) for row in resultat],
+            total=total,
+            page=params.page,
+            taille=params.taille,
+        )
+
+
+def _trace_vers_domaine(row: TraceAuditORM) -> TraceAudit:
+    return TraceAudit(
+        id=row.id,
+        quand=row.quand,
+        action=row.action,
+        cible=row.cible,
+        utilisateur_id=row.utilisateur_id,
+        identifiant=row.identifiant,
+        role=row.role,
+        statut_http=row.statut_http,
+        adresse_ip=row.adresse_ip,
+    )
+
+
+class RestrictionRepositoryPg:
+    """Implémentation du port `RestrictionRepository`."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def lister(self) -> dict[str, set[str]]:
+        resultat = await self._session.execute(
+            select(RestrictionRoleORM.role, RestrictionRoleORM.permission)
+        )
+        par_role: dict[str, set[str]] = {}
+        for role, permission in resultat.all():
+            par_role.setdefault(role, set()).add(permission)
+        return par_role
+
+    async def pour(self, role: str) -> set[str]:
+        resultat = await self._session.scalars(
+            select(RestrictionRoleORM.permission).where(
+                RestrictionRoleORM.role == role
+            )
+        )
+        return set(resultat)
+
+    async def definir(self, role: str, permissions: set[str]) -> None:
+        """Remplace d'un bloc : ce qui n'est plus listé est rendu au rôle."""
+        await self._session.execute(
+            delete(RestrictionRoleORM).where(RestrictionRoleORM.role == role)
+        )
+        for permission in sorted(permissions):
+            self._session.add(
+                RestrictionRoleORM(role=role, permission=permission)
+            )

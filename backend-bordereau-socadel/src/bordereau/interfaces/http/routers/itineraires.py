@@ -174,7 +174,7 @@ async def bordereau_terrain(
     code: int,
     container: ContainerDep,
     contexte: ContexteDep,
-    agent_id: Annotated[str | None, Query()] = None,
+    agent_id: Annotated[str | None, Query(alias="agentId")] = None,
 ) -> Response:
     """Produit le PDF que l'agent imprime et emporte sur le terrain."""
     from uuid import UUID
@@ -205,7 +205,7 @@ async def bordereau_journee(
     agent_id: UUID,
     container: ContainerDep,
     contexte: ContexteDep,
-    date_travail: Annotated[date, Query()],
+    date_travail: Annotated[date, Query(alias="dateTravail")],
 ) -> Response:
     """Un seul document pour toutes les tournées confiées ce jour-là.
 
