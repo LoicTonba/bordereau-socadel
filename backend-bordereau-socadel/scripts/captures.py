@@ -30,13 +30,13 @@ SORTIE = RACINE / "scripts" / "rapport" / "captures"
 #: Les comptes de mise en route, tels que le guide les documente.
 COMPTES = {
     "SUPER_UTILISATEUR": ("tonbaloic6@gmail.com", "Ngaoundal-Kribi-88", None),
-    "ADMINISTRATEUR": ("flore.eyenga@socadel.cm", "Bandjoun-Maroua-77", None),
+    "ADMINISTRATEUR": ("tonbaloic@gmail.com", "Bandjoun-Maroua-77", None),
     "SUPERVISEUR": (
-        "bertrand.nkolo@socadel.cm",
+        "loicdjimgou@gmail.com",
         "Ngaoundere-Sud-2026",
         "CSC_NGAOUNDERE SUD",
     ),
-    "AGENT_TERRAIN": ("ag001@socadel.cm", "Terrain-Essos-2026", "CSC_NGAOUNDERE SUD"),
+    "AGENT_TERRAIN": ("objectifloic@gmail.com", "Terrain-Essos-2026", "CSC_NGAOUNDERE SUD"),
 }
 
 #: Itinéraire réel de l'agence du superviseur, 73 clients au référentiel.
@@ -96,8 +96,23 @@ async def parcours_entree(n: Navigateur, journal: Journal) -> None:
     print("\nParcours d'entrée")
 
     await P.aller_a_la_connexion(n)
-    journal.noter("Commun", "Ouvrir l'écran de connexion", "quatre profils proposés",
+    journal.noter("Commun", "Ouvrir l'écran de connexion",
+                  "mode Démonstration ou Réel, puis quatre profils",
                   await prendre(n, "commun-01-profil"))
+
+    # Le raccourci de prise en main : en démonstration, choisir un profil
+    # suffit, l'agence et les identifiants suivent.
+    await n.cliquer("button", texte="Démonstration")
+    await asyncio.sleep(0.4)
+    await n.cliquer("ul button", texte="Super utilisateur")
+    await n.attendre('input[name="identifiant"]')
+    prerempli = await n.evaluer(
+        "document.querySelector('input[name=\"identifiant\"]').value"
+    )
+    journal.noter("Commun", "Choisir le mode Démonstration",
+                  f"identifiants préremplis : {prerempli}",
+                  await prendre(n, "commun-01b-demonstration"))
+    await P.aller_a_la_connexion(n)
 
     await P.choisir_profil(n, "SUPERVISEUR")
     journal.noter("Commun", "Choisir le profil Superviseur",
@@ -274,13 +289,25 @@ async def parcours_superviseur(n: Navigateur, journal: Journal) -> None:
                   "modèle à télécharger, aperçu avant écriture",
                   await prendre(n, "sv-13-imports"))
 
+    # La recherche globale, ouverte depuis la barre du haut.
+    await n.cliquer("button", texte="Rechercher")
+    await asyncio.sleep(0.5)
+    await n.remplir('input[type="search"]', "MBALLA")
+    await asyncio.sleep(1.6)
+    volets = await n.evaluer("document.querySelectorAll('[role=\"dialog\"] h3, dialog h3').length")
+    journal.noter("Superviseur", "Chercher dans toute l'application",
+                  f"{volets} volet(s) de résultats, dans son périmètre",
+                  await prendre(n, "sv-14-recherche"))
+    await n.evaluer("document.querySelector('dialog')?.close()")
+    await asyncio.sleep(0.4)
+
     # Étape 5 : le raccourci, se connecter en annonçant ses itinéraires.
     await P.connecter(n, role="SUPERVISEUR", email=email, mot_de_passe=mot_de_passe,
                       agence=agence, itineraires=ITINERAIRE,
                       ecran_attendu="Bordereau")
     journal.noter("Superviseur", f"Se reconnecter en annonçant {ITINERAIRE}",
                   "arrivée sur le bordereau déjà cadré",
-                  await prendre(n, "sv-14-bordereau-cadre"))
+                  await prendre(n, "sv-15-bordereau-cadre"))
 
 
 # --- Agent de terrain -------------------------------------------------------
@@ -326,7 +353,7 @@ async def parcours_gouvernance(n: Navigateur, journal: Journal, role: str,
                   "tableau de bord de l'ensemble du réseau",
                   await prendre(n, f"{prefixe}-01-tableau-de-bord"))
 
-    await P.naviguer(n, "/comptes", "Comptes")
+    await P.naviguer(n, "/comptes", "Utilisateurs")
     attente = await n.evaluer("document.querySelectorAll('li').length")
     journal.noter(nom, "Ouvrir l'écran des comptes",
                   f"{attente} demande(s) en attente d'approbation",
@@ -343,11 +370,33 @@ async def parcours_gouvernance(n: Navigateur, journal: Journal, role: str,
                       "profil, périmètre et motif de refus",
                       await prendre(n, f"{prefixe}-03-approbation"))
 
+    await P.naviguer(n, "/territoire", "Maillage territorial")
+    agences = await n.evaluer("document.querySelectorAll('li').length")
+    journal.noter(nom, "Ouvrir le maillage territorial",
+                  f"{agences} agence(s) listées, ouvrables et fermables",
+                  await prendre(n, f"{prefixe}-04-territoire"))
+
+    await P.naviguer(n, "/roles", "Rôles et permissions")
+    droits = await n.evaluer(
+        "(() => { const b = [...document.querySelectorAll('span')]"
+        "  .filter(s => s.innerText.includes('droit(s)'));"
+        " return b.map(s => s.innerText).join(', '); })()"
+    )
+    journal.noter(nom, "Consulter la matrice des rôles",
+                  f"droits effectifs : {droits}",
+                  await prendre(n, f"{prefixe}-05-roles"))
+
+    await P.naviguer(n, "/audit", "Audit et journal")
+    traces = await n.evaluer("document.querySelectorAll('tbody tr').length")
+    journal.noter(nom, "Relire le journal d'audit",
+                  f"{traces} trace(s) affichées sur la première page",
+                  await prendre(n, f"{prefixe}-06-audit"))
+
     await P.naviguer(n, "/bordereau", "Bordereau")
     lignes = await n.evaluer("document.querySelectorAll('tbody tr').length")
     journal.noter(nom, "Ouvrir le bordereau",
                   f"{lignes} lignes, aucune restriction d'agence",
-                  await prendre(n, f"{prefixe}-04-bordereau"))
+                  await prendre(n, f"{prefixe}-07-bordereau"))
 
 
 async def principal() -> None:

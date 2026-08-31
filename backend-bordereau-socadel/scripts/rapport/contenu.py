@@ -75,7 +75,7 @@ def _sommaire() -> list:
                 ["8", "Architecture", "Clean architecture, couches et règle de dépendance"],
                 ["9", "Modèle de données", "Tables PostgreSQL, cardinalités, volumétrie"],
                 ["10", "Habilitations", "RBAC, ABAC, hiérarchie des rôles, matrice complète"],
-                ["11", "Ouverture des accès", "Inscription, courriels, mots de passe, hiérarchie"],
+                ["11", "Ouverture des accès", "Inscription, courriels, territoire, rôles, audit"],
                 ["12", "Changer de source", "Ce que coûtera la bascule vers l'API NEXT"],
                 ["13", "Charte graphique", "Couleurs, thèmes, palette des graphiques"],
                 ["14", "Décisions", "Choix structurants et leur justification"],
@@ -1225,6 +1225,143 @@ def _cycle_de_vie_comptes() -> list:
             "compte créé dont le courriel n'est pas parti reste un compte créé, "
             "et le lien peut être renvoyé. Faire tomber une inscription parce "
             "que le serveur de messagerie tousse serait un mauvais échange."
+        ),
+        titre("11.5 Le maillage territorial", "h2"),
+        p(
+            "L'agence est la maille du périmètre : c'est elle qu'un compte de "
+            "superviseur porte, et elle que le sélecteur de connexion propose. "
+            "Elle était déduite du référentiel clients, donc immuable : ouvrir "
+            "une agence dans une zone nouvelle, ou en fermer une devenue "
+            "inaccessible, supposait de rejouer un import de plus de quatre cent "
+            "mille lignes. Ce n'est pas une opération qu'on demande à un "
+            "responsable d'agence."
+        ),
+        p(
+            "Le maillage est donc une entité à part entière, que l'application "
+            "tient. Deux règles le protègent, et elles tiennent au fait que "
+            "l'agence est référencée ailleurs."
+        ),
+        tableau(
+            [
+                ["Règle", "Ce qu'elle empêche"],
+                [
+                    "Le nom d'une agence ne se modifie pas",
+                    "Comptes, itinéraires et référentiel le portent tel quel : le "
+                    "changer romprait les trois liens d'un coup.",
+                ],
+                [
+                    "On ferme avant de supprimer",
+                    "Une agence fermée quitte les listes de travail et le "
+                    "sélecteur de connexion le jour même, mais reste attachée à "
+                    "la production passée. La suppression n'est ouverte que tant "
+                    "que rien ne s'y rattache.",
+                ],
+                [
+                    "Le motif de fermeture est exigé",
+                    "Une agence fermée sans raison connue ne se rouvre jamais de "
+                    "bon cœur, faute de savoir ce qui l'avait justifiée.",
+                ],
+            ],
+            [140, 290],
+        ),
+        legende(
+            "181 agences, 33 divisions et 9 directions régionales ont été "
+            "reprises du référentiel à la mise en route. L'application fait foi "
+            "ensuite."
+        ),
+        titre("11.6 Restreindre un rôle, jamais l'étendre", "h2"),
+        p(
+            "Le super utilisateur peut retirer une permission à un rôle, par "
+            "exemple fermer l'export à tous les superviseurs le temps d'une "
+            "campagne. Il ne peut pas en ajouter, et cette asymétrie est "
+            "délibérée."
+        ),
+        encadre(
+            "<b>La matrice du code reste le plafond.</b> Les quatre rôles et "
+            "leurs droits sont écrits dans le dépôt, où ils sont relus, testés et "
+            "versionnés. La table des restrictions ne peut que retrancher : "
+            "aucune écriture en base n'ouvre un droit, y compris depuis une "
+            "sauvegarde restaurée. L'escalade de privilèges par la donnée est "
+            "ainsi fermée par construction, et non par vigilance."
+        ),
+        p(
+            "Deux garde-fous s'ajoutent. Le rôle super utilisateur ne se "
+            "restreint pas lui-même, sans quoi une fausse manœuvre fermerait la "
+            "plateforme à tout le monde sans moyen de la rouvrir. Et lui seul "
+            "décide : l'administrateur SOCADEL lit la matrice, ce qui rend un "
+            "refus compréhensible, mais ne la modifie pas."
+        ),
+        p(
+            "Les restrictions sont relues à chaque requête plutôt que mises en "
+            "cache : retirer un droit prend effet tout de suite, pas au prochain "
+            "redémarrage."
+        ),
+        titre("11.7 Le journal d'audit", "h2"),
+        p(
+            "Qui a affecté cette tournée, qui a fermé cette agence, qui a "
+            "réinitialisé ce mot de passe. Une plateforme qui décide de ce qui "
+            "sera payé doit pouvoir répondre, sinon elle n'est pas défendable "
+            "devant un contrôle."
+        ),
+        p(
+            "L'écriture passe par un <b>point unique</b>, l'intercepteur HTTP. "
+            "Répartir la consignation sur cinquante cas d'usage garantirait qu'on "
+            "en oublie un, et le jour où on l'oublie, c'est justement celui qu'on "
+            "cherchera."
+        ),
+        tableau(
+            [
+                ["Ce que le journal retient", "Ce qu'il ne retient jamais"],
+                [
+                    "L'auteur, l'instant, le geste et sa cible, l'issue et "
+                    "l'adresse d'origine. Les écritures et les tentatives de "
+                    "connexion.",
+                    "Le contenu transmis : mots de passe, numéros de téléphone, "
+                    "noms de clients. Et les consultations, qui noieraient le "
+                    "signal sans rien apprendre.",
+                ],
+            ],
+            [215, 215],
+        ),
+        legende(
+            "Recopier les corps de requête créerait une seconde base de données "
+            "personnelles, moins protégée que la première et consultable par des "
+            "gens qui n'ont pas à la voir. Un test vérifie qu'aucun mot de passe "
+            "n'y figure."
+        ),
+        p(
+            "La lecture est gouvernée : administrateur SOCADEL et super "
+            "utilisateur NEXT LTD. Le superviseur n'a pas à savoir qui a consulté "
+            "quoi, et l'agent encore moins."
+        ),
+        titre("11.8 Le mode démonstration", "h2"),
+        p(
+            "Le premier écran de connexion propose <b>Démonstration</b> ou "
+            "<b>Réel</b>. En démonstration, choisir un profil suffit : l'agence "
+            "et les identifiants sont préremplis. C'est ce qu'il faut pour une "
+            "prise en main, où retaper une adresse à chaque essai use la patience "
+            "avant même d'avoir vu l'application."
+        ),
+        encadre(
+            "<b>Ce mode expose des mots de passe à un visiteur non "
+            "authentifié.</b> Il est donc faux par défaut, sa route répond 404 "
+            "quand il est coupé, et l'application l'annonce bruyamment dans son "
+            "journal au démarrage quand il est actif. Il n'a rien à faire sur "
+            "l'instance qui portera le référentiel réel."
+        ),
+        titre("11.9 L'envoi des courriels", "h2"),
+        p(
+            "Les cinq messages du cycle de vie d'un compte partent par un vrai "
+            "serveur, configuré hors du dépôt. Le port <font face='Courier'>"
+            "Messagerie</font> masque ce choix : un adaptateur écrit sur disque "
+            "en développement, l'autre parle SMTP, et aucun cas d'usage ne sait "
+            "lequel est en place."
+        ),
+        p(
+            "Les deux <b>avalent leurs erreurs</b>. Un compte créé dont le "
+            "courriel n'est pas parti reste un compte créé : faire échouer une "
+            "inscription parce qu'un serveur de messagerie tousse serait pire que "
+            "ne pas envoyer un message, qui peut de toute façon être renvoyé."
         ),
     ]
 

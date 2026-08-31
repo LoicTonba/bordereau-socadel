@@ -26,9 +26,9 @@ CAPTURES = Path(__file__).resolve().parent / "captures"
 #: identifiants n'est pas suivable ; ils sont à remplacer avant production.
 IDENTIFIANTS = {
     "SUPER_UTILISATEUR": ("tonbaloic6@gmail.com", "Ngaoundal-Kribi-88"),
-    "ADMINISTRATEUR": ("flore.eyenga@socadel.cm", "Bandjoun-Maroua-77"),
-    "SUPERVISEUR": ("bertrand.nkolo@socadel.cm", "Ngaoundere-Sud-2026"),
-    "AGENT_TERRAIN": ("ag001@socadel.cm", "Terrain-Essos-2026"),
+    "ADMINISTRATEUR": ("tonbaloic@gmail.com", "Bandjoun-Maroua-77"),
+    "SUPERVISEUR": ("loicdjimgou@gmail.com", "Ngaoundere-Sud-2026"),
+    "AGENT_TERRAIN": ("objectifloic@gmail.com", "Terrain-Essos-2026"),
 }
 
 
@@ -100,6 +100,28 @@ def _connexion(role: str, agence: str | None, particularite: list | None = None)
             "Elle demande d'abord <b>qui vous êtes</b>, puis <b>où vous êtes</b>. "
             "Ce n'est pas une formalité de plus : c'est ce qui permet d'ouvrir "
             "votre session sur le bon écran, déjà cadré sur votre travail."
+        ),
+        titre("Démonstration ou réel", "h2"),
+        p(
+            "Deux modes vous sont proposés en haut du premier écran. En "
+            "<b>Démonstration</b>, choisir votre profil suffit : l'agence et les "
+            "identifiants sont préremplis, et vous arrivez directement au "
+            "troisième écran, prêt à valider. C'est ce qu'il faut pour une prise "
+            "en main, où retaper une adresse à chaque essai use la patience "
+            "avant même d'avoir vu l'application."
+        ),
+        p(
+            "En <b>Réel</b>, rien n'est prérempli : vous choisissez votre "
+            "profil, votre agence, et vous saisissez vos identifiants. C'est le "
+            "mode de tous les jours."
+        ),
+        _ecran("commun-01b-demonstration",
+               "En démonstration, l'adresse et le mot de passe sont déjà là."),
+        encadre(
+            "<b>Le mode démonstration est coupé en production.</b> Il expose des "
+            "mots de passe à un visiteur non authentifié : c'est acceptable sur "
+            "une instance de découverte, jamais sur celle qui porte le "
+            "référentiel réel. Le sélecteur disparaît alors de l'écran."
         ),
         titre("Étape 1, votre profil", "h2"),
         p(
@@ -344,7 +366,6 @@ def superviseur() -> list:
             "Vous pouvez le réimprimer à tout moment depuis l'écran "
             "<b>Itinéraires</b>, sans refaire l'affectation."
         ),
-        _ecran("sv-11-itineraires", "Recherche d'un itinéraire et réimpression de son bordereau."),
         titre("4. Saisir la production au retour", "h1"),
         p(
             "L'agent revient avec son bordereau annoté. Ouvrez <b>Bordereau</b> : "
@@ -436,6 +457,52 @@ def superviseur() -> list:
             "n'est écrit avant que vous validiez cet aperçu."
         ),
         _ecran("sv-13-imports", "L'import se valide sur aperçu, jamais à l'aveugle."),
+        titre("Tenir votre répertoire de tournées", "h1"),
+        p(
+            "Le terrain ouvre des zones plus vite qu'un import du référentiel ne "
+            "se rejoue. Depuis l'écran <b>Itinéraires</b>, vous ouvrez une "
+            "tournée, corrigez son libellé ou son rattachement, et retirez celle "
+            "qui n'a jamais servi."
+        ),
+        tableau(
+            [
+                ["Règle", "Pourquoi"],
+                [
+                    "Le code d'une tournée ne se modifie pas",
+                    "Les affectations et les lignes de bordereau déjà saisies le "
+                    "portent : le changer romprait ce lien.",
+                ],
+                [
+                    "Une tournée déjà confiée ne se supprime pas",
+                    "La production y renvoie ; l'effacer laisserait des lignes "
+                    "orphelines. Cessez simplement de l'affecter.",
+                ],
+                [
+                    "Sans agence indiquée, la tournée rejoint la vôtre",
+                    "Vous laisser en ouvrir ailleurs contournerait votre "
+                    "périmètre.",
+                ],
+            ],
+            [170, 260],
+        ),
+        _ecran("sv-11-itineraires",
+               "Le répertoire des tournées, en recherche et en modification."),
+        titre("Chercher, sans savoir où", "h1"),
+        p(
+            "Le champ de la barre du haut, ou <b>Ctrl+K</b>, ouvre une recherche "
+            "qui traverse toute l'application : un nom de client, un contrat, un "
+            "matricule d'agent, un code de tournée. Les résultats sont groupés "
+            "par famille et vous emmènent à l'écran qui détient la réponse "
+            "complète."
+        ),
+        p(
+            "Vous ne verrez jamais que ce à quoi votre profil donne accès : la "
+            "recherche interroge, pour chaque famille, le même moteur que "
+            "l'écran correspondant. Une famille qui ne vous est pas ouverte est "
+            "simplement absente des résultats."
+        ),
+        _ecran("sv-14-recherche",
+               "La recherche globale, cadrée sur le périmètre de l'appelant."),
         PageBreak(),
         titre("7. Le raccourci du lendemain", "h1"),
         p(
@@ -444,7 +511,7 @@ def superviseur() -> list:
             "avec un bandeau qui le rappelle et un lien <b>Tout afficher</b> pour "
             "en sortir."
         ),
-        _ecran("sv-14-bordereau-cadre", "Arrivée directe sur la tournée annoncée, sans passer par les filtres."),
+        _ecran("sv-15-bordereau-cadre", "Arrivée directe sur la tournée annoncée, sans passer par les filtres."),
         Spacer(1, 4 * mm),
         *_compte_et_mot_de_passe(),
         *_pied_de_guide("Superviseur, SOCADEL, une agence"),
@@ -622,6 +689,82 @@ def administrateur() -> list:
             "Il ne peut plus se connecter, mais sa production passée reste "
             "attachée à son nom. Vous le réactivez d'un clic au retour."
         ),
+        titre("Le maillage territorial", "h1"),
+        p(
+            "Le réseau bouge : une agence ouvre dans un lotissement neuf, une "
+            "autre devient inaccessible. L'écran <b>Territoire</b> vous permet de "
+            "suivre ces mouvements le jour même, sans attendre un nouvel import "
+            "du référentiel clients."
+        ),
+        _ecran("ad-04-territoire",
+               "Les 181 agences, leurs divisions et leurs directions régionales."),
+        tableau(
+            [
+                ["Geste", "Ce qu'il emporte"],
+                [
+                    "Ouvrir une agence",
+                    "Elle rejoint aussitôt le sélecteur de connexion et les "
+                    "listes de travail.",
+                ],
+                [
+                    "Corriger un rattachement",
+                    "Division et direction se modifient. <b>Le nom, non</b> : "
+                    "comptes, itinéraires et référentiel le portent tel quel.",
+                ],
+                [
+                    "Fermer une agence",
+                    "Elle quitte les listes et le sélecteur de connexion le jour "
+                    "même, mais reste attachée à la production passée. Le motif "
+                    "est exigé.",
+                ],
+                [
+                    "Supprimer une agence",
+                    "Réservé à la correction d'une saisie : dès qu'un compte ou "
+                    "une tournée s'y rattache, seule la fermeture reste possible.",
+                ],
+            ],
+            [130, 300],
+        ),
+        PageBreak(),
+        titre("Les rôles et leurs permissions", "h1"),
+        p(
+            "L'écran <b>Rôles</b> montre ce que chaque profil porte réellement. "
+            "Il rend un refus compréhensible sans aller lire le code : on y voit "
+            "le rang, le nombre de droits effectifs, et le détail de chacun."
+        ),
+        _ecran("ad-05-roles",
+               "Les quatre rôles, du plus large au plus restreint."),
+        encadre(
+            "<b>On retranche, on n'ajoute jamais.</b> Les quatre rôles et leur "
+            "matrice sont écrits dans le code, où ils sont relus, testés et "
+            "versionnés. Retirer un droit ici le ferme aussitôt ; aucune écriture "
+            "en base ne peut en ouvrir un que le code ne donne pas. C'est ce qui "
+            "rend l'escalade de privilèges impossible par la donnée, y compris "
+            "depuis une sauvegarde restaurée."
+        ),
+        titre("Le journal d'audit", "h1"),
+        p(
+            "Qui a affecté cette tournée, qui a fermé cette agence, qui a "
+            "réinitialisé ce mot de passe. L'écran <b>Audit et journal</b> "
+            "répond, du plus récent au plus ancien, avec des filtres par auteur, "
+            "par action et par période."
+        ),
+        _ecran("ad-06-audit",
+               "Le journal : l'auteur, le geste, la cible et l'issue."),
+        p(
+            "Le journal enregistre les <b>écritures</b> et les <b>tentatives de "
+            "connexion</b>, pas les consultations : un tableau de bord ouvert "
+            "deux minutes produit des dizaines de lectures, et personne ne "
+            "cherche qui l'a regardé."
+        ),
+        encadre(
+            "<b>Il ne retient jamais le contenu transmis.</b> Ni mot de passe, ni "
+            "numéro de téléphone, ni nom de client. Les recopier créerait une "
+            "seconde base de données personnelles, moins protégée que la "
+            "première et consultable par des gens qui n'ont pas à la voir. Le "
+            "geste et sa cible suffisent à répondre à « qui a fait quoi »."
+        ),
+        PageBreak(),
         titre("5. Ce que vous voyez du terrain", "h1"),
         p(
             "Rien ne vous empêche d'ouvrir le bordereau : votre portée est "
@@ -629,7 +772,7 @@ def administrateur() -> list:
             "arbitrer une réclamation, moins pour le travail quotidien, qui "
             "revient au superviseur."
         ),
-        _ecran("ad-04-bordereau", "Le bordereau vu en portée nationale, sans restriction d'agence."),
+        _ecran("ad-07-bordereau", "Le bordereau vu en portée nationale, sans restriction d'agence."),
         Spacer(1, 4 * mm),
         *_compte_et_mot_de_passe(),
         *_pied_de_guide("Administrateur, SOCADEL"),
@@ -732,8 +875,84 @@ def super_utilisateur() -> list:
             ],
             [110, 190, 130],
         ),
+        titre("Le maillage territorial", "h1"),
+        p(
+            "Le réseau bouge : une agence ouvre dans un lotissement neuf, une "
+            "autre devient inaccessible. L'écran <b>Territoire</b> vous permet de "
+            "suivre ces mouvements le jour même, sans attendre un nouvel import "
+            "du référentiel clients."
+        ),
+        _ecran("su-04-territoire",
+               "Les 181 agences, leurs divisions et leurs directions régionales."),
+        tableau(
+            [
+                ["Geste", "Ce qu'il emporte"],
+                [
+                    "Ouvrir une agence",
+                    "Elle rejoint aussitôt le sélecteur de connexion et les "
+                    "listes de travail.",
+                ],
+                [
+                    "Corriger un rattachement",
+                    "Division et direction se modifient. <b>Le nom, non</b> : "
+                    "comptes, itinéraires et référentiel le portent tel quel.",
+                ],
+                [
+                    "Fermer une agence",
+                    "Elle quitte les listes et le sélecteur de connexion le jour "
+                    "même, mais reste attachée à la production passée. Le motif "
+                    "est exigé.",
+                ],
+                [
+                    "Supprimer une agence",
+                    "Réservé à la correction d'une saisie : dès qu'un compte ou "
+                    "une tournée s'y rattache, seule la fermeture reste possible.",
+                ],
+            ],
+            [130, 300],
+        ),
+        PageBreak(),
+        titre("Les rôles et leurs permissions", "h1"),
+        p(
+            "L'écran <b>Rôles</b> montre ce que chaque profil porte réellement. "
+            "Il rend un refus compréhensible sans aller lire le code : on y voit "
+            "le rang, le nombre de droits effectifs, et le détail de chacun."
+        ),
+        _ecran("su-05-roles",
+               "Les quatre rôles, du plus large au plus restreint."),
+        encadre(
+            "<b>On retranche, on n'ajoute jamais.</b> Les quatre rôles et leur "
+            "matrice sont écrits dans le code, où ils sont relus, testés et "
+            "versionnés. Retirer un droit ici le ferme aussitôt ; aucune écriture "
+            "en base ne peut en ouvrir un que le code ne donne pas. C'est ce qui "
+            "rend l'escalade de privilèges impossible par la donnée, y compris "
+            "depuis une sauvegarde restaurée."
+        ),
+        titre("Le journal d'audit", "h1"),
+        p(
+            "Qui a affecté cette tournée, qui a fermé cette agence, qui a "
+            "réinitialisé ce mot de passe. L'écran <b>Audit et journal</b> "
+            "répond, du plus récent au plus ancien, avec des filtres par auteur, "
+            "par action et par période."
+        ),
+        _ecran("su-06-audit",
+               "Le journal : l'auteur, le geste, la cible et l'issue."),
+        p(
+            "Le journal enregistre les <b>écritures</b> et les <b>tentatives de "
+            "connexion</b>, pas les consultations : un tableau de bord ouvert "
+            "deux minutes produit des dizaines de lectures, et personne ne "
+            "cherche qui l'a regardé."
+        ),
+        encadre(
+            "<b>Il ne retient jamais le contenu transmis.</b> Ni mot de passe, ni "
+            "numéro de téléphone, ni nom de client. Les recopier créerait une "
+            "seconde base de données personnelles, moins protégée que la "
+            "première et consultable par des gens qui n'ont pas à la voir. Le "
+            "geste et sa cible suffisent à répondre à « qui a fait quoi »."
+        ),
+        PageBreak(),
         titre("5. Ce que vous voyez du terrain", "h1"),
-        _ecran("su-04-bordereau", "Le bordereau, sans aucune restriction de périmètre."),
+        _ecran("su-07-bordereau", "Le bordereau, sans aucune restriction de périmètre."),
         Spacer(1, 4 * mm),
         *_compte_et_mot_de_passe(),
         *_pied_de_guide("Super utilisateur, NEXT LTD"),

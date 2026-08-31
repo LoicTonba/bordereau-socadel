@@ -126,10 +126,11 @@ def capture(chemin: Path, legende_texte: str) -> KeepTogether:
     fond dans la page et le lecteur ne voit plus où l'écran commence.
     """
     largeur_px, hauteur_px = ImageReader(str(chemin)).getSize()
-    hauteur = LARGEUR_UTILE * hauteur_px / largeur_px
+    largeur = LARGEUR_UTILE - 30
+    hauteur = largeur * hauteur_px / largeur_px
 
-    image = Image(str(chemin), width=LARGEUR_UTILE, height=hauteur)
-    cadre = Table([[image]], colWidths=[LARGEUR_UTILE + 2])
+    image = Image(str(chemin), width=largeur, height=hauteur)
+    cadre = Table([[image]], colWidths=[largeur + 2], hAlign="CENTER")
     cadre.setStyle(
         TableStyle(
             [
