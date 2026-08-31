@@ -18,6 +18,7 @@ from bordereau.application.dto import (
     PaginationParams,
 )
 from bordereau.domain.entities import (
+    Agence,
     Affectation,
     AgentTerrain,
     Client,
@@ -48,6 +49,7 @@ class EntrepotMemoire:
         self.utilisateurs: dict[UUID, Utilisateur] = {}
         self.agents: dict[UUID, AgentTerrain] = {}
         self.clients: dict[UUID, Client] = {}
+        self.agences: dict[str, Agence] = {}
         self.itineraires: dict[int, Itineraire] = {}
         self.affectations: dict[UUID, Affectation] = {}
         self.lignes: dict[UUID, LigneBordereau] = {}
@@ -125,7 +127,18 @@ class _Agents:
         self._e.agents[agent.id] = agent
 
 
-class _Clients:
+class _ClientsAnnuaire:
+    """Mélange ajouté à `_Clients` : l'annuaire déduit du référentiel."""
+
+    async def lister_agences(self):
+        vues = {}
+        for client in self._e.clients.values():
+            if client.agence and client.agence not in vues:
+                vues[client.agence] = (client.agence, client.region, client.division)
+        return list(vues.values())
+
+
+class _Clients(_ClientsAnnuaire):
     def __init__(self, entrepot: EntrepotMemoire) -> None:
         self._e = entrepot
 
@@ -159,6 +172,32 @@ class _Clients:
             self._e.clients[client.id] = client
             total += 1
         return total
+
+
+class _Agences:
+    def __init__(self, entrepot: EntrepotMemoire) -> None:
+        self._e = entrepot
+
+    async def par_nom(self, nom: str):
+        return self._e.agences.get(nom.strip().upper())
+
+    async def lister(self, *, ouvertes_seulement: bool = False):
+        agences = list(self._e.agences.values())
+        if ouvertes_seulement:
+            agences = [a for a in agences if a.ouverte]
+        return sorted(agences, key=lambda a: a.nom)
+
+    async def enregistrer(self, agence) -> None:
+        self._e.agences[agence.nom] = agence
+
+    async def supprimer(self, nom: str) -> None:
+        self._e.agences.pop(nom.strip().upper(), None)
+
+    async def compter_rattachements(self, nom: str) -> int:
+        nom = nom.strip().upper()
+        comptes = sum(1 for u in self._e.utilisateurs.values() if u.agence == nom)
+        tournees = sum(1 for i in self._e.itineraires.values() if i.agence == nom)
+        return comptes + tournees
 
 
 class _Itineraires:
@@ -336,6 +375,7 @@ class UnitOfWorkMemoire:
         self.utilisateurs = _Utilisateurs(self._e)
         self.agents = _Agents(self._e)
         self.clients = _Clients(self._e)
+        self.agences = _Agences(self._e)
         self.itineraires = _Itineraires(self._e)
         self.affectations = _Affectations(self._e)
         self.lignes = _Lignes(self._e)

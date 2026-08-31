@@ -47,6 +47,15 @@ from ..application.use_cases.exports import (
 )
 from ..application.use_cases.imports import PrevisualiserImport, ValiderImport
 from ..application.use_cases.recherche_globale import RechercheGlobale
+from ..application.use_cases.territoire import (
+    CreerAgence,
+    FermerAgence,
+    ImporterTerritoireDepuisReferentiel,
+    ListerTerritoire,
+    ModifierAgence,
+    RouvrirAgence,
+    SupprimerAgence,
+)
 from ..application.use_cases.itineraires import (
     AffecterItineraires,
     CreerItineraire,
@@ -311,6 +320,29 @@ class Container:
         return TelechargerModeleTerrain(
             self.generateur_modele_terrain, self.exportateur_pdf
         )
+
+    # --- Maillage territorial ----------------------------------------------
+
+    def lister_territoire(self) -> ListerTerritoire:
+        return ListerTerritoire(self.unit_of_work())
+
+    def creer_agence(self) -> CreerAgence:
+        return CreerAgence(self.unit_of_work())
+
+    def modifier_agence(self) -> ModifierAgence:
+        return ModifierAgence(self.unit_of_work())
+
+    def fermer_agence(self) -> FermerAgence:
+        return FermerAgence(self.unit_of_work(), self.horloge)
+
+    def rouvrir_agence(self) -> RouvrirAgence:
+        return RouvrirAgence(self.unit_of_work())
+
+    def supprimer_agence(self) -> SupprimerAgence:
+        return SupprimerAgence(self.unit_of_work())
+
+    def importer_territoire(self) -> ImporterTerritoireDepuisReferentiel:
+        return ImporterTerritoireDepuisReferentiel(self.unit_of_work())
 
     # --- Recherche globale -------------------------------------------------
 

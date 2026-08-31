@@ -86,6 +86,31 @@ class UtilisateurORM(Base, HorodatageMixin):
     )
 
 
+class AgenceORM(Base, HorodatageMixin):
+    """Maille de base du périmètre : le centre de service client.
+
+    Elle est tenue par l'application et non plus déduite du référentiel : c'est
+    ce qui permet à SOCADEL d'ouvrir une agence dans une zone nouvelle, ou d'en
+    fermer une devenue inaccessible, sans attendre un nouvel import.
+    """
+
+    __tablename__ = "agences"
+
+    id: Mapped[UUID] = _cle_primaire()
+    # Le nom est la clé métier : les comptes, les itinéraires et le référentiel
+    # le portent tel quel.
+    nom: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
+    region: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    division: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    ouverte: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, index=True
+    )
+    motif_fermeture: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fermee_le: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
 class AgentTerrainORM(Base, HorodatageMixin):
     """Collecteurs de terrain."""
 

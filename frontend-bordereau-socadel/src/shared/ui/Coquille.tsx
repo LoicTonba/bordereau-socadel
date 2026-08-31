@@ -91,6 +91,13 @@ const NAVIGATION: Entree[] = [
     saufAgent: true,
   },
   {
+    href: "/territoire",
+    libelle: "nav.territoire",
+    aide: "nav.territoire.aide",
+    permission: "territoire:gerer",
+    saufAgent: true,
+  },
+  {
     href: "/comptes",
     libelle: "nav.comptes",
     aide: "nav.comptes.aide",
@@ -421,6 +428,7 @@ const TRACES: Record<string, string> = {
   "/itineraires": "M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z M12 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
   "/agents": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9",
   "/imports": "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  "/territoire": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18",
   "/comptes": "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
 };
 

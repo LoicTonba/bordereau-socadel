@@ -65,6 +65,8 @@ const fr = {
   "nav.monEspace.aide": "Mes itinéraires et mes chiffres",
   "nav.replier": "Replier le menu",
   "nav.deplier": "Déplier le menu",
+  "nav.territoire": "Territoire",
+  "nav.territoire.aide": "Agences, divisions, régions",
   "nav.ouvrirMenu": "Ouvrir le menu",
 
   "recherche.invite": "Rechercher…",
@@ -574,6 +576,8 @@ const en: Record<Cle, string> = {
   "nav.monEspace.aide": "My routes and figures",
   "nav.replier": "Collapse menu",
   "nav.deplier": "Expand menu",
+  "nav.territoire": "Territory",
+  "nav.territoire.aide": "Branches, divisions, regions",
   "nav.ouvrirMenu": "Open menu",
 
   "recherche.invite": "Search…",

@@ -12,6 +12,7 @@ from types import TracebackType
 from typing import Protocol, runtime_checkable
 
 from .repositories import (
+    AgenceRepository,
     AffectationRepository,
     AgentRepository,
     ClientRepository,
@@ -27,6 +28,7 @@ class UnitOfWork(Protocol):
 
     utilisateurs: UtilisateurRepository
     agents: AgentRepository
+    agences: AgenceRepository
     clients: ClientRepository
     itineraires: ItineraireRepository
     affectations: AffectationRepository

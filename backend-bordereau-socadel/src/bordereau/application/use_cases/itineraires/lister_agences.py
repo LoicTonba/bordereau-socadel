@@ -30,7 +30,21 @@ class ListerAgences:
         self._uow = uow
 
     async def executer(self) -> list[Agence]:
+        """Les agences ouvertes, telles que l'application les tient.
+
+        C'est le maillage entretenu par SOCADEL qui fait foi, pas le
+        référentiel clients : une agence fermée pour cause d'insécurité doit
+        disparaître du sélecteur de connexion le jour même, sans attendre un
+        nouvel import. Le référentiel ne sert que de repli, sur une base dont
+        le maillage n'a pas encore été amorcé.
+        """
         async with self._uow as uow:
+            maillage = await uow.agences.lister(ouvertes_seulement=True)
+            if maillage:
+                return [
+                    Agence(nom=a.nom, region=a.region, division=a.division)
+                    for a in maillage
+                ]
             lignes = await uow.clients.lister_agences()
 
         # Un nom ne doit apparaître qu'une fois : c'est lui que le compte

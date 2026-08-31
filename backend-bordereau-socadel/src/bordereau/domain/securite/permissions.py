@@ -62,6 +62,7 @@ class Permission(str, Enum):
 
     # Périmètres territoriaux
     PERIMETRE_DEFINIR = "perimetre:definir"
+    TERRITOIRE_GERER = "territoire:gerer"
 
     # Import de fichiers
     IMPORT_EXECUTER = "import:executer"
@@ -122,6 +123,7 @@ _ADMINISTRATEUR = _SUPERVISEUR | {
     Permission.COMPTE_APPROUVER,
     Permission.COMPTE_REINITIALISER,
     Permission.PERIMETRE_DEFINIR,
+    Permission.TERRITOIRE_GERER,
     Permission.ANALYTICS_NATIONAL,
 }
 

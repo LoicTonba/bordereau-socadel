@@ -224,11 +224,11 @@ async def semer_comptes_acteurs(container: Container) -> None:
         ("sudo", "TONBA Loic", Role.SUPER_UTILISATEUR,
          "tonbaloic6@gmail.com", "Ngaoundal-Kribi-88", None, None),
         ("admin", "EYENGA Flore", Role.ADMINISTRATEUR,
-         "flore.eyenga@socadel.cm", "Bandjoun-Maroua-77", None, None),
+         "tonbaloic@gmail.com", "Bandjoun-Maroua-77", None, None),
         # Le superviseur recoit un perimetre : sans lui, la plateforme le
         # bloque plutot que de lui ouvrir les 181 agences.
         ("superviseur", "NKOLO Bertrand", Role.SUPERVISEUR,
-         "bertrand.nkolo@socadel.cm", "Ngaoundere-Sud-2026", None,
+         "loicdjimgou@gmail.com", "Ngaoundere-Sud-2026", None,
          "CSC_NGAOUNDERE SUD"),
     ]
 
@@ -242,7 +242,7 @@ async def semer_comptes_acteurs(container: Container) -> None:
                     agents[0].matricule.lower(),
                     agents[0].nom_complet,
                     Role.AGENT_TERRAIN,
-                    f"{agents[0].matricule.lower()}@socadel.cm",
+                    "objectifloic@gmail.com",
                     "Terrain-Essos-2026",
                     agents[0].id,
                     None,

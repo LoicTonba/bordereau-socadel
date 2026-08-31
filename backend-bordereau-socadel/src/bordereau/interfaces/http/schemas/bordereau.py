@@ -61,6 +61,54 @@ class ReponseConnexion(SchemaBase):
     region: str | None = None
 
 
+class RequeteAgence(SchemaBase):
+    """Ouverture ou correction d'une agence.
+
+    Le nom n'est modifiable qu'à la création : comptes, itinéraires et
+    référentiel le portent tel quel.
+    """
+
+    nom: str = Field(min_length=2, max_length=80)
+    region: str | None = Field(default=None, max_length=80)
+    division: str | None = Field(default=None, max_length=80)
+
+
+class RequeteFermetureAgence(SchemaBase):
+    motif: str = Field(
+        min_length=3,
+        max_length=300,
+        description="Insécurité, réorganisation, fusion. Il sera conservé.",
+    )
+
+
+class AgenceDetail(SchemaBase):
+    nom: str
+    region: str | None
+    division: str | None
+    territoire: str
+    ouverte: bool
+    motif_fermeture: str | None
+    fermee_le: datetime | None
+
+    @classmethod
+    def depuis_entite(cls, agence) -> "AgenceDetail":
+        return cls(
+            nom=agence.nom,
+            region=agence.region,
+            division=agence.division,
+            territoire=agence.territoire,
+            ouverte=agence.ouverte,
+            motif_fermeture=agence.motif_fermeture,
+            fermee_le=agence.fermee_le,
+        )
+
+
+class TerritoireDetail(SchemaBase):
+    agences: list[AgenceDetail]
+    regions: list[str]
+    divisions: list[str]
+
+
 class RequeteItineraire(SchemaBase):
     """Création ou modification d'une tournée.
 

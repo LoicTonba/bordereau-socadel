@@ -13,6 +13,7 @@ from .routers import (
     imports_exports,
     itineraires,
     reference,
+    territoire,
 )
 
 
@@ -28,5 +29,6 @@ def creer_routeur(prefixe: str) -> APIRouter:
     routeur.include_router(imports_exports.router)
     routeur.include_router(analytics.router)
     routeur.include_router(reference.router)
+    routeur.include_router(territoire.router)
 
     return routeur

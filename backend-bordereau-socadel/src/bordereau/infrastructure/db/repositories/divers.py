@@ -16,7 +16,13 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ....application.dto import Page, PaginationParams
-from ....domain.entities import Affectation, AgentTerrain, Itineraire, Utilisateur
+from ....domain.entities import (
+    Affectation,
+    Agence,
+    AgentTerrain,
+    Itineraire,
+    Utilisateur,
+)
 from ....domain.value_objects import CodeItineraire, Periode
 from ..mappers.mappers import (
     affectation_vers_domaine,
@@ -29,6 +35,7 @@ from ..mappers.mappers import (
 )
 from ..models.tables import (
     AffectationORM,
+    AgenceORM,
     AgentTerrainORM,
     ItineraireORM,
     UtilisateurORM,
@@ -280,3 +287,76 @@ class AffectationRepositoryPg:
         row = affectation_vers_orm(affectation, existant)
         if existant is None:
             self._session.add(row)
+
+
+class AgenceRepositoryPg:
+    """Implémentation du port `AgenceRepository`."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def par_nom(self, nom: str) -> Agence | None:
+        row = await self._session.scalar(
+            select(AgenceORM).where(AgenceORM.nom == nom.strip().upper())
+        )
+        return _agence_vers_domaine(row) if row else None
+
+    async def lister(self, *, ouvertes_seulement: bool = False) -> Sequence[Agence]:
+        requete = select(AgenceORM)
+        if ouvertes_seulement:
+            requete = requete.where(AgenceORM.ouverte.is_(True))
+
+        resultat = await self._session.scalars(
+            requete.order_by(
+                AgenceORM.region.asc(),
+                AgenceORM.division.asc(),
+                AgenceORM.nom.asc(),
+            )
+        )
+        return [_agence_vers_domaine(row) for row in resultat]
+
+    async def enregistrer(self, agence: Agence) -> None:
+        await self._session.merge(_agence_vers_orm(agence))
+
+    async def supprimer(self, nom: str) -> None:
+        await self._session.execute(
+            delete(AgenceORM).where(AgenceORM.nom == nom.strip().upper())
+        )
+
+    async def compter_rattachements(self, nom: str) -> int:
+        nom = nom.strip().upper()
+        comptes = await self._session.scalar(
+            select(func.count())
+            .select_from(UtilisateurORM)
+            .where(UtilisateurORM.agence == nom)
+        )
+        itineraires = await self._session.scalar(
+            select(func.count())
+            .select_from(ItineraireORM)
+            .where(ItineraireORM.agence == nom)
+        )
+        return int(comptes or 0) + int(itineraires or 0)
+
+
+def _agence_vers_domaine(row: AgenceORM) -> Agence:
+    return Agence(
+        id=row.id,
+        nom=row.nom,
+        region=row.region,
+        division=row.division,
+        ouverte=row.ouverte,
+        motif_fermeture=row.motif_fermeture,
+        fermee_le=row.fermee_le,
+    )
+
+
+def _agence_vers_orm(agence: Agence) -> AgenceORM:
+    return AgenceORM(
+        id=agence.id,
+        nom=agence.nom,
+        region=agence.region,
+        division=agence.division,
+        ouverte=agence.ouverte,
+        motif_fermeture=agence.motif_fermeture,
+        fermee_le=agence.fermee_le,
+    )

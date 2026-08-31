@@ -13,11 +13,13 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from bordereau.domain.entities import Utilisateur
+from bordereau.domain.enums import Role, StatutCompte
 from bordereau.infrastructure.config.settings import Settings
 from bordereau.infrastructure.container import Container
 from bordereau.main import creer_application
 
 from ..conftest import MOT_DE_PASSE_TEST
+from ..doubles import EntrepotMemoire
 
 pytestmark = pytest.mark.anyio
 
@@ -234,3 +236,104 @@ class TestRepertoireDesItineraires:
         )
 
         assert reponse.status_code == 204
+
+
+@pytest.fixture
+def administrateur(container: Container, entrepot: EntrepotMemoire) -> Utilisateur:
+    """Un compte administrateur, seul habilité à toucher au maillage."""
+    compte = Utilisateur(
+        identifiant="admin",
+        nom_complet="EYENGA Flore",
+        email="flore.eyenga@socadel.cm",
+        empreinte_mot_de_passe=container.hacheur.hacher(MOT_DE_PASSE_TEST),
+        role=Role.ADMINISTRATEUR,
+        statut=StatutCompte.ACTIF,
+    )
+    entrepot.utilisateurs[compte.id] = compte
+    return compte
+
+
+class TestMaillageTerritorial:
+    """SOCADEL tient son réseau : ouvrir, corriger, fermer, rouvrir.
+
+    Une agence fermée disparaît des listes de travail mais reste attachée à la
+    production passée et aux comptes qui la portent. La supprimer n'est ouvert
+    que tant que rien ne s'y rattache.
+    """
+
+    async def _entetes(self, client_http: AsyncClient) -> dict[str, str]:
+        reponse = await client_http.post(
+            f"{PREFIXE}/auth/connexion",
+            json={"identifiant": "admin", "motDePasse": MOT_DE_PASSE_TEST},
+        )
+        assert reponse.status_code == 200, reponse.text
+        return {"Authorization": f"Bearer {reponse.json()['jeton']}"}
+
+    async def test_l_administrateur_ouvre_une_agence(
+        self, client_http: AsyncClient, administrateur
+    ) -> None:
+        entetes = await self._entetes(client_http)
+
+        reponse = await client_http.post(
+            f"{PREFIXE}/territoire",
+            headers=entetes,
+            json={"nom": "csc_lotissement", "region": "drc", "division": "dpc bafia"},
+        )
+
+        assert reponse.status_code == 201, reponse.text
+        corps = reponse.json()
+        # Le nom est la clé métier : il est normalisé une fois pour toutes.
+        assert corps["nom"] == "CSC_LOTISSEMENT"
+        assert corps["ouverte"] is True
+
+    async def test_fermer_exige_un_motif(
+        self, client_http: AsyncClient, administrateur
+    ) -> None:
+        entetes = await self._entetes(client_http)
+        await client_http.post(
+            f"{PREFIXE}/territoire", headers=entetes, json={"nom": "CSC_KUMBO"}
+        )
+
+        reponse = await client_http.post(
+            f"{PREFIXE}/territoire/CSC_KUMBO/fermeture",
+            headers=entetes,
+            json={"motif": "  "},
+        )
+
+        assert reponse.status_code == 422
+
+    async def test_une_agence_fermee_quitte_le_selecteur_de_connexion(
+        self, client_http: AsyncClient, administrateur
+    ) -> None:
+        """C'est tout l'intérêt du maillage : la fermeture prend effet le jour
+        même, sans attendre un nouvel import du référentiel."""
+        entetes = await self._entetes(client_http)
+        await client_http.post(
+            f"{PREFIXE}/territoire", headers=entetes, json={"nom": "CSC_NDOP"}
+        )
+
+        avant = await client_http.get(f"{PREFIXE}/reference/agences")
+        assert "CSC_NDOP" in [a["nom"] for a in avant.json()["agences"]]
+
+        await client_http.post(
+            f"{PREFIXE}/territoire/CSC_NDOP/fermeture",
+            headers=entetes,
+            json={"motif": "Zone rendue inaccessible"},
+        )
+
+        apres = await client_http.get(f"{PREFIXE}/reference/agences")
+        assert "CSC_NDOP" not in [a["nom"] for a in apres.json()["agences"]]
+
+    async def test_le_superviseur_ne_touche_pas_au_maillage(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        """Il travaille dans une agence, il ne décide pas de leur existence."""
+        jeton = (await _connexion(client_http)).json()["jeton"]
+
+        reponse = await client_http.post(
+            f"{PREFIXE}/territoire",
+            headers={"Authorization": f"Bearer {jeton}"},
+            json={"nom": "CSC_INVENTEE"},
+        )
+
+        assert reponse.status_code == 403

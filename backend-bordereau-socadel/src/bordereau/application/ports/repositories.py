@@ -14,6 +14,7 @@ from typing import Protocol, runtime_checkable
 from uuid import UUID
 
 from ...domain.entities import (
+    Agence,
     Affectation,
     AgentTerrain,
     Client,
@@ -54,6 +55,27 @@ class AgentRepository(Protocol):
     async def lister(self, *, actifs_seulement: bool = False) -> Sequence[AgentTerrain]: ...
 
     async def enregistrer(self, agent: AgentTerrain) -> None: ...
+
+
+@runtime_checkable
+class AgenceRepository(Protocol):
+    """Le maillage territorial, tenu par l'application."""
+
+    async def par_nom(self, nom: str) -> Agence | None: ...
+
+    async def lister(self, *, ouvertes_seulement: bool = False) -> Sequence[Agence]: ...
+
+    async def enregistrer(self, agence: Agence) -> None: ...
+
+    async def supprimer(self, nom: str) -> None: ...
+
+    async def compter_rattachements(self, nom: str) -> int:
+        """Nombre de comptes et d'itinéraires qui portent cette agence.
+
+        Non nul, la suppression est refusée : effacer laisserait des périmètres
+        pointant dans le vide.
+        """
+        ...
 
 
 @runtime_checkable
