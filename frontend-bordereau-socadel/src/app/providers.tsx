@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PreferencesProvider } from "@core/i18n/PreferencesProvider";
 import { SessionProvider } from "@features/auth/application/SessionProvider";
 import { ErreurApi } from "@infra/http/client";
+import { ToastsProvider } from "@shared/ui/Toasts";
 
 export function Fournisseurs({ children }: { children: ReactNode }) {
   // Le client est créé dans un état : le recréer à chaque rendu viderait le
@@ -36,7 +37,9 @@ export function Fournisseurs({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <PreferencesProvider>
-        <SessionProvider>{children}</SessionProvider>
+        <ToastsProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </ToastsProvider>
       </PreferencesProvider>
     </QueryClientProvider>
   );

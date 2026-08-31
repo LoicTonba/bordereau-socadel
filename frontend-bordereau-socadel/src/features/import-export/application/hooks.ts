@@ -32,3 +32,13 @@ export function useTelechargerModele() {
     },
   });
 }
+
+export function useTelechargerModeleTerrain() {
+  return useMutation({
+    mutationFn: async (format: "pdf" | "xlsx") => {
+      const fichier = await importsApi.modeleTerrain(format);
+      telechargerBlob(fichier.blob, fichier.nomFichier);
+      return fichier;
+    },
+  });
+}

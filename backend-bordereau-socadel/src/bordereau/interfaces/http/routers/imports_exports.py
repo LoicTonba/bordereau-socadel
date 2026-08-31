@@ -8,7 +8,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, File, Form, Response, UploadFile, status
 
-from ....application.use_cases.exports import CommandeExport, FormatExport
+from ....application.use_cases.exports import (
+    CommandeExport,
+    FormatExport,
+    FormatModele,
+)
 from ....application.use_cases.imports import (
     CommandeApercu,
     CommandeValidationImport,
@@ -97,6 +101,32 @@ async def modele(
 ) -> Response:
     """Classeur vierge distribué aux agents, aux colonnes attendues à l'import."""
     fichier = container.telecharger_modele().executer()
+    return Response(
+        content=fichier.contenu,
+        media_type=fichier.type_mime,
+        headers={
+            "Content-Disposition": f'attachment; filename="{fichier.nom_fichier}"'
+        },
+    )
+
+
+@router.get(
+    "/imports/modele-terrain",
+    response_class=Response,
+    summary="Télécharger le bordereau de terrain vierge",
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+async def modele_terrain(
+    container: ContainerDep,
+    contexte: ContexteDep,
+    format: FormatModele = FormatModele.PDF,
+) -> Response:
+    """Le document que l'agent emporte, en PDF à imprimer ou en classeur.
+
+    Il porte une tournée d'exemple : l'agent voit ce qu'on attend de lui avant
+    d'avoir reçu sa vraie affectation.
+    """
+    fichier = container.telecharger_modele_terrain().executer(format)
     return Response(
         content=fichier.contenu,
         media_type=fichier.type_mime,

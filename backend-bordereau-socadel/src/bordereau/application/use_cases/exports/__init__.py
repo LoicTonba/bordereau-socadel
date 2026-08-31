@@ -7,6 +7,11 @@ from .exporter_bordereau import (
     FormatExport,
 )
 from .telecharger_modele import ModeleTelecharge, TelechargerModeleImport
+from .telecharger_modele_terrain import (
+    FormatModele,
+    ModeleTerrain,
+    TelechargerModeleTerrain,
+)
 
 __all__ = [
     "CommandeExport",
@@ -14,5 +19,8 @@ __all__ = [
     "FichierExporte",
     "FormatExport",
     "ModeleTelecharge",
+    "FormatModele",
+    "ModeleTerrain",
     "TelechargerModeleImport",
+    "TelechargerModeleTerrain",
 ]

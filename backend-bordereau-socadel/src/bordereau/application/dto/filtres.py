@@ -58,3 +58,10 @@ class FiltreItineraire:
     terme: str | None = None
     region: str | None = None
     agence: str | None = None
+
+    codes: tuple[CodeItineraire, ...] = ()
+    """Restriction à des tournées précises.
+
+    Posée par le cas d'usage pour un agent de terrain : il ne voit que ce qui
+    lui a été confié. Vide, le filtre ne restreint rien.
+    """

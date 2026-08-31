@@ -12,7 +12,9 @@ import type { MetaPagination } from "@core/domain/types";
 
 import { Bouton, Selecteur } from "./primitives";
 
-const TAILLES = [25, 50, 100, 200];
+// Dix lignes par defaut : la page tient a l ecran sans defiler, ce qui compte
+// quand on saisit une tournee ligne apres ligne.
+const TAILLES = [10, 25, 50, 100];
 
 export function Pagination({
   meta,

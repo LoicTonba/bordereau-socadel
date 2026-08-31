@@ -17,6 +17,7 @@ import { ErreurApi } from "@infra/http/client";
 import { Avatar } from "@shared/ui/Avatar";
 import { ChampPhoto } from "@shared/ui/ChampPhoto";
 import { Modal } from "@shared/ui/Modal";
+import { useToasts } from "@shared/ui/Toasts";
 import {
   Alerte,
   Bouton,
@@ -57,6 +58,7 @@ export function EcranAgents() {
   const creer = useCreerAgent();
   const modifier = useModifierAgent();
   const basculer = useBasculerActivation();
+  const { notifier } = useToasts();
 
   const [brouillon, setBrouillon] = useState<Brouillon>(VIDE);
   const [enEdition, setEnEdition] = useState<Agent | null>(null);
@@ -92,9 +94,12 @@ export function EcranAgents() {
         region: brouillon.region.trim() || null,
         photoUrl: brouillon.photoUrl,
       });
+      notifier("creation", t("toast.agentCree", { nom: brouillon.nomComplet }));
       setBrouillon(VIDE);
     } catch (exception) {
-      setErreur(messageDe(exception, t("commun.erreurGenerique")));
+      const message = messageDe(exception, t("commun.erreurGenerique"));
+      setErreur(message);
+      notifier("echec", message);
     }
   }
 
@@ -111,9 +116,15 @@ export function EcranAgents() {
         region: brouillon.region.trim() || null,
         photoUrl: brouillon.photoUrl,
       });
+      notifier(
+        "modification",
+        t("toast.agentModifie", { nom: brouillon.nomComplet }),
+      );
       fermerEdition();
     } catch (exception) {
-      setErreur(messageDe(exception, t("commun.erreurGenerique")));
+      const message = messageDe(exception, t("commun.erreurGenerique"));
+      setErreur(message);
+      notifier("echec", message);
     }
   }
 
@@ -262,10 +273,26 @@ export function EcranAgents() {
                       taille="sm"
                       chargement={basculer.isPending}
                       onClick={() =>
-                        basculer.mutate({
-                          agentId: agent.id,
-                          actif: !agent.actif,
-                        })
+                        basculer.mutate(
+                          { agentId: agent.id, actif: !agent.actif },
+                          {
+                            // Le retrait du service se signale en ambre : il
+                            // ferme un accès, ce n'est pas une modification
+                            // anodine.
+                            onSuccess: () =>
+                              notifier(
+                                agent.actif ? "suppression" : "creation",
+                                t(
+                                  agent.actif
+                                    ? "toast.agentRetire"
+                                    : "toast.agentRemis",
+                                  { nom: agent.nomComplet },
+                                ),
+                              ),
+                            onError: () =>
+                              notifier("echec", t("commun.erreurGenerique")),
+                          },
+                        )
                       }
                     >
                       {agent.actif

@@ -66,6 +66,14 @@ const fr = {
   "nav.replier": "Replier le menu",
   "nav.deplier": "Déplier le menu",
   "nav.ouvrirMenu": "Ouvrir le menu",
+
+  "recherche.invite": "Rechercher…",
+  "recherche.titre": "Rechercher dans l'application",
+  "recherche.aide":
+    "Un nom, un contrat, un matricule ou un code d'itinéraire. Vous ne verrez que ce à quoi votre profil donne accès.",
+  "recherche.placeholder": "MBALLA, 203452902, AG001, 110581…",
+  "recherche.tropCourt": "Saisissez au moins deux caractères.",
+  "recherche.aucun": "Rien ne correspond à « {terme} ».",
   "nav.sessionActive": "Session active",
   "nav.deconnexion": "Déconnexion",
 
@@ -316,6 +324,7 @@ const fr = {
   "dashboard.chargement": "Chargement des indicateurs…",
   "dashboard.vsPrecedent": "vs période précédente",
   "dashboard.stable": "stable",
+  "dashboard.vsPeriode": "vs période précédente",
   "dashboard.pasDeComparaison": "Pas de comparaison possible",
 
   "kpi.lignes_traitees": "Clients démarchés",
@@ -366,6 +375,11 @@ const fr = {
     "Une part importante des abonnements déclarés n'est pas confirmée par le référentiel.",
 
   // --- Agents --------------------------------------------------------------
+  "toast.agentCree": "{nom} est enregistré au répertoire.",
+  "toast.agentModifie": "La fiche de {nom} est à jour.",
+  "toast.agentRetire": "{nom} est retiré du service.",
+  "toast.agentRemis": "{nom} est remis en service.",
+
   "agents.titre": "Agents de terrain",
   "agents.sousTitre": "Les collecteurs à qui vous confiez des itinéraires.",
   "agents.enregistrer": "Enregistrer un agent",
@@ -561,6 +575,14 @@ const en: Record<Cle, string> = {
   "nav.replier": "Collapse menu",
   "nav.deplier": "Expand menu",
   "nav.ouvrirMenu": "Open menu",
+
+  "recherche.invite": "Search…",
+  "recherche.titre": "Search the application",
+  "recherche.aide":
+    "A name, a contract, a payroll number or a route code. You will only see what your profile grants.",
+  "recherche.placeholder": "MBALLA, 203452902, AG001, 110581…",
+  "recherche.tropCourt": "Type at least two characters.",
+  "recherche.aucun": "Nothing matches “{terme}”.",
   "nav.sessionActive": "Active session",
   "nav.deconnexion": "Sign out",
 
@@ -794,6 +816,7 @@ const en: Record<Cle, string> = {
   "dashboard.chargement": "Loading indicators…",
   "dashboard.vsPrecedent": "vs previous period",
   "dashboard.stable": "steady",
+  "dashboard.vsPeriode": "vs previous period",
   "dashboard.pasDeComparaison": "No comparison available",
 
   "kpi.lignes_traitees": "Customers canvassed",
@@ -838,6 +861,11 @@ const en: Record<Cle, string> = {
   "classement.videAide": "Figures appear as soon as the first sheet is recorded.",
   "classement.fiabiliteFaible":
     "A large share of declared sign-ups is not confirmed by the reference data.",
+
+  "toast.agentCree": "{nom} is on the directory.",
+  "toast.agentModifie": "{nom}'s record is up to date.",
+  "toast.agentRetire": "{nom} is off duty.",
+  "toast.agentRemis": "{nom} is back on duty.",
 
   "agents.titre": "Field agents",
   "agents.sousTitre": "The collectors you hand routes to.",

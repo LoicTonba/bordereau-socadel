@@ -11,6 +11,7 @@ from .fichiers import (
     ExportateurCsv,
     ExportateurPdf,
     GenerateurModeleImport,
+    GenerateurModeleTerrain,
     LecteurTabulaire,
 )
 from .repositories import (
@@ -34,6 +35,7 @@ __all__ = [
     "ExportateurCsv",
     "ExportateurPdf",
     "GenerateurModeleImport",
+    "GenerateurModeleTerrain",
     "HacheurMotDePasse",
     "Horloge",
     "ItineraireRepository",

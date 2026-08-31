@@ -122,3 +122,115 @@ class TestAgenceDeclaree:
         )
 
         assert reponse.status_code == 401
+
+
+class TestExpirationDeSession:
+    """L'expiration est tranchée par l'horloge injectée, et par elle seule.
+
+    Deux autorités sur le temps, celle de la bibliothèque JWT et celle du
+    domaine, finissaient par diverger : un jeton émis sous horloge figée était
+    refusé dès que l'heure réelle dépassait sa date de validité, ce qui rendait
+    la suite dépendante du jour où on la lançait.
+    """
+
+    async def test_un_jeton_reste_valable_selon_l_horloge_injectee(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        entetes = {"Authorization": f"Bearer {(await _connexion(client_http)).json()['jeton']}"}
+
+        profil = await client_http.get(f"{PREFIXE}/auth/moi", headers=entetes)
+
+        assert profil.status_code == 200, profil.text
+        assert profil.json()["identifiant"] == "superviseur"
+
+    async def test_un_jeton_falsifie_est_refuse(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        """Ne plus vérifier l'expiration dans la bibliothèque ne doit pas
+        relâcher la vérification de signature."""
+        jeton = (await _connexion(client_http)).json()["jeton"]
+        falsifie = jeton[:-6] + ("a" if jeton[-1] != "a" else "b") * 6
+
+        profil = await client_http.get(
+            f"{PREFIXE}/auth/moi", headers={"Authorization": f"Bearer {falsifie}"}
+        )
+
+        assert profil.status_code == 401
+
+
+class TestRepertoireDesItineraires:
+    """Le superviseur ouvre et corrige ses tournées, mais ne casse rien.
+
+    Deux règles tiennent ce répertoire : le code ne se modifie pas, parce que
+    les affectations et les lignes de bordereau le portent, et une tournée déjà
+    confiée ne se supprime plus, parce que la production y renvoie.
+    """
+
+    async def _entetes(self, client_http: AsyncClient) -> dict[str, str]:
+        reponse = await _connexion(client_http)
+        return {"Authorization": f"Bearer {reponse.json()['jeton']}"}
+
+    async def test_il_ouvre_une_tournee(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        entetes = await self._entetes(client_http)
+
+        reponse = await client_http.post(
+            f"{PREFIXE}/itineraires",
+            headers=entetes,
+            json={"code": 990001, "libelle": "Lotissement Nord"},
+        )
+
+        assert reponse.status_code == 201, reponse.text
+        corps = reponse.json()
+        assert corps["code"] == 990001
+        # Sans agence indiquée, la tournée hérite du périmètre du superviseur.
+        assert corps["agence"] == "CSC_NGAOUNDERE SUD"
+
+    async def test_un_code_deja_pris_est_refuse(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        entetes = await self._entetes(client_http)
+        await client_http.post(
+            f"{PREFIXE}/itineraires", headers=entetes, json={"code": 990002}
+        )
+
+        doublon = await client_http.post(
+            f"{PREFIXE}/itineraires", headers=entetes, json={"code": 990002}
+        )
+
+        assert doublon.status_code == 409
+        assert "existe déjà" in doublon.json()["message"]
+
+    async def test_il_corrige_le_libelle(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        entetes = await self._entetes(client_http)
+        await client_http.post(
+            f"{PREFIXE}/itineraires",
+            headers=entetes,
+            json={"code": 990003, "libelle": "Zone provisoire"},
+        )
+
+        reponse = await client_http.patch(
+            f"{PREFIXE}/itineraires/990003",
+            headers=entetes,
+            json={"code": 990003, "libelle": "Quartier Baladji"},
+        )
+
+        assert reponse.status_code == 200, reponse.text
+        assert reponse.json()["libelle"] == "Quartier Baladji"
+
+    async def test_il_retire_une_tournee_jamais_confiee(
+        self, client_http: AsyncClient, superviseur: Utilisateur
+    ) -> None:
+        entetes = await self._entetes(client_http)
+        await client_http.post(
+            f"{PREFIXE}/itineraires", headers=entetes, json={"code": 990004}
+        )
+
+        reponse = await client_http.delete(
+            f"{PREFIXE}/itineraires/990004", headers=entetes
+        )
+
+        assert reponse.status_code == 204

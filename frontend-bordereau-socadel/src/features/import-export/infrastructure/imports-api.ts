@@ -27,7 +27,13 @@ export const importsApi = {
     return api.postFichier<ResultatImport>("/imports", formulaire);
   },
 
+  /** Le modèle d'import : colonnes que le lecteur sait relire. */
   modele() {
     return api.telecharger("/imports/modele");
+  },
+
+  /** Le bordereau de terrain, celui que l'agent emporte et annote. */
+  modeleTerrain(format: "pdf" | "xlsx") {
+    return api.telecharger(`/imports/modele-terrain?format=${format}`);
   },
 };

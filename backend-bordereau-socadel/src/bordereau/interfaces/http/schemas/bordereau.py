@@ -61,6 +61,39 @@ class ReponseConnexion(SchemaBase):
     region: str | None = None
 
 
+class RequeteItineraire(SchemaBase):
+    """Création ou modification d'une tournée.
+
+    Le code n'est modifiable qu'à la création : il est la clé que portent les
+    affectations et les lignes de bordereau déjà saisies.
+    """
+
+    code: int = Field(gt=0, le=99_999_999)
+    libelle: str | None = Field(default=None, max_length=160)
+    region: str | None = Field(default=None, max_length=80)
+    division: str | None = Field(default=None, max_length=80)
+    agence: str | None = Field(default=None, max_length=80)
+    mrc: str | None = Field(default=None, max_length=80)
+
+
+class TrouvailleSortie(SchemaBase):
+    titre: str
+    detail: str
+    chemin: str
+
+
+class VoletSortie(SchemaBase):
+    cle: str
+    libelle: str
+    resultats: list[TrouvailleSortie]
+
+
+class ResultatRechercheSortie(SchemaBase):
+    terme: str
+    total: int
+    volets: list[VoletSortie]
+
+
 class AgenceSortie(SchemaBase):
     """Une agence de l'annuaire, sans aucune donnee d'exploitation."""
 

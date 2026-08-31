@@ -98,10 +98,21 @@ class ItineraireRepository(Protocol):
         terme: str | None = None,
         region: str | None = None,
         agence: str | None = None,
+        codes: Sequence[CodeItineraire] = (),
         pagination: PaginationParams | None = None,
     ) -> Page[Itineraire]: ...
 
     async def enregistrer_en_lot(self, itineraires: Iterable[Itineraire]) -> int: ...
+
+    async def est_affecte(self, code: CodeItineraire) -> bool:
+        """Vrai si la tournée a déjà été confiée à un agent.
+
+        Une tournée qui a servi ne se supprime plus : la production saisie y
+        renvoie, et l'effacer laisserait des lignes orphelines.
+        """
+        ...
+
+    async def supprimer(self, code: CodeItineraire) -> None: ...
 
 
 @runtime_checkable

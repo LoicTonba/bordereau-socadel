@@ -41,3 +41,36 @@ export function useBordereauTerrain() {
     },
   });
 }
+
+
+/** Invalide la recherche : une tournée créée ou retirée doit s'y voir. */
+function useInvalidationItineraires() {
+  const client = useQueryClient();
+  return () => {
+    void client.invalidateQueries({ queryKey: ["itineraires"] });
+  };
+}
+
+export function useCreerItineraire() {
+  const invalider = useInvalidationItineraires();
+  return useMutation({
+    mutationFn: itinerairesApi.creer,
+    onSuccess: invalider,
+  });
+}
+
+export function useModifierItineraire() {
+  const invalider = useInvalidationItineraires();
+  return useMutation({
+    mutationFn: itinerairesApi.modifier,
+    onSuccess: invalider,
+  });
+}
+
+export function useSupprimerItineraire() {
+  const invalider = useInvalidationItineraires();
+  return useMutation({
+    mutationFn: itinerairesApi.supprimer,
+    onSuccess: invalider,
+  });
+}

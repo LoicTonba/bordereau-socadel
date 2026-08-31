@@ -11,7 +11,7 @@ from collections.abc import Iterable, Sequence
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -140,10 +140,16 @@ class ItineraireRepositoryPg:
         terme: str | None = None,
         region: str | None = None,
         agence: str | None = None,
+        codes: Sequence[CodeItineraire] = (),
         pagination: PaginationParams | None = None,
     ) -> Page[Itineraire]:
         params = pagination or PaginationParams()
         requete = select(ItineraireORM)
+
+        if codes:
+            requete = requete.where(
+                ItineraireORM.code.in_([c.valeur for c in codes])
+            )
 
         if terme:
             motif = f"%{terme.strip()}%"
@@ -177,6 +183,19 @@ class ItineraireRepositoryPg:
             total=total,
             page=params.page,
             taille=params.taille,
+        )
+
+    async def est_affecte(self, code: CodeItineraire) -> bool:
+        total = await self._session.scalar(
+            select(func.count())
+            .select_from(AffectationORM)
+            .where(AffectationORM.itineraire_code == code.valeur)
+        )
+        return bool(total)
+
+    async def supprimer(self, code: CodeItineraire) -> None:
+        await self._session.execute(
+            delete(ItineraireORM).where(ItineraireORM.code == code.valeur)
         )
 
     async def enregistrer_en_lot(self, itineraires: Iterable[Itineraire]) -> int:

@@ -43,6 +43,7 @@ class Permission(str, Enum):
     ITINERAIRE_LIRE = "itineraire:lire"
     ITINERAIRE_AFFECTER = "itineraire:affecter"
     ITINERAIRE_IMPRIMER = "itineraire:imprimer"
+    ITINERAIRE_GERER = "itineraire:gerer"
 
     # Répertoire des agents de terrain
     AGENT_LIRE = "agent:lire"
@@ -97,6 +98,9 @@ _SUPERVISEUR = frozenset(
         Permission.ITINERAIRE_LIRE,
         Permission.ITINERAIRE_AFFECTER,
         Permission.ITINERAIRE_IMPRIMER,
+        # Le terrain ouvre des zones plus vite qu'un import ne se rejoue : le
+        # superviseur tient donc lui-même son répertoire de tournées.
+        Permission.ITINERAIRE_GERER,
         Permission.AGENT_LIRE,
         Permission.AGENT_CREER,
         Permission.AGENT_MODIFIER,

@@ -24,6 +24,7 @@ import { useSession } from "@features/auth/application/SessionProvider";
 import { MarqueSocadel } from "./Logo";
 import { Avatar } from "./Avatar";
 import { SelecteurLangue, SelecteurTheme } from "./Preferences";
+import { RechercheGlobale } from "./RechercheGlobale";
 import { cx } from "./primitives";
 
 const CLE_REPLIEE = "socadel.sidebarRepliee";
@@ -74,7 +75,6 @@ const NAVIGATION: Entree[] = [
     libelle: "nav.itineraires",
     aide: "nav.itineraires.aide",
     permission: "itineraire:lire",
-    saufAgent: true,
   },
   {
     href: "/agents",
@@ -238,7 +238,10 @@ export function Coquille({ children }: { children: ReactNode }) {
             <span className="text-sm font-semibold">{t("app.nom")}</span>
           </div>
 
+          {/* La recherche occupe le centre de la barre : c'est le geste le
+              plus fréquent, il ne doit pas se chercher dans un coin. */}
           <div className="ml-auto flex items-center gap-1.5">
+            <RechercheGlobale />
             <SelecteurLangue />
             <SelecteurTheme />
           </div>

@@ -168,16 +168,30 @@ class _Itineraires:
     async def par_code(self, code: CodeItineraire) -> Itineraire | None:
         return self._e.itineraires.get(code.valeur)
 
+    async def est_affecte(self, code: CodeItineraire) -> bool:
+        return any(
+            a.itineraire_code == code.valeur
+            for a in self._e.affectations.values()
+        )
+
+    async def supprimer(self, code: CodeItineraire) -> None:
+        self._e.itineraires.pop(code.valeur, None)
+
     async def rechercher(
         self,
         *,
         terme: str | None = None,
         region: str | None = None,
         agence: str | None = None,
+        codes=(),
         pagination: PaginationParams | None = None,
     ) -> Page[Itineraire]:
         params = pagination or PaginationParams()
         trouves = list(self._e.itineraires.values())
+
+        if codes:
+            retenus = {c.valeur for c in codes}
+            trouves = [i for i in trouves if i.code.valeur in retenus]
 
         if terme:
             motif = terme.strip().lower()

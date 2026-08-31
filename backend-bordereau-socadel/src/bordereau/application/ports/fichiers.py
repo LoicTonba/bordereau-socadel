@@ -70,14 +70,26 @@ class ExportateurPdf(Protocol):
 
         Reproduit la maquette de `bordereau.xlsx / Feuil3` : en-tête campagne,
         puis pour chaque tournée son bandeau `ITINERAIRE / Total client /
-        OK-MRA` et les colonnes REF GEO / METER_NO / NOMS / CONTRAT / RAPPORT,
-        la dernière laissée vide pour la saisie manuscrite.
+        OK-MRA` et les colonnes REF GEO / METER_NO / NOMS / CONTRAT /
+        RAPPORT / N° WHATSAPP, les deux dernières laissées vides pour la saisie
+        manuscrite.
         """
+        ...
+
+    def generer_modele_terrain(self) -> bytes:
+        """Le bordereau vierge d'exemple, hors de toute affectation."""
         ...
 
 
 @runtime_checkable
 class GenerateurModeleImport(Protocol):
     """Fournit le classeur vierge que le superviseur distribue aux agents."""
+
+    def generer(self) -> bytes: ...
+
+
+@runtime_checkable
+class GenerateurModeleTerrain(Protocol):
+    """Fournit le bordereau de terrain en classeur, maquette de la feuille 3."""
 
     def generer(self) -> bytes: ...

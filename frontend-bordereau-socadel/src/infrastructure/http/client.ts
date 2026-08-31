@@ -129,6 +129,15 @@ export const api = {
     return reponse.json() as Promise<T>;
   },
 
+  /**
+   * Suppression. Le corps est ignoré : l'API répond 204 sans contenu, et
+   * tenter d'en lire un lèverait sur une réponse vide.
+   */
+  async delete<T>(chemin: string): Promise<T> {
+    await requete(chemin, { method: "DELETE" });
+    return undefined as T;
+  },
+
   async postFichier<T>(
     chemin: string,
     formData: FormData,

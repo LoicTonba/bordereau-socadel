@@ -16,6 +16,7 @@ import { useState } from "react";
 import type { Itineraire, ResultatAffectation } from "@core/domain/types";
 import { useAgents } from "@features/agents/application/hooks";
 import { ErreurApi } from "@infra/http/client";
+import { useToasts } from "@shared/ui/Toasts";
 import {
   Alerte,
   Bouton,
@@ -39,6 +40,7 @@ function aujourdhui(): string {
 export function EcranAffectation() {
   const { data: agents = [], isLoading: chargementAgents } = useAgents(true);
   const affecter = useAffecter();
+  const { notifier } = useToasts();
   const bordereauTerrain = useBordereauTerrain();
 
   const [agentId, setAgentId] = useState("");
@@ -82,12 +84,14 @@ export function EcranAffectation() {
       );
       setChoisis([]);
       setConsignes("");
+      notifier("creation", "Itinéraires affectés, le bordereau est prêt.");
     } catch (exception) {
-      setErreur(
+      const message =
         exception instanceof ErreurApi
           ? exception.message
-          : "L'affectation a échoué.",
-      );
+          : "L'affectation a échoué.";
+      setErreur(message);
+      notifier("echec", message);
     }
   }
 

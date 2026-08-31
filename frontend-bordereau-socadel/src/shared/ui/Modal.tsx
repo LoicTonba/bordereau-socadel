@@ -59,7 +59,10 @@ export function Modal({
       // Le fond est peint par le backdrop ; `p-0` retire la marge par défaut
       // du user-agent, qui décalerait le contenu.
       className={cx(
-        "w-[calc(100vw-2rem)] rounded-xl p-0 backdrop:bg-slate-900/45",
+        // `m-auto` recentre la boîte. Le navigateur la centre par défaut, mais
+        // la remise à zéro des styles de Tailwind annule cette marge : sans
+        // cette classe, toutes les modales collent au coin supérieur gauche.
+        "m-auto w-[calc(100vw-2rem)] rounded-xl p-0 backdrop:bg-slate-900/45",
         "bg-[var(--fond-carte)] text-[var(--texte)] shadow-2xl",
         largeurs[taille],
       )}
@@ -88,7 +91,7 @@ export function Modal({
         </button>
       </header>
 
-      <div className="max-h-[65vh] overflow-auto px-5 py-4">{children}</div>
+      <div className="max-h-[70vh] overflow-auto px-5 py-4">{children}</div>
 
       {pied && (
         <footer className="flex items-center justify-end gap-2 border-t border-[var(--bordure)] px-5 py-3.5">

@@ -11,12 +11,15 @@ from fastapi import APIRouter, Query, Response, status
 from ....application.dto import FiltreItineraire
 from ....application.use_cases.itineraires import (
     CommandeAffectation,
+    CommandeCreationItineraire,
+    CommandeModificationItineraire,
     CommandeTemplateJournee,
     CommandeTemplateTerrain,
 )
 from ..deps import ContainerDep, ContexteDep, PaginationDep, UtilisateurDep
 from ..schemas.bordereau import (
     ItineraireAffecteSortie,
+    RequeteItineraire,
     ItineraireSortie,
     ReponseAffectation,
     RequeteAffectation,
@@ -24,6 +27,73 @@ from ..schemas.bordereau import (
 from ..schemas.commun import ReponsePaginee
 
 router = APIRouter(prefix="/itineraires", tags=["Itinéraires"])
+
+
+@router.post(
+    "",
+    response_model=ItineraireSortie,
+    status_code=status.HTTP_201_CREATED,
+    summary="Ouvrir une tournée",
+)
+async def creer(
+    requete: RequeteItineraire, container: ContainerDep, contexte: ContexteDep
+) -> ItineraireSortie:
+    """Le terrain ouvre des zones plus vite qu'un import ne se rejoue.
+
+    Sans agence indiquée, la tournée est rattachée à celle du superviseur : lui
+    laisser en ouvrir ailleurs contournerait son périmètre.
+    """
+    itineraire = await container.creer_itineraire().executer(
+        contexte,
+        CommandeCreationItineraire(
+            code=requete.code,
+            libelle=requete.libelle,
+            region=requete.region,
+            division=requete.division,
+            agence=requete.agence,
+            mrc=requete.mrc,
+        ),
+    )
+    return ItineraireSortie.depuis_entite(itineraire)
+
+
+@router.patch(
+    "/{code}",
+    response_model=ItineraireSortie,
+    summary="Corriger une tournée",
+)
+async def modifier(
+    code: int,
+    requete: RequeteItineraire,
+    container: ContainerDep,
+    contexte: ContexteDep,
+) -> ItineraireSortie:
+    """Le libellé et le rattachement territorial se corrigent ; le code, non."""
+    itineraire = await container.modifier_itineraire().executer(
+        contexte,
+        CommandeModificationItineraire(
+            code=code,
+            libelle=requete.libelle,
+            region=requete.region,
+            division=requete.division,
+            agence=requete.agence,
+            mrc=requete.mrc,
+        ),
+    )
+    return ItineraireSortie.depuis_entite(itineraire)
+
+
+@router.delete(
+    "/{code}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Retirer une tournée jamais confiée",
+)
+async def supprimer(
+    code: int, container: ContainerDep, contexte: ContexteDep
+) -> Response:
+    """Une tournée déjà confiée n'est pas supprimable : la production y renvoie."""
+    await container.supprimer_itineraire().executer(contexte, code)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get(
@@ -41,7 +111,9 @@ async def rechercher(
 ) -> ReponsePaginee[ItineraireSortie]:
     """Alimente l'autocomplétion du formulaire d'affectation."""
     page = await container.rechercher_itineraires().executer(
-        FiltreItineraire(terme=terme, region=region, agence=agence), pagination
+        FiltreItineraire(terme=terme, region=region, agence=agence),
+        pagination,
+        contexte,
     )
     return ReponsePaginee.depuis_page(
         page, [ItineraireSortie.depuis_entite(i) for i in page.elements]

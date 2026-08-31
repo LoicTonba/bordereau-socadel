@@ -40,10 +40,18 @@ from ..application.use_cases.comptes import (
     ReinitialiserParResponsable,
     VerifierAdresse,
 )
-from ..application.use_cases.exports import ExporterBordereau, TelechargerModeleImport
+from ..application.use_cases.exports import (
+    ExporterBordereau,
+    TelechargerModeleImport,
+    TelechargerModeleTerrain,
+)
 from ..application.use_cases.imports import PrevisualiserImport, ValiderImport
+from ..application.use_cases.recherche_globale import RechercheGlobale
 from ..application.use_cases.itineraires import (
     AffecterItineraires,
+    CreerItineraire,
+    ModifierItineraire,
+    SupprimerItineraire,
     GenererTemplateTerrain,
     ListerAgences,
     RechercherItineraires,
@@ -54,6 +62,7 @@ from .db.session import creer_fabrique_sessions, creer_moteur
 from .db.unit_of_work import UnitOfWorkPg
 from .files.exporters.csv_exporter import ExportateurCsvStandard
 from .files.exporters.modele_import import GenerateurModeleXlsx
+from .files.exporters.modele_terrain import GenerateurModeleTerrainXlsx
 from .files.exporters.pdf_exporter import ExportateurPdfReportlab
 from .files.parsers.tabulaire import LecteurTabulaireOpenpyxl
 from .files.stockage_media import StockageMediaLocal
@@ -120,6 +129,10 @@ class Container:
     @cached_property
     def generateur_modele(self) -> GenerateurModeleXlsx:
         return GenerateurModeleXlsx()
+
+    @cached_property
+    def generateur_modele_terrain(self) -> GenerateurModeleTerrainXlsx:
+        return GenerateurModeleTerrainXlsx()
 
     @cached_property
     def stockage_media(self) -> StockageMediaLocal:
@@ -243,6 +256,15 @@ class Container:
     def lister_agences(self) -> ListerAgences:
         return ListerAgences(self.unit_of_work())
 
+    def creer_itineraire(self) -> CreerItineraire:
+        return CreerItineraire(self.unit_of_work())
+
+    def modifier_itineraire(self) -> ModifierItineraire:
+        return ModifierItineraire(self.unit_of_work())
+
+    def supprimer_itineraire(self) -> SupprimerItineraire:
+        return SupprimerItineraire(self.unit_of_work())
+
     def generer_template_terrain(self) -> GenererTemplateTerrain:
         return GenererTemplateTerrain(self.unit_of_work(), self.exportateur_pdf)
 
@@ -284,6 +306,24 @@ class Container:
 
     def telecharger_modele(self) -> TelechargerModeleImport:
         return TelechargerModeleImport(self.generateur_modele)
+
+    def telecharger_modele_terrain(self) -> TelechargerModeleTerrain:
+        return TelechargerModeleTerrain(
+            self.generateur_modele_terrain, self.exportateur_pdf
+        )
+
+    # --- Recherche globale -------------------------------------------------
+
+    def recherche_globale(self) -> RechercheGlobale:
+        """Chaque volet est délégué au cas d'usage qui le sert déjà : les
+        habilitations et le rétrécissement ABAC s'appliquent sans être
+        redits."""
+        return RechercheGlobale(
+            self.lister_bordereau(),
+            self.rechercher_itineraires(),
+            self.lister_agents(),
+            self.lister_comptes(),
+        )
 
     # --- Tableau de bord ---------------------------------------------------
 

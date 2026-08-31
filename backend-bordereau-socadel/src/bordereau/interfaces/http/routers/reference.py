@@ -7,10 +7,18 @@ volume de portefeuille, ni identité, ni compte.
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated
 
-from ..deps import ContainerDep
-from ..schemas.bordereau import AgenceSortie, TerritoireSortie
+from fastapi import APIRouter, Query
+
+from ..deps import ContainerDep, ContexteDep
+from ..schemas.bordereau import (
+    AgenceSortie,
+    ResultatRechercheSortie,
+    TerritoireSortie,
+    TrouvailleSortie,
+    VoletSortie,
+)
 
 router = APIRouter(prefix="/reference", tags=["Référence"])
 
@@ -33,4 +41,41 @@ async def agences(container: ContainerDep) -> TerritoireSortie:
             AgenceSortie(nom=a.nom, region=a.region, division=a.division)
             for a in liste
         ]
+    )
+
+
+@router.get(
+    "/recherche",
+    response_model=ResultatRechercheSortie,
+    summary="Rechercher dans toute l'application",
+)
+async def recherche(
+    container: ContainerDep,
+    contexte: ContexteDep,
+    q: Annotated[str, Query(min_length=0, max_length=120)] = "",
+) -> ResultatRechercheSortie:
+    """Cherche partout, dans les limites de ce que l'appelant peut voir.
+
+    Chaque volet passe par le cas d'usage qui sert déjà l'écran correspondant :
+    un agent de terrain ne trouve que ses lignes, un superviseur que son
+    agence. Un volet fermé à l'appelant est absent de la réponse, jamais
+    signalé comme refusé.
+    """
+    resultat = await container.recherche_globale().executer(contexte, q)
+    return ResultatRechercheSortie(
+        terme=resultat.terme,
+        total=resultat.total,
+        volets=[
+            VoletSortie(
+                cle=volet.cle,
+                libelle=volet.libelle,
+                resultats=[
+                    TrouvailleSortie(
+                        titre=t.titre, detail=t.detail, chemin=t.chemin
+                    )
+                    for t in volet.resultats
+                ],
+            )
+            for volet in resultat.volets
+        ],
     )

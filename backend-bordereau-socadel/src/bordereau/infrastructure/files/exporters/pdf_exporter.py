@@ -50,12 +50,21 @@ GRIS_BORDURE = colors.HexColor("#CBD5E1")
 #: libellé que les équipes terrain reconnaissent.
 TITRE_CAMPAGNE = "CAMPAGNE DE COLLECTE DE NUMERO WHATSAPP"
 
-#: En-têtes de colonnes du modèle, dans l'ordre du fichier source.
-COLONNES_TERRAIN = ("REF GEO", "METER_NO", "NOMS", "CONTRAT", "RAPPORT")
+#: Colonnes du bordereau terrain, dans l'ordre de la feuille 3 du classeur
+#: source. RAPPORT et N° WHATSAPP sont les deux seules que l'agent remplit.
+COLONNES_TERRAIN = (
+    "REF GEO",
+    "METER_NO",
+    "NOMS",
+    "CONTRAT",
+    "RAPPORT",
+    "N° WHATSAPP",
+)
 
-#: Largeurs calées sur celles du classeur (A=37,6 · B · C=44,8 · D=37,6 · E=21,3
-#: caractères), converties en millimètres pour tenir en A4 portrait.
-LARGEURS_TERRAIN = (38 * mm, 30 * mm, 48 * mm, 26 * mm, 44 * mm)
+#: Largeurs cumulées à 186 mm, la largeur utile d'une A4 portrait marges
+#: déduites. Les deux colonnes de saisie sont les plus larges : c'est là que le
+#: stylo passe.
+LARGEURS_TERRAIN = (34 * mm, 26 * mm, 44 * mm, 24 * mm, 22 * mm, 36 * mm)
 
 #: Lignes par page du bordereau imprimé. Au-delà, les cases deviennent trop
 #: serrées pour qu'un agent y écrive un numéro au stylo.
@@ -75,8 +84,71 @@ class BlocItineraire:
     clients: Sequence[Client]
 
 
+@dataclass(frozen=True, slots=True)
+class _Valeur:
+    """Enveloppe minimale : la grille lit `.valeur` sur ces deux champs."""
+
+    valeur: str
+
+
+@dataclass(frozen=True, slots=True)
+class _LigneModele:
+    """Un client d'exemple, réduit à ce que la grille sait afficher.
+
+    Le modèle vierge ne peut pas porter de vraies entités `Client` : il est
+    produit hors de tout contexte métier, avant même qu'une tournée existe. Ce
+    substitut expose exactement les quatre attributs que la grille consulte,
+    et rien de plus.
+    """
+
+    ref_geo: _Valeur
+    numero_compteur: str
+    nom: str
+    service_no: _Valeur
+    cle_tri_terrain: tuple[int, ...]
+
+
+#: Tournée d'exemple du classeur source. Elle sert de mode d'emploi : l'agent
+#: voit ce qu'on attend de lui avant d'avoir reçu sa vraie affectation.
+CODE_EXEMPLE = 125369
+
+MODELE_EXEMPLE = tuple(
+    _LigneModele(
+        ref_geo=_Valeur(f"838-01-01-641-00-0{rang}"),
+        numero_compteur="021750196246",
+        nom=nom,
+        service_no=_Valeur(str(203299980 + rang)),
+        cle_tri_terrain=(838, 1, 1, 641, 0, rang),
+    )
+    for rang, nom in enumerate(
+        (
+            "BILOA DAMARIS",
+            "NGONO ALBERTINE",
+            "MBALLA JEAN PIERRE",
+            "TCHOUMI ALAIN",
+            "ABDOUL AZIZ OUMAROU",
+        ),
+        start=1,
+    )
+)
+
+
 class ExportateurPdfReportlab:
     """Génère les deux documents PDF du métier."""
+
+    def generer_modele_terrain(self) -> bytes:
+        """Le bordereau vierge distribué en exemple, avec sa tournée témoin."""
+        return self.generer_template_multi(
+            [
+                BlocItineraire(
+                    CODE_EXEMPLE,
+                    "Exemple, à remplacer par votre tournée",
+                    MODELE_EXEMPLE,
+                )
+            ],
+            nom_agent="",
+            date_travail="",
+        )
 
     # --- Bordereau de terrain imprimable ----------------------------------
 
@@ -284,13 +356,14 @@ def _bloc_itineraire(
                 Spacer(1, 2.5 * mm),
                 _grille(page, derniere_page=numero == len(pages)),
                 Spacer(1, 3 * mm),
-                Paragraph(
-                    "Colonne RAPPORT : noter le numéro WhatsApp relevé, ou le "
-                    "motif de non-collecte (absent, refus, injoignable).",
-                    styles["mention"],
-                ),
+                _legende_rapport(),
             ]
         )
+
+        # La signature ne figure qu'une fois, au pied de la dernière page :
+        # c'est la tournée entière qu'elle authentifie, pas chaque feuillet.
+        if numero == len(pages):
+            elements.extend([Spacer(1, 4 * mm), _signature()])
 
     return elements
 
@@ -317,12 +390,13 @@ def _bandeau(
                 str(bloc.code),
                 "Total client",
                 str(total_clients),
-                "OK/MRA",
+                "RAPPORT",
+                "OK / MRA",
             ],
-            # Ligne ajoutée : l'agent et la date, indispensables dès qu'un
-            # collecteur emporte plusieurs tournées dans un même document.
-            ["AGENT", nom_agent, "", "DATE", date_travail],
-            ["ZONE", bloc.libelle, "", "PAGE", f"{page} / {total_pages}"],
+            # Lignes ajoutées : l'agent, la date et la page, indispensables dès
+            # qu'un collecteur emporte plusieurs tournées dans un même document.
+            ["AGENT", nom_agent, "", "", "DATE", date_travail],
+            ["ZONE", bloc.libelle, "", "", "PAGE", f"{page} / {total_pages}"],
         ],
         colWidths=LARGEURS_TERRAIN,
     )
@@ -331,22 +405,22 @@ def _bandeau(
             [
                 ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
                 ("FONTSIZE", (0, 0), (-1, -1), 8.5),
-                # Les valeurs des deux dernières lignes s'étalent sur deux
+                # Les valeurs des deux dernières lignes s'étalent sur trois
                 # colonnes : un nom complet ne tient pas dans une seule.
-                ("SPAN", (1, 1), (2, 1)),
-                ("SPAN", (1, 2), (2, 2)),
+                ("SPAN", (1, 1), (3, 1)),
+                ("SPAN", (1, 2), (3, 2)),
                 # Cases de libellé sur fond bleu pâle, valeurs sur blanc.
                 ("BACKGROUND", (0, 0), (0, -1), BLEU_CLAIR),
                 ("BACKGROUND", (2, 0), (2, 0), BLEU_CLAIR),
-                ("BACKGROUND", (3, 1), (3, -1), BLEU_CLAIR),
-                ("BACKGROUND", (4, 0), (4, 0), BLEU_CLAIR),
+                ("BACKGROUND", (4, 0), (4, -1), BLEU_CLAIR),
                 ("TEXTCOLOR", (0, 0), (0, -1), BLEU_SOMBRE),
                 ("TEXTCOLOR", (2, 0), (2, 0), BLEU_SOMBRE),
-                ("TEXTCOLOR", (3, 1), (3, -1), BLEU_SOMBRE),
+                ("TEXTCOLOR", (4, 0), (4, -1), BLEU_SOMBRE),
                 ("TEXTCOLOR", (1, 0), (1, 0), BLEU_SOMBRE),
-                ("FONTSIZE", (4, 0), (4, 0), 7.5),
-                ("ALIGN", (4, 0), (4, 0), "CENTER"),
-                ("TEXTCOLOR", (4, 0), (4, 0), GRIS_TEXTE),
+                # La consigne de saisie est rappelée en clair dès le bandeau.
+                ("FONTSIZE", (5, 0), (5, 0), 8),
+                ("ALIGN", (5, 0), (5, 0), "CENTER"),
+                ("TEXTCOLOR", (5, 0), (5, 0), GRIS_TEXTE),
                 ("GRID", (0, 0), (-1, -1), 0.5, GRIS_BORDURE),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
@@ -359,16 +433,18 @@ def _bandeau(
 
 
 def _grille(clients: Sequence[Client], *, derniere_page: bool) -> Table:
-    """Grille de saisie : quatre colonnes pré-imprimées, RAPPORT laissée vide."""
+    """Grille de saisie : quatre colonnes pré-imprimées, deux à remplir."""
     donnees: list[list[str]] = [list(COLONNES_TERRAIN)]
+    vide = [""] * len(COLONNES_TERRAIN)
 
     for client in clients:
         donnees.append(
             [
                 client.ref_geo.valeur if client.ref_geo else "",
-                _tronquer(client.numero_compteur, 16),
-                _tronquer(client.nom, 28),
+                _tronquer(client.numero_compteur, 14),
+                _tronquer(client.nom, 26),
                 client.service_no.valeur,
+                "",
                 "",
             ]
         )
@@ -376,7 +452,7 @@ def _grille(clients: Sequence[Client], *, derniere_page: bool) -> Table:
     # Des lignes vierges en fin de dernière page : l'agent y note les clients
     # rencontrés qui ne figurent pas encore au référentiel.
     if derniere_page:
-        donnees.extend([["", "", "", "", ""]] * LIGNES_VIERGES)
+        donnees.extend([list(vide) for _ in range(LIGNES_VIERGES)])
 
     tableau = Table(
         donnees,
@@ -386,6 +462,7 @@ def _grille(clients: Sequence[Client], *, derniere_page: bool) -> Table:
     )
 
     premiere_vierge = len(donnees) - LIGNES_VIERGES if derniere_page else len(donnees)
+    saisie = len(COLONNES_TERRAIN) - 2
     commandes = [
         ("BACKGROUND", (0, 0), (-1, 0), BLEU_SOCADEL),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -398,8 +475,10 @@ def _grille(clients: Sequence[Client], *, derniere_page: bool) -> Table:
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("LEFTPADDING", (0, 0), (-1, -1), 4),
         ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        # La colonne à remplir est cernée d'un trait franc : elle guide le stylo.
-        ("BOX", (4, 1), (4, -1), 1.1, BLEU_SOCADEL),
+        # Les deux colonnes à remplir sont cernées d'un trait franc : elles
+        # guident le stylo sans qu'on ait à lire l'en-tête.
+        ("BOX", (saisie, 1), (-1, -1), 1.1, BLEU_SOCADEL),
+        ("LINEBEFORE", (saisie + 1, 1), (saisie + 1, -1), 0.7, BLEU_SOCADEL),
     ]
 
     if derniere_page and LIGNES_VIERGES:
@@ -408,6 +487,82 @@ def _grille(clients: Sequence[Client], *, derniere_page: bool) -> Table:
         )
 
     tableau.setStyle(TableStyle(commandes))
+    return tableau
+
+
+def _legende_rapport() -> Table:
+    """Ce que l'agent doit écrire, expliqué sur le papier lui-même.
+
+    Deux mots seulement, et leur conséquence. Un agent qui a oublié la consigne
+    du briefing la retrouve sur son bordereau, il n'a personne à rappeler.
+    """
+    tableau = Table(
+        [
+            [
+                "OK",
+                "Le client est allé au bout du parcours WhatsApp : il figure "
+                "désormais dans la base.",
+            ],
+            [
+                "MRA",
+                "Le numéro est pris mais l'enrôlement reste à faire : il sera "
+                "relancé depuis Gestion Campagnes, sur MRA.",
+            ],
+            [
+                "N° WHATSAPP",
+                "À renseigner quand le client est absent et qu'un proche donne "
+                "son numéro, ou quand le relevé diffère du contrat.",
+            ],
+        ],
+        colWidths=(24 * mm, 162 * mm),
+    )
+    tableau.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+                ("TEXTCOLOR", (0, 0), (0, -1), BLEU_SOMBRE),
+                ("TEXTCOLOR", (1, 0), (1, -1), GRIS_TEXTE),
+                ("BACKGROUND", (0, 0), (0, -1), BLEU_CLAIR),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.4, GRIS_BORDURE),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ]
+        )
+    )
+    return tableau
+
+
+def _signature() -> Table:
+    """Le pied du modèle : c'est lui qui authentifie le retour de tournée."""
+    tableau = Table(
+        [
+            ["DATE ET SIGNATURE SUPERVISEUR SOCADEL / ENTREPRISE", ""],
+            ["Superviseur SOCADEL", "Agent de terrain"],
+            ["", ""],
+        ],
+        colWidths=(93 * mm, 93 * mm),
+        rowHeights=(7 * mm, 6 * mm, 18 * mm),
+    )
+    tableau.setStyle(
+        TableStyle(
+            [
+                ("SPAN", (0, 0), (1, 0)),
+                ("BACKGROUND", (0, 0), (1, 0), BLEU_CLAIR),
+                ("TEXTCOLOR", (0, 0), (1, 0), BLEU_SOMBRE),
+                ("FONTNAME", (0, 0), (-1, 1), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("FONTSIZE", (0, 1), (-1, 1), 7.5),
+                ("TEXTCOLOR", (0, 1), (-1, 1), GRIS_DOUX),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("GRID", (0, 0), (-1, -1), 0.5, GRIS_BORDURE),
+            ]
+        )
+    )
     return tableau
 
 

@@ -61,9 +61,17 @@ class ServiceJetonJwt:
 
     def decoder(self, jeton: str) -> ContenuJeton:
         try:
-            charge = jwt.decode(jeton, self._cle, algorithms=[self._algorithme])
-        except jwt.ExpiredSignatureError as erreur:
-            raise JetonInvalide("Session expirée, merci de vous reconnecter") from erreur
+            # L'expiration n'est pas tranchée ici mais par `RecupererSession`,
+            # avec l'horloge injectée. Deux autorités sur le temps, celle de
+            # PyJWT et celle du domaine, finissaient par diverger : un jeton
+            # émis sous horloge figée était refusé dès que l'heure réelle
+            # dépassait sa date de validité. La signature, elle, reste vérifiée.
+            charge = jwt.decode(
+                jeton,
+                self._cle,
+                algorithms=[self._algorithme],
+                options={"verify_exp": False},
+            )
         except jwt.PyJWTError as erreur:
             raise JetonInvalide("Jeton de session illisible") from erreur
 

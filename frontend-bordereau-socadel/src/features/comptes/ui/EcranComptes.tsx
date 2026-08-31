@@ -13,10 +13,12 @@ import { useMemo, useState } from "react";
 
 import { useT } from "@core/i18n/PreferencesProvider";
 import type { Compte, Role, StatutCompte } from "@core/domain/types";
+import type { TonToast } from "@shared/ui/Toasts";
 import { ErreurApi } from "@infra/http/client";
 import { useSession } from "@features/auth/application/SessionProvider";
 import { useAgents } from "@features/agents/application/hooks";
 import { Avatar } from "@shared/ui/Avatar";
+import { useToasts } from "@shared/ui/Toasts";
 import {
   Alerte,
   Badge,
@@ -75,21 +77,28 @@ export function EcranComptes() {
   );
   const basculer = useBasculerCompte();
   const reinitialiser = useReinitialiserPourAutrui();
+  const { notifier } = useToasts();
 
   const rangAppelant = utilisateur ? RANG[utilisateur.role] : 0;
 
-  async function agir<T>(action: Promise<T>, succes: (valeur: T) => string) {
+  async function agir<T>(
+    action: Promise<T>,
+    succes: (valeur: T) => string,
+    ton: TonToast = "modification",
+  ) {
     setMessage(null);
     try {
-      setMessage({ ton: "succes", texte: succes(await action) });
+      const texte = succes(await action);
+      // Le mot de passe provisoire reste affiché en clair dans le bandeau : il
+      // doit pouvoir être lu au téléphone sans course contre une notification
+      // qui s'efface.
+      setMessage({ ton: "succes", texte });
+      notifier(ton, texte);
     } catch (exception) {
-      setMessage({
-        ton: "erreur",
-        texte:
-          exception instanceof ErreurApi
-            ? exception.message
-            : t("comptes.echec"),
-      });
+      const texte =
+        exception instanceof ErreurApi ? exception.message : t("comptes.echec");
+      setMessage({ ton: "erreur", texte });
+      notifier("echec", texte);
     }
   }
 
@@ -144,6 +153,7 @@ export function EcranComptes() {
                       actif
                         ? t("comptes.reactive", { nom: compte.nomComplet })
                         : t("comptes.suspendu", { nom: compte.nomComplet }),
+                    actif ? "creation" : "suppression",
                   )
                 }
                 onReinitialiser={() =>

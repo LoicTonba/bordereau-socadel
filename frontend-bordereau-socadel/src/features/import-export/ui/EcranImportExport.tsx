@@ -18,6 +18,7 @@ import { Alerte, Bouton, Carte, Champ, Selecteur } from "@shared/ui/primitives";
 import {
   usePrevisualiser,
   useTelechargerModele,
+  useTelechargerModeleTerrain,
   useValiderImport,
 } from "../application/hooks";
 import { ModalApercuImport } from "./ModalApercuImport";
@@ -31,6 +32,7 @@ export function EcranImportExport() {
   const previsualiser = usePrevisualiser();
   const validerImport = useValiderImport();
   const modele = useTelechargerModele();
+  const modeleTerrain = useTelechargerModeleTerrain();
 
   const [fichier, setFichier] = useState<File | null>(null);
   const [apercu, setApercu] = useState<ApercuImport | null>(null);
@@ -125,8 +127,41 @@ export function EcranImportExport() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Carte
-          titre="Modèle de bordereau terrain"
-          description="Le classeur vierge que les agents remplissent."
+          titre="Bordereau de terrain"
+          description="Le document que l'agent emporte et annote au stylo."
+        >
+          <div className="space-y-3 p-5">
+            <p className="text-sm text-[var(--texte-doux)]">
+              Maquette de la campagne : un bandeau par tournée, les colonnes
+              pré-remplies, et deux colonnes à remplir, <b>RAPPORT</b> et{" "}
+              <b>N° WhatsApp</b>. La légende et la ligne de signature figurent
+              sur le document.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Bouton
+                onClick={() => modeleTerrain.mutate("pdf")}
+                chargement={modeleTerrain.isPending}
+              >
+                Bordereau terrain (.pdf)
+              </Bouton>
+              <Bouton
+                variante="secondaire"
+                onClick={() => modeleTerrain.mutate("xlsx")}
+                chargement={modeleTerrain.isPending}
+              >
+                Bordereau terrain (.xlsx)
+              </Bouton>
+            </div>
+            <p className="text-xs text-[var(--texte-tres-doux)]">
+              Le PDF s&apos;imprime et part en tournée. Le classeur sert à
+              préparer ou compléter une tournée hors application.
+            </p>
+          </div>
+        </Carte>
+
+        <Carte
+          titre="Modèle d'import"
+          description="Le classeur à remplir pour réinjecter une production."
         >
           <div className="space-y-3 p-5">
             <p className="text-sm text-[var(--texte-doux)]">
@@ -140,7 +175,7 @@ export function EcranImportExport() {
               onClick={() => modele.mutate()}
               chargement={modele.isPending}
             >
-              Télécharger le modèle (.xlsx)
+              Modèle d&apos;import (.xlsx)
             </Bouton>
           </div>
         </Carte>

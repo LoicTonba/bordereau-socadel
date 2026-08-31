@@ -30,7 +30,7 @@ import { TableauBordereau } from "./TableauBordereau";
 
 const PAGINATION_INITIALE: ParamsPagination = {
   page: 1,
-  taille: 25,
+  taille: 10,
   tri: "date_collecte",
   ordre: "desc",
 };
