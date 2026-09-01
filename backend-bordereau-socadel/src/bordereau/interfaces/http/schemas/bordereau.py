@@ -61,6 +61,115 @@ class ReponseConnexion(SchemaBase):
     region: str | None = None
 
 
+class DroitSortie(SchemaBase):
+    permission: str
+    accordee_par_le_code: bool
+    restreinte: bool
+    effective: bool
+
+
+class VueRoleSortie(SchemaBase):
+    role: str
+    rang: int
+    nombre_effectif: int
+    droits: list[DroitSortie]
+
+    @classmethod
+    def depuis_vue(cls, vue) -> "VueRoleSortie":
+        return cls(
+            role=vue.role,
+            rang=vue.rang,
+            nombre_effectif=vue.nombre_effectif,
+            droits=[
+                DroitSortie(
+                    permission=d.permission,
+                    accordee_par_le_code=d.accordee_par_le_code,
+                    restreinte=d.restreinte,
+                    effective=d.effective,
+                )
+                for d in vue.droits
+            ],
+        )
+
+
+class RequeteRestriction(SchemaBase):
+    """Les permissions à retrancher, remplaçant d'un bloc les précédentes."""
+
+    restrictions: list[str] = Field(default_factory=list, max_length=100)
+
+
+class TraceAuditSortie(SchemaBase):
+    quand: datetime
+    action: str
+    cible: str | None
+    auteur: str
+    role: str | None
+    statut_http: int
+    reussi: bool
+    adresse_ip: str | None
+
+    @classmethod
+    def depuis_entite(cls, trace) -> "TraceAuditSortie":
+        return cls(
+            quand=trace.quand,
+            action=trace.action,
+            cible=trace.cible,
+            auteur=trace.auteur,
+            role=trace.role,
+            statut_http=trace.statut_http,
+            reussi=trace.reussi,
+            adresse_ip=trace.adresse_ip,
+        )
+
+
+class RequeteAgence(SchemaBase):
+    """Ouverture ou correction d'une agence.
+
+    Le nom n'est modifiable qu'à la création : comptes, itinéraires et
+    référentiel le portent tel quel.
+    """
+
+    nom: str = Field(min_length=2, max_length=80)
+    region: str | None = Field(default=None, max_length=80)
+    division: str | None = Field(default=None, max_length=80)
+
+
+class RequeteFermetureAgence(SchemaBase):
+    motif: str = Field(
+        min_length=3,
+        max_length=300,
+        description="Insécurité, réorganisation, fusion. Il sera conservé.",
+    )
+
+
+class AgenceDetail(SchemaBase):
+    nom: str
+    region: str | None
+    division: str | None
+    territoire: str
+    ouverte: bool
+    motif_fermeture: str | None
+    fermee_le: datetime | None
+
+    @classmethod
+    def depuis_entite(cls, agence) -> "AgenceDetail":
+        return cls(
+            nom=agence.nom,
+            region=agence.region,
+            division=agence.division,
+            territoire=agence.territoire,
+            ouverte=agence.ouverte,
+            motif_fermeture=agence.motif_fermeture,
+            fermee_le=agence.fermee_le,
+        )
+
+
+class TerritoireDetail(SchemaBase):
+    agences: list[AgenceDetail]
+    regions: list[str]
+    divisions: list[str]
+
+
 class RequeteItineraire(SchemaBase):
     """Création ou modification d'une tournée.
 

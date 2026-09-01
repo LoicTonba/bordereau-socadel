@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Request, status
 
 from ....application.use_cases.auth import CommandeConnexion
 from ....domain.securite import MATRICE
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/auth", tags=["Authentification"])
     summary="Ouvrir une session",
 )
 async def connexion(
-    requete: RequeteConnexion, container: ContainerDep
+    requete: RequeteConnexion, container: ContainerDep, http: Request
 ) -> ReponseConnexion:
     """Authentifie l'utilisateur et renvoie son jeton de session.
 
@@ -40,6 +40,13 @@ async def connexion(
             agence_declaree=requete.agence,
         )
     )
+    # Le journal d'audit ne peut pas deviner qui vient de se connecter : la
+    # requete n'etait porteuse d'aucune session, c'est elle qui la cree. La
+    # route lui souffle donc l'auteur, faute de quoi « qui s'est connecte »
+    # resterait sans reponse, ce qui vide le journal de son interet.
+    http.state.audit_identifiant = session.identifiant
+    http.state.audit_role = session.role.value
+
     return ReponseConnexion(
         jeton=session.jeton,
         expire_dans_secondes=session.expire_dans_secondes,

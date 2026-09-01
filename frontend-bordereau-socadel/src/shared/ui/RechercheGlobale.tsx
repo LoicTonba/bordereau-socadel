@@ -98,34 +98,29 @@ export function RechercheGlobale() {
         description={t("recherche.aide")}
         taille="lg"
       >
-        <Panneau ouvert={ouvert} onAller={aller} />
+        {/* Le panneau n'est monté que lorsqu'il s'ouvre. Une modale fermée
+            reste dans le document : son champ de recherche s'y ajoutait en
+            double, captait les saisies destinées à l'écran, et encombrait
+            l'arbre d'accessibilité d'un champ inatteignable. */}
+        {ouvert && <Panneau onAller={aller} />}
       </Modal>
     </>
   );
 }
 
-function Panneau({
-  ouvert,
-  onAller,
-}: {
-  ouvert: boolean;
-  onAller: (chemin: string) => void;
-}) {
+function Panneau({ onAller }: { onAller: (chemin: string) => void }) {
   const t = useT();
   const [terme, setTerme] = useState("");
   const [resultat, setResultat] = useState<Resultat | null>(null);
   const [chargement, setChargement] = useState(false);
   const champ = useRef<HTMLInputElement>(null);
 
-  // La saisie repart de zéro à chaque ouverture : rouvrir sur les résultats de
-  // la veille laisserait croire à une réponse fraîche.
+  // Le panneau naît à chaque ouverture : sa saisie repart donc de zéro, et il
+  // ne reste plus qu'à lui donner le focus.
   useEffect(() => {
-    if (!ouvert) return;
-    setTerme("");
-    setResultat(null);
     const minuterie = setTimeout(() => champ.current?.focus(), 60);
     return () => clearTimeout(minuterie);
-  }, [ouvert]);
+  }, []);
 
   useEffect(() => {
     if (terme.trim().length < LONGUEUR_MIN) {

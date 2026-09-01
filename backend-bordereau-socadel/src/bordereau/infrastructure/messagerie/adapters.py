@@ -99,6 +99,16 @@ class MessagerieSmtp:
         self._tls = tls
         self._delai = delai
 
+    def _nom_annonce(self) -> str:
+        """Le domaine que l'on annonce dans le dialogue SMTP.
+
+        Celui de l'expéditeur quand il en a un : c'est ce que les serveurs
+        attendent, et cela évite d'exposer le nom de la machine émettrice.
+        """
+        _, _, domaine = self._expediteur.rpartition("@")
+        domaine = domaine.strip("> ").strip()
+        return domaine if domaine.isascii() and "." in domaine else "localhost"
+
     def envoyer(self, courriel: Courriel) -> None:
         message = EmailMessage()
         message["From"] = self._expediteur
@@ -109,7 +119,16 @@ class MessagerieSmtp:
             message.add_alternative(courriel.corps_html, subtype="html")
 
         try:
-            with smtplib.SMTP(self._hote, self._port, timeout=self._delai) as serveur:
+            # Le nom annoncé au serveur est dérivé de l'expéditeur, pas du nom
+            # de la machine : `smtplib` transmet celui-ci en ASCII strict, et
+            # un poste dont le nom porte un accent fait échouer l'envoi avant
+            # même la connexion.
+            with smtplib.SMTP(
+                self._hote,
+                self._port,
+                local_hostname=self._nom_annonce(),
+                timeout=self._delai,
+            ) as serveur:
                 if self._tls:
                     serveur.starttls()
                 if self._utilisateur and self._mot_de_passe:

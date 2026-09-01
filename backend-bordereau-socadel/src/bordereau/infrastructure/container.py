@@ -46,7 +46,18 @@ from ..application.use_cases.exports import (
     TelechargerModeleTerrain,
 )
 from ..application.use_cases.imports import PrevisualiserImport, ValiderImport
+from ..application.use_cases.audit import ConsignerTrace, RelireJournal
 from ..application.use_cases.recherche_globale import RechercheGlobale
+from ..application.use_cases.roles import ConsulterRoles, RestreindreRole
+from ..application.use_cases.territoire import (
+    CreerAgence,
+    FermerAgence,
+    ImporterTerritoireDepuisReferentiel,
+    ListerTerritoire,
+    ModifierAgence,
+    RouvrirAgence,
+    SupprimerAgence,
+)
 from ..application.use_cases.itineraires import (
     AffecterItineraires,
     CreerItineraire,
@@ -311,6 +322,59 @@ class Container:
         return TelechargerModeleTerrain(
             self.generateur_modele_terrain, self.exportateur_pdf
         )
+
+    # --- Roles et restrictions ---------------------------------------------
+
+    def consulter_roles(self) -> ConsulterRoles:
+        return ConsulterRoles(self.unit_of_work())
+
+    def restreindre_role(self) -> RestreindreRole:
+        return RestreindreRole(self.unit_of_work())
+
+    async def restrictions_en_vigueur(self, role) -> frozenset:
+        """Les permissions retirees a ce role, pretes pour le contexte d'acces.
+
+        Relues a chaque requete : retirer un droit doit prendre effet tout de
+        suite, pas au prochain redemarrage.
+        """
+        from ..domain.securite import Permission
+
+        async with self.unit_of_work() as uow:
+            valeurs = await uow.restrictions.pour(role.value)
+
+        connues = {p.value: p for p in Permission}
+        return frozenset(connues[v] for v in valeurs if v in connues)
+
+    # --- Journal d'audit ---------------------------------------------------
+
+    def consigner_trace(self) -> ConsignerTrace:
+        return ConsignerTrace(self.unit_of_work())
+
+    def relire_journal(self) -> RelireJournal:
+        return RelireJournal(self.unit_of_work())
+
+    # --- Maillage territorial ----------------------------------------------
+
+    def lister_territoire(self) -> ListerTerritoire:
+        return ListerTerritoire(self.unit_of_work())
+
+    def creer_agence(self) -> CreerAgence:
+        return CreerAgence(self.unit_of_work())
+
+    def modifier_agence(self) -> ModifierAgence:
+        return ModifierAgence(self.unit_of_work())
+
+    def fermer_agence(self) -> FermerAgence:
+        return FermerAgence(self.unit_of_work(), self.horloge)
+
+    def rouvrir_agence(self) -> RouvrirAgence:
+        return RouvrirAgence(self.unit_of_work())
+
+    def supprimer_agence(self) -> SupprimerAgence:
+        return SupprimerAgence(self.unit_of_work())
+
+    def importer_territoire(self) -> ImporterTerritoireDepuisReferentiel:
+        return ImporterTerritoireDepuisReferentiel(self.unit_of_work())
 
     # --- Recherche globale -------------------------------------------------
 

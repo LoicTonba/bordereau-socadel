@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .repositories.clients import ClientRepositoryPg
 from .repositories.divers import (
+    AgenceRepositoryPg,
+    AuditRepositoryPg,
+    RestrictionRepositoryPg,
     AffectationRepositoryPg,
     AgentRepositoryPg,
     ItineraireRepositoryPg,
@@ -33,6 +36,9 @@ class UnitOfWorkPg:
 
         self.utilisateurs = UtilisateurRepositoryPg(self._session)
         self.agents = AgentRepositoryPg(self._session)
+        self.agences = AgenceRepositoryPg(self._session)
+        self.audit = AuditRepositoryPg(self._session)
+        self.restrictions = RestrictionRepositoryPg(self._session)
         self.clients = ClientRepositoryPg(self._session)
         self.itineraires = ItineraireRepositoryPg(self._session)
         self.affectations = AffectationRepositoryPg(self._session)

@@ -7,12 +7,15 @@ from fastapi import APIRouter
 from .routers import (
     agents,
     analytics,
+    audit,
     auth,
     bordereau,
     comptes,
     imports_exports,
     itineraires,
     reference,
+    roles,
+    territoire,
 )
 
 
@@ -28,5 +31,8 @@ def creer_routeur(prefixe: str) -> APIRouter:
     routeur.include_router(imports_exports.router)
     routeur.include_router(analytics.router)
     routeur.include_router(reference.router)
+    routeur.include_router(territoire.router)
+    routeur.include_router(audit.router)
+    routeur.include_router(roles.router)
 
     return routeur

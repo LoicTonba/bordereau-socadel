@@ -10,6 +10,7 @@ tranchent. Un futur script d'administration bénéficiera donc des mêmes règle
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import date
 from typing import Annotated
 from uuid import UUID
@@ -22,6 +23,7 @@ from ...domain.entities import Utilisateur
 from ...domain.enums import Responsable, StatutCollecte, VerdictVerification
 from ...domain.securite import ContexteAcces
 from ...domain.value_objects import CodeItineraire, Periode
+from ...infrastructure.config.settings import Settings
 from ...infrastructure.container import Container
 
 
@@ -31,6 +33,18 @@ def get_container(request: Request) -> Container:
 
 
 ContainerDep = Annotated[Container, Depends(get_container)]
+
+
+def get_reglages(container: ContainerDep) -> Settings:
+    """Les réglages, tels que le conteneur les porte.
+
+    Passer par le conteneur plutôt que par `get_settings()` garde les tests
+    maîtres de la configuration : ils montent l'application avec les leurs.
+    """
+    return container.settings
+
+
+ReglagesDep = Annotated[Settings, Depends(get_reglages)]
 
 
 async def utilisateur_courant(
@@ -55,9 +69,18 @@ async def utilisateur_courant(
 UtilisateurDep = Annotated[Utilisateur, Depends(utilisateur_courant)]
 
 
-async def contexte_acces(utilisateur: UtilisateurDep) -> ContexteAcces:
-    """Identité effective de l'appelant, consommée par les gardes d'accès."""
-    return utilisateur.contexte_acces()
+async def contexte_acces(
+    utilisateur: UtilisateurDep, container: ContainerDep
+) -> ContexteAcces:
+    """Identité effective de l'appelant, consommée par les gardes d'accès.
+
+    Les restrictions posées par le super utilisateur sont relues à chaque
+    requête plutôt que mises en cache : retirer un droit doit prendre effet
+    tout de suite, pas au prochain redémarrage. C'est une lecture d'une table
+    de quelques lignes, indexée par rôle.
+    """
+    restrictions = await container.restrictions_en_vigueur(utilisateur.role)
+    return replace(utilisateur.contexte_acces(), restrictions=restrictions)
 
 
 ContexteDep = Annotated[ContexteAcces, Depends(contexte_acces)]
