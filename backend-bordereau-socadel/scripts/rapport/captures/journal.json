@@ -97,14 +97,14 @@
   },
   {
     "profil": "Superviseur",
-    "action": "Vérifier auprès du référentiel",
-    "constat": "29 ligne(s) vérifiée(s) : 27 confirmée(s), 2 infirmée(s), 0 introuvable(s) au ré",
+    "action": "Lancer le contrôle Back office",
+    "constat": "31 ligne(s) vérifiée(s) : 28 confirmée(s), 3 infirmée(s), 0 introuvable(s) au ré",
     "capture": "sv-08-verification.png"
   },
   {
     "profil": "Superviseur",
     "action": "Filtrer sur les abonnements déclarés",
-    "constat": "verdicts rendus : {\"confirme\":2,\"infirme\":2}",
+    "constat": "verdicts rendus : {\"confirme\":3,\"infirme\":3}",
     "capture": "sv-09-verdicts.png"
   },
   {
@@ -146,20 +146,32 @@
   {
     "profil": "Agent de terrain",
     "action": "Se connecter",
-    "constat": "une seule entrée de navigation sur 1",
+    "constat": "2 entrées de navigation : son espace et son bordereau",
     "capture": "ag-01-mon-espace.png"
   },
   {
     "profil": "Agent de terrain",
     "action": "Inspecter la navigation",
-    "constat": "écrans accessibles : [\"/mon-espace\"]",
+    "constat": "écrans accessibles : [\"/mon-espace\",\"/bordereau\"]",
     "capture": null
   },
   {
     "profil": "Agent de terrain",
-    "action": "Tenter d'ouvrir le bordereau à la main",
-    "constat": "aboutit sur /mon-espace",
-    "capture": "ag-02-bordereau-interdit.png"
+    "action": "Ouvrir son bordereau",
+    "constat": "6 colonnes, la vue de terrain",
+    "capture": "ag-02-bordereau.png"
+  },
+  {
+    "profil": "Agent de terrain",
+    "action": "Cocher sans numero releve",
+    "constat": "la modale demande le numero, Rapport propose OK",
+    "capture": "ag-04-modale-coche.png"
+  },
+  {
+    "profil": "Agent de terrain",
+    "action": "Valider le coche",
+    "constat": "la ligne passe a coche = true, la date se remplit seule",
+    "capture": "ag-03-coche.png"
   },
   {
     "profil": "Administrateur",
@@ -188,7 +200,7 @@
   {
     "profil": "Administrateur",
     "action": "Consulter la matrice des rôles",
-    "constat": "droits effectifs : 30 droit(s), 27 droit(s), 16 droit(s), 3 droit(s)",
+    "constat": "droits effectifs : 31 droit(s), 28 droit(s), 17 droit(s), 4 droit(s)",
     "capture": "ad-05-roles.png"
   },
   {
@@ -230,7 +242,7 @@
   {
     "profil": "Super utilisateur",
     "action": "Consulter la matrice des rôles",
-    "constat": "droits effectifs : 30 droit(s), 27 droit(s), 16 droit(s), 3 droit(s)",
+    "constat": "droits effectifs : 31 droit(s), 28 droit(s), 17 droit(s), 4 droit(s)",
     "capture": "su-05-roles.png"
   },
   {

@@ -23,6 +23,8 @@ from ..application.use_cases.agents import (
 from ..application.use_cases.analytics import ConstruireTableauDeBord
 from ..application.use_cases.auth import ConnecterSuperviseur, RecupererSession
 from ..application.use_cases.collectes import (
+    CocherLigne,
+    DecocherLigne,
     DeclarerCollecte,
     ListerBordereau,
     VerifierDeclarations,
@@ -322,6 +324,14 @@ class Container:
         return TelechargerModeleTerrain(
             self.generateur_modele_terrain, self.exportateur_pdf
         )
+
+    # --- Le geste du releveur ----------------------------------------------
+
+    def cocher_ligne(self) -> CocherLigne:
+        return CocherLigne(self.unit_of_work(), self.horloge)
+
+    def decocher_ligne(self) -> DecocherLigne:
+        return DecocherLigne(self.unit_of_work(), self.horloge)
 
     # --- Roles et restrictions ---------------------------------------------
 

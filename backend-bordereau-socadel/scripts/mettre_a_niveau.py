@@ -36,6 +36,9 @@ from bordereau.infrastructure.db.base import Base  # noqa: E402
 #: apparaît. Les comptes antérieurs au cycle de vie ont, de fait, été approuvés.
 VALEURS_DE_REPRISE: dict[tuple[str, str], str] = {
     ("utilisateurs", "statut"): "ACTIF",
+    # Les lignes anterieures a la distinction proprietaire/locataire portaient
+    # implicitement le titulaire du contrat.
+    ("lignes_bordereau", "identite"): "PROPRIETAIRE",
 }
 
 

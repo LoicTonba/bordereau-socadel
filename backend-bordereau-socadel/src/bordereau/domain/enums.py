@@ -55,12 +55,51 @@ STATUTS_TRAITES: frozenset[StatutCollecte] = frozenset(
 
 
 class Responsable(str, Enum):
-    """Origine de l'abonnement (colonne RESPONSABLE de `bordereau.xlsx`)."""
+    """Qui a obtenu l'abonnement (colonne RESPONSABLE du bordereau).
+
+    La distinction porte une conséquence : l'agent de terrain est intéressé à
+    la collecte, la campagne MRA ne l'est pas. Attribuer à l'agent un
+    abonnement obtenu par relance automatique fausserait sa prime.
+    """
 
     TERRAIN = "TERRAIN"
+    MRA = "MRA"
     CHATBOT = "CHATBOT"
     CSC = "CSC"
     AUTRES = "AUTRES"
+
+
+class Rapport(str, Enum):
+    """Ce que l'agent rapporte du passage, en deux mots.
+
+    C'est la colonne que l'agent remplit sur le terrain, et la seule qu'il
+    remplit vraiment. Elle ne prend que deux valeurs, ce qui est voulu : un
+    releveur en tournée n'a ni le temps ni l'envie de choisir dans une liste.
+    """
+
+    OK = "OK"
+    """Le client est allé au bout du parcours WhatsApp, il est dans la base."""
+
+    MRA = "MRA"
+    """Zone sans couverture : le numéro est pris, MRA relancera le client."""
+
+
+class Identite(str, Enum):
+    """Qui est la personne dont on relève le numéro.
+
+    Le contrat est au nom de quelqu'un, la facture est souvent payée par un
+    autre. Le directeur commercial a demandé que la distinction apparaisse,
+    parce qu'elle décide à qui la facture doit parvenir.
+    """
+
+    PROPRIETAIRE = "PROPRIETAIRE"
+    """Le titulaire du contrat lui-même. Cas par défaut."""
+
+    LOCATAIRE = "LOCATAIRE"
+    """Occupe les lieux et paie la facture sans être titulaire du contrat."""
+
+    RELATION = "RELATION"
+    """Voisin, parent, gardien : donne le numéro sans occuper les lieux."""
 
 
 class WhatsappStatus(str, Enum):

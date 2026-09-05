@@ -143,6 +143,18 @@ export const api = {
     return undefined as T;
   },
 
+  /**
+   * Suppression qui renvoie l'état résultant.
+   *
+   * Annuler un coche ne supprime rien : la ligne redevient à traiter, et le
+   * tableau a besoin de la voir telle qu'elle est repartie plutôt que de la
+   * redemander.
+   */
+  async deleteEtLire<T>(chemin: string): Promise<T> {
+    const reponse = await requete(chemin, { method: "DELETE" });
+    return reponse.json() as Promise<T>;
+  },
+
   async postFichier<T>(
     chemin: string,
     formData: FormData,

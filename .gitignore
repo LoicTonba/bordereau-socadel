@@ -52,3 +52,10 @@ backend-bordereau-socadel/courriels/
 # Captures d ecran du parcours de recette : regenerees par
 # scripts/captures.py, et lourdes. Les guides PDF, eux, sont versionnes.
 backend-bordereau-socadel/scripts/rapport/captures/*.png
+
+# Documents fournis par SOCADEL et comptes rendus de reunion : ce depot est
+# public, ces pieces sont internes au client.
+Documents/Guide_Utilisation_Socadel_*.pdf
+Documents/Guide utilisation du bordereau numerique*.pdf
+Documents/Rapport-reunion-*.pdf
+Documents/image-template-a-imprimer.png

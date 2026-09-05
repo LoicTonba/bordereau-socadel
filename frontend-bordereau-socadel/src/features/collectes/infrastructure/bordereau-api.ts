@@ -2,6 +2,8 @@
 
 import type {
   FiltreBordereau,
+  Identite,
+  Rapport,
   LigneBordereau,
   ParamsPagination,
   Responsable,
@@ -38,6 +40,33 @@ export const bordereauApi = {
       "/bordereau",
       versParams(filtre, pagination),
     );
+  },
+
+  /**
+   * Le geste du releveur : un clic dans la colonne Check.
+   *
+   * Tout le reste — la date, le statut, le nom en Responsable — se remplit
+   * côté serveur. L'appel ne transporte que ce que l'agent a réellement
+   * observé.
+   */
+  cocher(
+    ligneId: string,
+    donnees: {
+      rapport: Rapport;
+      numeroCollecte?: string | null;
+      identite?: Identite | null;
+    },
+  ): Promise<LigneBordereau> {
+    return api.post<LigneBordereau>(`/bordereau/${ligneId}/coche`, donnees);
+  },
+
+  decocher(ligneId: string): Promise<LigneBordereau> {
+    return api.deleteEtLire<LigneBordereau>(`/bordereau/${ligneId}/coche`);
+  },
+
+  /** Le bordereau vierge, à imprimer et à remplir au stylo sur le terrain. */
+  telechargerModele(format: "pdf" | "xlsx") {
+    return api.telecharger("/imports/modele-terrain", { format });
   },
 
   declarer(

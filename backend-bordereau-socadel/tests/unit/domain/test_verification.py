@@ -7,7 +7,12 @@ from datetime import date, datetime, timezone
 import pytest
 
 from bordereau.domain.entities import Client, LigneBordereau
-from bordereau.domain.enums import StatutCollecte, VerdictVerification, WhatsappStatus
+from bordereau.domain.enums import (
+    Rapport,
+    StatutCollecte,
+    VerdictVerification,
+    WhatsappStatus,
+)
 from bordereau.domain.errors import RegleMetierViolee
 from bordereau.domain.services import verification_collecte
 from bordereau.domain.value_objects import NumeroTelephone, ServiceNo
@@ -119,3 +124,50 @@ class TestInvariants:
         ligne = LigneBordereau(service_no=ServiceNo("203401046"), date_collecte=JOUR)
         ligne.declarer(StatutCollecte.ABSENT, horodatage=INSTANT)
         assert ligne.statut is StatutCollecte.ABSENT
+
+
+class TestLaRelanceMra:
+    """Une ligne sans réseau part en relance ; le contrôle dit si elle aboutit.
+
+    L'agent qui travaille hors couverture ne peut rien affirmer : il relève le
+    numéro et le confie à MRA. Le passage au back-office est alors la seule
+    chose qui puisse trancher.
+    """
+
+    def _ligne_mra(self) -> LigneBordereau:
+        ligne = LigneBordereau(
+            service_no=ServiceNo("203401046"),
+            date_collecte=JOUR,
+            nom_client="OUMAROU NDEJAL",
+        )
+        ligne.cocher(
+            horodatage=INSTANT,
+            agent_nom="MBALLA Jean Pierre",
+            rapport=Rapport.MRA,
+            numero_collecte=NumeroTelephone.parse("677398710"),
+        )
+        return ligne
+
+    def test_la_campagne_aboutie_porte_mra_en_responsable(self) -> None:
+        ligne = self._ligne_mra()
+
+        verdict = verification_collecte.verifier(
+            ligne, _client(WhatsappStatus.SUBSCRIBED)
+        )
+        ligne.appliquer_verdict(verdict, INSTANT)
+
+        assert verdict is VerdictVerification.CONFIRME
+        assert ligne.statut is StatutCollecte.ABONNE
+        # L'agent n'a pas obtenu cet abonnement : sa prime ne doit pas le voir.
+        assert ligne.auteur_affiche == "MRA"
+        assert ligne.date_abonnement == INSTANT
+
+    def test_la_campagne_en_cours_n_infirme_rien(self) -> None:
+        """Personne n'a rien affirmé : il n'y a rien à contredire."""
+        ligne = self._ligne_mra()
+
+        verdict = verification_collecte.verifier(
+            ligne, _client(WhatsappStatus.NOT_CHECKED)
+        )
+
+        assert verdict is VerdictVerification.NON_VERIFIE

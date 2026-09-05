@@ -23,9 +23,12 @@ import { Bouton, cx } from "@shared/ui/primitives";
 export function BarreFiltres({
   filtre,
   onChanger,
+  /** Vue de terrain : le contrôle en base ne le concerne pas. */
+  restreinte = false,
 }: {
   filtre: FiltreBordereau;
   onChanger: (filtre: FiltreBordereau) => void;
+  restreinte?: boolean;
 }) {
   const t = useT();
   const [recherche, setRecherche] = useState(filtre.recherche ?? "");
@@ -146,16 +149,22 @@ export function BarreFiltres({
           onBasculer={(valeur) => basculerStatut(valeur as StatutCollecte)}
         />
 
-        <GroupePuces
-          legende={t("bordereau.verification")}
-          options={(Object.keys(VERDICTS) as VerdictVerification[]).map((valeur) => ({
-            valeur,
-            libelle: t(`verdict.${valeur}` as Cle),
-            couleur: VERDICTS[valeur].texte,
-          }))}
-          selection={filtre.verdict ?? []}
-          onBasculer={(valeur) => basculerVerdict(valeur as VerdictVerification)}
-        />
+        {/* Le verdict du back-office ne dit rien à l'agent : il ne le pose
+            pas, ne le corrige pas, et ne peut rien en faire sur le terrain. */}
+        {!restreinte && (
+          <GroupePuces
+            legende={t("bordereau.backOffice")}
+            options={(Object.keys(VERDICTS) as VerdictVerification[]).map(
+              (valeur) => ({
+                valeur,
+                libelle: t(`verdict.${valeur}` as Cle),
+                couleur: VERDICTS[valeur].texte,
+              }),
+            )}
+            selection={filtre.verdict ?? []}
+            onBasculer={(valeur) => basculerVerdict(valeur as VerdictVerification)}
+          />
+        )}
       </div>
     </div>
   );

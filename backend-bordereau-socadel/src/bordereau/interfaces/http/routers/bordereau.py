@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from ....application.use_cases.collectes import (
+    CommandeCoche,
     CommandeDeclaration,
     CommandeDeclarationEnLot,
 )
@@ -18,6 +19,7 @@ from ..deps import (
     UtilisateurDep,
 )
 from ..schemas.bordereau import (
+    RequeteCoche,
     LigneBordereauSortie,
     ReponseDeclarationEnLot,
     ReponseVerification,
@@ -51,6 +53,51 @@ async def lister(
     return ReponsePaginee.depuis_page(
         page, [LigneBordereauSortie.depuis_entite(l) for l in page.elements]
     )
+
+
+@router.post(
+    "/{ligne_id}/coche",
+    response_model=LigneBordereauSortie,
+    summary="Cocher une ligne, le geste du releveur",
+)
+async def cocher(
+    ligne_id: UUID,
+    requete: RequeteCoche,
+    container: ContainerDep,
+    contexte: ContexteDep,
+) -> LigneBordereauSortie:
+    """Un clic, et la ligne est renseignée.
+
+    `OK` déclare le client abonné et porte le nom de celui qui a coché en
+    Responsable. `MRA` dit que la zone n'a pas de couverture : le numéro est
+    pris, MRA relancera, et la ligne reste à traiter.
+
+    Un même numéro ne peut servir deux contrats d'un même itinéraire : c'est
+    le contournement le plus simple qui soit, et il est refusé net.
+    """
+    ligne = await container.cocher_ligne().executer(
+        contexte,
+        CommandeCoche(
+            ligne_id=ligne_id,
+            rapport=requete.rapport,
+            numero_collecte=requete.numero_collecte,
+            identite=requete.identite,
+        ),
+    )
+    return LigneBordereauSortie.depuis_entite(ligne)
+
+
+@router.delete(
+    "/{ligne_id}/coche",
+    response_model=LigneBordereauSortie,
+    summary="Annuler un coche posé par erreur",
+)
+async def decocher(
+    ligne_id: UUID, container: ContainerDep, contexte: ContexteDep
+) -> LigneBordereauSortie:
+    """La ligne redevient à traiter, et son verdict repart à zéro."""
+    ligne = await container.decocher_ligne().executer(contexte, ligne_id)
+    return LigneBordereauSortie.depuis_entite(ligne)
 
 
 @router.patch(

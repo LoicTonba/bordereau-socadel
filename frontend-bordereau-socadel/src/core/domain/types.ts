@@ -21,7 +21,13 @@ export type StatutCollecte =
   | "REFUS"
   | "DOUBLON";
 
-export type Responsable = "TERRAIN" | "CHATBOT" | "CSC" | "AUTRES";
+export type Responsable = "TERRAIN" | "MRA" | "CHATBOT" | "CSC" | "AUTRES";
+
+/** Ce que l'agent rapporte de son passage. Deux issues, pas une de plus. */
+export type Rapport = "OK" | "MRA";
+
+/** Qui est la personne dont on relève le numéro. */
+export type Identite = "PROPRIETAIRE" | "LOCATAIRE" | "RELATION";
 
 export type VerdictVerification =
   | "NON_VERIFIE"
@@ -85,8 +91,24 @@ export interface LigneBordereau {
   codeItineraire: number | null;
   numeroCompteur: string | null;
   numeroCollecte: string | null;
+
+  /** Colonne Rapport. Vide tant que l'agent n'est pas passé. */
+  rapport: Rapport | null;
+  /** Colonne Check : l'agent est passé et a coché. */
+  verifieTerrain: boolean;
+  /** Colonne Check Date, remplie d'elle-même au clic. */
+  verifieTerrainLe: string | null;
+  /** Colonne Back office : le contrôle en base des abonnements. */
+  backOffice: VerdictVerification;
+  /** Colonne Back office Date. */
+  backOfficeLe: string | null;
+  dateAbonnement: string | null;
   statut: StatutCollecte;
+  identite: Identite;
   responsable: Responsable | null;
+  /** Ce que la colonne Responsable affiche : un nom, « MRA », ou rien. */
+  auteurAffiche: string | null;
+
   verdict: VerdictVerification;
   dateCollecte: string;
   observation: string | null;
@@ -310,6 +332,18 @@ export interface TableauDeBord {
 
 export interface FiltreBordereau {
   recherche?: string;
+
+  /** Recherche colonne par colonne, comme la loupe d'un tableur. */
+  serviceNo?: string;
+  nomClient?: string;
+  refGeo?: string;
+  numeroCompteur?: string;
+  numeroCollecte?: string;
+  responsableNom?: string;
+  rapport?: Rapport[];
+  identite?: Identite[];
+  verifieTerrain?: boolean;
+
   debut?: string;
   fin?: string;
   statut?: StatutCollecte[];

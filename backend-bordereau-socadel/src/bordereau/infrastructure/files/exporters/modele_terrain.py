@@ -82,19 +82,42 @@ class BlocTerrain:
     lignes: Sequence[LigneTerrain]
 
 
-#: Tournée d'exemple, reprise du classeur source. Elle sert de mode d'emploi :
-#: l'agent voit ce qu'on attend de lui avant même d'avoir reçu sa vraie
-#: affectation.
-EXEMPLE = BlocTerrain(
-    code=125369,
-    libelle="Exemple, à remplacer par votre tournée",
-    lignes=[
-        LigneTerrain("838-01-01-641-00-01", "021750196246", "BILOA DAMARIS", "203299981"),
-        LigneTerrain("838-01-01-641-00-02", "021750196246", "NGONO ALBERTINE", "203299982"),
-        LigneTerrain("838-01-01-641-00-03", "021750196246", "MBALLA JEAN PIERRE", "203299983"),
-        LigneTerrain("838-01-01-641-00-04", "021750196246", "TCHOUMI ALAIN", "203299984"),
-        LigneTerrain("838-01-01-641-00-05", "021750196246", "ABDOUL AZIZ OUMAROU", "203299985"),
-    ],
+#: Tournées d'exemple, reprises du classeur source : trois itinéraires de
+#: tailles différentes, comme la feuille que SOCADEL remplit déjà. Elles
+#: servent de mode d'emploi — l'agent voit ce qu'on attend de lui avant même
+#: d'avoir reçu sa vraie affectation, et le superviseur reconnaît sa feuille.
+_NOMS_EXEMPLE = (
+    "BILOA DAMARIS",
+    "NGONO ALBERTINE",
+    "MBALLA JEAN PIERRE",
+    "TCHOUMI ALAIN",
+    "ABDOUL AZIZ OUMAROU",
+    "FOTSO CHRISTELLE",
+)
+
+
+def _tournee_exemple(code: int, effectif: int) -> BlocTerrain:
+    return BlocTerrain(
+        code=code,
+        libelle="Exemple, à remplacer par votre tournée",
+        lignes=[
+            LigneTerrain(
+                f"838-01-01-641-00-0{rang}",
+                "021750196246",
+                _NOMS_EXEMPLE[(rang - 1) % len(_NOMS_EXEMPLE)],
+                str(203299980 + rang),
+            )
+            for rang in range(1, effectif + 1)
+        ],
+    )
+
+
+EXEMPLE = _tournee_exemple(125369, 5)
+
+EXEMPLES = (
+    EXEMPLE,
+    _tournee_exemple(12536, 3),
+    _tournee_exemple(12365, 6),
 )
 
 
@@ -116,7 +139,7 @@ class GenerateurModeleTerrainXlsx:
         _mettre_en_page(feuille)
         ligne = _entete_document(feuille, nom_agent, date_travail)
 
-        for bloc in blocs or (EXEMPLE,):
+        for bloc in blocs or EXEMPLES:
             ligne = _bloc(feuille, bloc, ligne)
 
         ligne = _legende(feuille, ligne + 1)

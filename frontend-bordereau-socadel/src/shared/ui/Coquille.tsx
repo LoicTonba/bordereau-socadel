@@ -64,11 +64,13 @@ const NAVIGATION: Entree[] = [
     saufAgent: true,
   },
   {
+    // Ouvert au terrain depuis que le releveur coche lui-même : c'est là que
+    // se trouve son unique geste. Il n'y voit que sa propre tournée, et que
+    // les colonnes qui le concernent.
     href: "/bordereau",
     libelle: "nav.bordereau",
     aide: "nav.bordereau.aide",
     permission: "bordereau:lire",
-    saufAgent: true,
   },
   {
     href: "/itineraires",

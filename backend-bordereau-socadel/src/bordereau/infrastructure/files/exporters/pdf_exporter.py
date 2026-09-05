@@ -108,28 +108,43 @@ class _LigneModele:
     cle_tri_terrain: tuple[int, ...]
 
 
-#: Tournée d'exemple du classeur source. Elle sert de mode d'emploi : l'agent
-#: voit ce qu'on attend de lui avant d'avoir reçu sa vraie affectation.
+#: Tournées d'exemple du classeur source, telles qu'elles y figurent : trois
+#: itinéraires de tailles différentes. C'est le mode d'emploi du document —
+#: l'agent voit ce qu'on attend de lui avant d'avoir reçu sa vraie affectation,
+#: et le superviseur reconnaît la feuille qu'il remplit déjà.
 CODE_EXEMPLE = 125369
 
-MODELE_EXEMPLE = tuple(
-    _LigneModele(
-        ref_geo=_Valeur(f"838-01-01-641-00-0{rang}"),
-        numero_compteur="021750196246",
-        nom=nom,
-        service_no=_Valeur(str(203299980 + rang)),
-        cle_tri_terrain=(838, 1, 1, 641, 0, rang),
+_NOMS_EXEMPLE = (
+    "BILOA DAMARIS",
+    "NGONO ALBERTINE",
+    "MBALLA JEAN PIERRE",
+    "TCHOUMI ALAIN",
+    "ABDOUL AZIZ OUMAROU",
+    "FOTSO CHRISTELLE",
+)
+
+
+def _tournee_exemple(effectif: int) -> tuple[_LigneModele, ...]:
+    """Un itinéraire d'exemple de l'effectif demandé."""
+    return tuple(
+        _LigneModele(
+            ref_geo=_Valeur(f"838-01-01-641-00-0{rang}"),
+            numero_compteur="021750196246",
+            nom=_NOMS_EXEMPLE[(rang - 1) % len(_NOMS_EXEMPLE)],
+            service_no=_Valeur(str(203299980 + rang)),
+            cle_tri_terrain=(838, 1, 1, 641, 0, rang),
+        )
+        for rang in range(1, effectif + 1)
     )
-    for rang, nom in enumerate(
-        (
-            "BILOA DAMARIS",
-            "NGONO ALBERTINE",
-            "MBALLA JEAN PIERRE",
-            "TCHOUMI ALAIN",
-            "ABDOUL AZIZ OUMAROU",
-        ),
-        start=1,
-    )
+
+
+MODELE_EXEMPLE = _tournee_exemple(5)
+
+#: Les trois itinéraires du modèle, dans l'ordre et les effectifs du classeur.
+TOURNEES_EXEMPLE = (
+    (CODE_EXEMPLE, 5),
+    (12536, 3),
+    (12365, 6),
 )
 
 
@@ -141,10 +156,11 @@ class ExportateurPdfReportlab:
         return self.generer_template_multi(
             [
                 BlocItineraire(
-                    CODE_EXEMPLE,
+                    code,
                     "Exemple, à remplacer par votre tournée",
-                    MODELE_EXEMPLE,
+                    _tournee_exemple(effectif),
                 )
+                for code, effectif in TOURNEES_EXEMPLE
             ],
             nom_agent="",
             date_travail="",

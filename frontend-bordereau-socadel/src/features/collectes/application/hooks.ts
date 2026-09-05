@@ -38,6 +38,50 @@ export function useDeclarer() {
   });
 }
 
+/**
+ * Le geste du releveur.
+ *
+ * La ligne renvoyée est réinjectée dans le cache avant même l'invalidation :
+ * sur un téléphone en bord de réseau, voir la coche basculer tout de suite
+ * évite le second clic qui produirait un doublon.
+ */
+export function useCocher() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ligneId,
+      ...donnees
+    }: Parameters<typeof bordereauApi.cocher>[1] & { ligneId: string }) =>
+      bordereauApi.cocher(ligneId, donnees),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: CLE_BORDEREAU });
+      void client.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+}
+
+export function useDecocher() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (ligneId: string) => bordereauApi.decocher(ligneId),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: CLE_BORDEREAU });
+      void client.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+}
+
+/** Le bordereau vierge, tel qu'il s'imprime pour le terrain. */
+export function useTelechargerModele() {
+  return useMutation({
+    mutationFn: async (format: "pdf" | "xlsx") => {
+      const fichier = await bordereauApi.telechargerModele(format);
+      telechargerBlob(fichier.blob, fichier.nomFichier);
+      return fichier;
+    },
+  });
+}
+
 export function useDeclarerEnLot() {
   const client = useQueryClient();
   return useMutation({

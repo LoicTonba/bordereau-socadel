@@ -377,7 +377,48 @@ class _Lignes:
         if filtre.agent_ids:
             lignes = [l for l in lignes if l.agent_id in filtre.agent_ids]
 
+        # La recherche colonne par colonne, comme la loupe d'un tableur.
+        for critere, lecture in (
+            (filtre.service_no, lambda l: l.service_no.valeur),
+            (filtre.nom_client, lambda l: l.nom_client),
+            (filtre.ref_geo, lambda l: str(l.ref_geo) if l.ref_geo else None),
+            (filtre.numero_compteur, lambda l: l.numero_compteur),
+            (
+                filtre.numero_collecte,
+                lambda l: l.numero_collecte.valeur if l.numero_collecte else None,
+            ),
+            (filtre.responsable_nom, lambda l: l.valide_par_nom),
+        ):
+            if critere and critere.strip():
+                motif = critere.strip().lower()
+                lignes = [l for l in lignes if motif in (lecture(l) or "").lower()]
+
+        if filtre.rapports:
+            lignes = [l for l in lignes if l.rapport in filtre.rapports]
+        if filtre.identites:
+            lignes = [l for l in lignes if l.identite in filtre.identites]
+        if filtre.verifie_terrain is not None:
+            lignes = [
+                l for l in lignes if l.verifie_terrain is filtre.verifie_terrain
+            ]
+
         return sorted(lignes, key=lambda l: (l.date_collecte, str(l.ref_geo)))
+
+    async def rechercher_par_numero(
+        self, numero: str, *, code_itineraire: int | None = None
+    ) -> list[LigneBordereau]:
+        trouvees = [
+            l
+            for l in self._e.lignes.values()
+            if l.numero_collecte and l.numero_collecte.valeur == numero
+        ]
+        if code_itineraire is not None:
+            trouvees = [
+                l
+                for l in trouvees
+                if l.code_itineraire and l.code_itineraire.valeur == code_itineraire
+            ]
+        return trouvees
 
     async def rechercher(
         self, filtre: FiltreBordereau, pagination: PaginationParams
