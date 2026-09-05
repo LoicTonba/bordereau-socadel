@@ -10,7 +10,7 @@ dans un cas d'usage.
 from __future__ import annotations
 
 from ..entities import Client, LigneBordereau
-from ..enums import StatutCollecte, VerdictVerification
+from ..enums import Rapport, StatutCollecte, VerdictVerification
 
 
 def verifier(ligne: LigneBordereau, client: Client | None) -> VerdictVerification:
@@ -28,6 +28,12 @@ def verifier(ligne: LigneBordereau, client: Client | None) -> VerdictVerificatio
         return VerdictVerification.INTROUVABLE
 
     if not ligne.est_traitee:
+        # Une ligne partie en relance MRA n'a rien déclaré d'abonné : elle
+        # attend. Le contrôle sert alors à savoir si la campagne WhatsApp a
+        # fini par aboutir. Si elle n'a pas encore abouti, rien n'est infirmé
+        # pour autant : personne n'a affirmé quoi que ce soit.
+        if ligne.rapport is Rapport.MRA and client.est_abonne_whatsapp:
+            return VerdictVerification.CONFIRME
         return VerdictVerification.NON_VERIFIE
 
     if ligne.statut is StatutCollecte.ABONNE:

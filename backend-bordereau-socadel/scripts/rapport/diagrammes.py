@@ -146,17 +146,17 @@ def cas_agent() -> Drawing:
 
     for libelle, y in (
         ("Se connecter", 148),
-        ("Consulter ses itinéraires confiés", 116),
-        ("Consulter ses KPI et son évolution", 84),
-        ("Consulter sa fiche", 52),
+        ("Cocher les clients abonnés", 116),
+        ("Consulter ses itinéraires confiés", 84),
+        ("Consulter ses KPI et son évolution", 52),
     ):
         b = cas_utilisation(d, 145, y, 280, 24, libelle)
         fleche(d, 58, 105, b.x, b.centre_y, pointe=False, couleur=GRIS_CLAIR)
 
     note(
         d, 145, 16, 280, 30,
-        "Portée volontairement réduite : l'agent travaille sur papier. "
-        "Il ne saisit rien, n'exporte rien, ne modifie rien.",
+        "Portée volontairement réduite : un seul geste d'écriture, cocher, "
+        "et seulement sur sa propre tournée.",
     )
     return d
 
@@ -881,16 +881,16 @@ def parcours_agent() -> Drawing:
     largeur = 200
     a = _etape(d, 8, 108, largeur, "1", "Se connecter",
                "profil agent de terrain, son agence", hauteur=58)
-    b = _etape(d, 268, 108, largeur, "2", "Consulter ses itinéraires",
-               "ceux que son superviseur lui a confiés", hauteur=58)
+    b = _etape(d, 268, 108, largeur, "2", "Cocher les abonnés",
+               "un clic ; date, statut et responsable suivent", hauteur=58)
     c = _etape(d, 528, 108, 184, "3", "Consulter ses chiffres",
                "production, taux de confirmation, évolution", hauteur=58)
     fleche(d, a.droite, a.centre_y, b.x, b.centre_y)
     fleche(d, b.droite, b.centre_y, c.x, c.centre_y)
 
     ferme = boite(
-        d, 268, 34, 444, 42, "Aucune écriture, aucun autre écran",
-        sous_titre="ni saisie, ni import, ni export, ni accès à un autre agent",
+        d, 268, 34, 444, 42, "Un seul geste, sur sa seule tournée",
+        sous_titre="ni import, ni export de masse, ni accès aux lignes d'un autre agent",
         fond=GRIS_FOND, bordure=GRIS_CLAIR, couleur_texte=GRIS,
         taille=8, police=POLICE_GRAS,
     )
@@ -899,9 +899,9 @@ def parcours_agent() -> Drawing:
 
     note(
         d, 8, 20, 244, 70,
-        "Son travail se fait sur le terrain, papier en main : il n'a ni le "
-        "temps ni toujours le réseau pour saisir en mobilité. La conséquence "
-        "est appréciable, son compte compromis ne permet aucune écriture.",
+        "Il travaille debout, un téléphone à une main : chaque champ qu'on lui "
+        "demanderait serait un champ mal rempli. Il coche, la plateforme "
+        "déduit le reste, et sa seule écriture ne porte que sur sa tournée.",
     )
     return d
 

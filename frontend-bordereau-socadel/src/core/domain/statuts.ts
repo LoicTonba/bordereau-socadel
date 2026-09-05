@@ -8,6 +8,8 @@
  */
 
 import type {
+  Identite,
+  Rapport,
   Responsable,
   StatutCollecte,
   VerdictVerification,
@@ -77,10 +79,25 @@ export const VERDICTS: Record<VerdictVerification, Omit<Teinte, "couleur">> = {
 
 export const RESPONSABLES: Responsable[] = [
   "TERRAIN",
+  "MRA",
   "CHATBOT",
   "CSC",
   "AUTRES",
 ];
+
+/**
+ * Colonne Rapport. Deux issues, et une seule d'entre elles affirme quelque
+ * chose : OK dit que le client s'est abonné, MRA dit que la zone n'a pas de
+ * réseau et que la relance prendra le relais.
+ */
+export const RAPPORTS: Rapport[] = ["OK", "MRA"];
+
+export const TEINTES_RAPPORT: Record<Rapport, Omit<Teinte, "couleur">> = {
+  OK: { texte: "#15803d", fond: "rgb(22 163 74 / 0.13)" },
+  MRA: { texte: "#b45309", fond: "rgb(245 158 11 / 0.16)" },
+};
+
+export const IDENTITES: Identite[] = ["PROPRIETAIRE", "LOCATAIRE", "RELATION"];
 
 /** Un statut ABONNE exige le numéro relevé : le formulaire s'y adapte. */
 export function exigeNumero(statut: StatutCollecte): boolean {

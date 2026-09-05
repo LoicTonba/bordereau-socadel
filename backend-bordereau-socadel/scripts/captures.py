@@ -249,10 +249,10 @@ async def parcours_superviseur(n: Navigateur, journal: Journal) -> None:
                   "deux abonnements déclarés, numéros relevés portés", None)
 
     # Étape 4 : confronter au référentiel.
-    await n.cliquer("button", texte="Vérifier auprès du référentiel")
+    await n.cliquer("button", texte="Back office")
     await n.attendre('[role="alert"]')
     verdict = await n.evaluer("document.querySelector('[role=\"alert\"]').innerText")
-    journal.noter("Superviseur", "Vérifier auprès du référentiel",
+    journal.noter("Superviseur", "Lancer le contrôle Back office",
                   verdict.replace("\n", " ")[:80],
                   await prendre(n, "sv-08-verification"))
 
@@ -321,7 +321,7 @@ async def parcours_agent(n: Navigateur, journal: Journal) -> None:
                       agence=agence, ecran_attendu="Mon espace")
     entrees = await n.evaluer("document.querySelectorAll('nav a').length")
     journal.noter("Agent de terrain", "Se connecter",
-                  f"une seule entrée de navigation sur {entrees}",
+                  f"{entrees} entrées de navigation : son espace et son bordereau",
                   await prendre(n, "ag-01-mon-espace"))
 
     interdits = await n.evaluer(
@@ -331,12 +331,56 @@ async def parcours_agent(n: Navigateur, journal: Journal) -> None:
     journal.noter("Agent de terrain", "Inspecter la navigation",
                   f"écrans accessibles : {interdits}", None)
 
-    await n.aller(f"{P.BASE}/bordereau")
-    await asyncio.sleep(2.0)
-    url = await n.evaluer("location.pathname")
-    journal.noter("Agent de terrain", "Tenter d'ouvrir le bordereau à la main",
-                  f"aboutit sur {url}",
-                  await prendre(n, "ag-02-bordereau-interdit"))
+    # Le bordereau lui est desormais ouvert : c'est la qu'il coche.
+    await P.naviguer(n, "/bordereau", "Bordereau")
+    await asyncio.sleep(1.5)
+    colonnes = await n.evaluer(
+        "Array.from(document.querySelectorAll('thead tr:first-child th'))"
+        ".map(e => e.innerText.trim()).filter(Boolean).length"
+    )
+    journal.noter("Agent de terrain", "Ouvrir son bordereau",
+                  f"{colonnes} colonnes, la vue de terrain",
+                  await prendre(n, "ag-02-bordereau"))
+
+    # Le geste unique. On vise une ligne sans numero releve : la modale
+    # s'ouvre, et la sequence montre les deux moments du geste.
+    rang = await n.evaluer(
+        "Array.from(document.querySelectorAll('tbody tr'))"
+        ".findIndex(l => l.children[5].innerText.trim() === '—')"
+    )
+    if rang >= 0:
+        await n.evaluer(
+            f"document.querySelectorAll('tbody tr')[{rang}]"
+            ".querySelector('button[aria-pressed]').click()"
+        )
+        await asyncio.sleep(1.5)
+        journal.noter("Agent de terrain", "Cocher sans numero releve",
+                      "la modale demande le numero, Rapport propose OK",
+                      await prendre(n, "ag-04-modale-coche"))
+
+        # Un numero qu'aucune ligne de la tournee ne porte : la regle du
+        # doublon est reelle, la recette ne doit pas tomber dessus.
+        await n.remplir("dialog[open] input[inputmode=tel]", "678990011")
+        await n.evaluer(
+            "document.querySelector('dialog[open] button[type=submit]').click()"
+        )
+        await asyncio.sleep(3.0)
+
+        coche = await n.evaluer(
+            f"document.querySelectorAll('tbody tr')[{rang}]"
+            ".querySelector('button[aria-pressed]').getAttribute('aria-pressed')"
+        )
+        journal.noter("Agent de terrain", "Valider le coche",
+                      f"la ligne passe a coche = {coche}, la date se remplit seule",
+                      await prendre(n, "ag-03-coche"))
+
+        # On repart de l'etat trouve : la demonstration ne doit pas garder les
+        # traces de la recette.
+        await n.evaluer(
+            f"document.querySelectorAll('tbody tr')[{rang}]"
+            ".querySelector('button[aria-pressed=\"true\"]')?.click()"
+        )
+        await asyncio.sleep(2.0)
 
 
 # --- Administrateur et super utilisateur ------------------------------------

@@ -20,7 +20,13 @@ from fastapi import Depends, Header, Query, Request
 from ...application.dto import FiltreBordereau, PaginationParams
 from ...application.errors import JetonInvalide
 from ...domain.entities import Utilisateur
-from ...domain.enums import Responsable, StatutCollecte, VerdictVerification
+from ...domain.enums import (
+    Identite,
+    Rapport,
+    Responsable,
+    StatutCollecte,
+    VerdictVerification,
+)
 from ...domain.securite import ContexteAcces
 from ...domain.value_objects import CodeItineraire, Periode
 from ...infrastructure.config.settings import Settings
@@ -110,6 +116,28 @@ def filtre_bordereau(
     statut: Annotated[list[StatutCollecte] | None, Query()] = None,
     verdict: Annotated[list[VerdictVerification] | None, Query()] = None,
     responsable: Annotated[list[Responsable] | None, Query()] = None,
+    rapport: Annotated[list[Rapport] | None, Query()] = None,
+    identite: Annotated[list[Identite] | None, Query()] = None,
+    verifie_terrain: Annotated[
+        bool | None, Query(alias="verifieTerrain")
+    ] = None,
+    # Une recherche par colonne. Les alias sont ceux que le tableau envoie.
+    service_no: Annotated[
+        str | None, Query(alias="serviceNo", max_length=60)
+    ] = None,
+    nom_client: Annotated[
+        str | None, Query(alias="nomClient", max_length=120)
+    ] = None,
+    ref_geo: Annotated[str | None, Query(alias="refGeo", max_length=60)] = None,
+    numero_compteur: Annotated[
+        str | None, Query(alias="numeroCompteur", max_length=60)
+    ] = None,
+    numero_collecte: Annotated[
+        str | None, Query(alias="numeroCollecte", max_length=30)
+    ] = None,
+    responsable_nom: Annotated[
+        str | None, Query(alias="responsableNom", max_length=160)
+    ] = None,
     itineraire: Annotated[list[int] | None, Query()] = None,
     agent: Annotated[list[UUID] | None, Query()] = None,
     region: Annotated[str | None, Query()] = None,
@@ -134,6 +162,15 @@ def filtre_bordereau(
         statuts=tuple(statut or ()),
         verdicts=tuple(verdict or ()),
         responsables=tuple(responsable or ()),
+        rapports=tuple(rapport or ()),
+        identites=tuple(identite or ()),
+        verifie_terrain=verifie_terrain,
+        service_no=service_no,
+        nom_client=nom_client,
+        ref_geo=ref_geo,
+        numero_compteur=numero_compteur,
+        numero_collecte=numero_collecte,
+        responsable_nom=responsable_nom,
         itineraires=tuple(CodeItineraire(i) for i in (itineraire or ())),
         agent_ids=tuple(agent or ()),
         region=region,

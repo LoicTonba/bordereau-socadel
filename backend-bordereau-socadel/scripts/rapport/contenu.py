@@ -70,7 +70,7 @@ def _sommaire() -> list:
                 ["3", "Acteurs du système", "Quatre rôles applicatifs et trois systèmes externes"],
                 ["4", "Cas d'utilisation", "Un diagramme par acteur, avec le détail des cas"],
                 ["5", "Parcours par profil", "Inscription, connexion, journée de chaque acteur"],
-                ["6", "Modèle du domaine", "Diagramme de classes et règles métier portées"],
+                ["6", "Modèle du domaine", "Classes, règles métier, colonnes du bordereau"],
                 ["7", "Dynamique", "Trois diagrammes de séquence, un diagramme d'activité"],
                 ["8", "Architecture", "Clean architecture, couches et règle de dépendance"],
                 ["9", "Modèle de données", "Tables PostgreSQL, cardinalités, volumétrie"],
@@ -456,9 +456,10 @@ def _parcours() -> list:
         ),
         titre("5.4 L'agent de terrain", "h2"),
         p(
-            "Trois étapes, aucune écriture. La brièveté du parcours n'est pas "
-            "un manque de fonctionnalités, c'est la traduction d'un choix : "
-            "l'agent travaille sur papier, le superviseur saisit."
+            "Trois étapes, et un seul geste d'écriture : cocher. La brièveté du "
+            "parcours n'est pas un manque de fonctionnalités, c'est la "
+            "traduction d'un choix — un releveur en tournée ne remplit pas un "
+            "formulaire, il coche, et la plateforme déduit le reste."
         ),
         KeepTogether(
             [
@@ -577,6 +578,127 @@ def _domaine() -> list:
         ),
         NextPageTemplate("paysage"),
         PageBreak(),
+        titre("6.4 Les colonnes du bordereau en production", "h2"),
+        p(
+            "SOCADEL remplit déjà cette feuille, sous Excel. Reprendre ses "
+            "colonnes n'est pas une coquetterie : un superviseur qui ne "
+            "reconnaît pas son tableau retourne au classeur, et la plateforme "
+            "n'aura servi à rien. Le vocabulaire est donc celui de la maison, à "
+            "une exception près."
+        ),
+        tableau(
+            [
+                ["Colonne", "Qui la remplit", "Ce qu'elle dit"],
+                [
+                    "Check",
+                    "Le releveur, d'un clic",
+                    "Le seul geste du terrain. Tout le reste en découle.",
+                ],
+                [
+                    "Check Date",
+                    "Personne",
+                    "L'instant du clic. Se remplit seule.",
+                ],
+                [
+                    "Rapport",
+                    "Le releveur",
+                    "<b>OK</b> par défaut, ou <b>MRA</b> quand la zone n'a pas "
+                    "de couverture.",
+                ],
+                [
+                    "Back office",
+                    "Le contrôle en base",
+                    "S'appelait <b>API</b>. Le mot ne disait rien à qui n'est "
+                    "pas développeur, alors qu'il désigne exactement le "
+                    "contrôle que fait la maison.",
+                ],
+                [
+                    "Back office Date · Date abonnement · Statut",
+                    "Personne",
+                    "Se remplissent au contrôle. Le statut passe à « abonné » "
+                    "quand la base confirme.",
+                ],
+                [
+                    "Identité",
+                    "Le releveur",
+                    "Propriétaire, locataire ou relation. La DCO a demandé le "
+                    "cas du locataire : le contrat est au nom d'un absent, la "
+                    "facture doit atteindre l'occupant.",
+                ],
+                [
+                    "Responsable",
+                    "Personne",
+                    "Le nom de celui qui a obtenu l'abonnement, ou <b>MRA</b> "
+                    "quand c'est la relance.",
+                ],
+            ],
+            [110, 90, 230],
+        ),
+        titre("Pourquoi un geste et un seul", "h2"),
+        p(
+            "Un releveur travaille debout, dans la rue, un téléphone à une "
+            "main. Chaque champ qu'on lui demande est un champ qu'il remplira "
+            "mal ou pas du tout, et une saisie fausse coûte plus cher qu'une "
+            "saisie absente. Il coche ; la plateforme déduit."
+        ),
+        encadre(
+            "<b>Cocher OK exige le numéro relevé.</b> Le OK affirme que le "
+            "client s'est abonné, et cette affirmation ne vaut que confrontable "
+            "au référentiel. Sans numéro, il n'y a rien à confronter : "
+            "l'entité refuse, et le formulaire demande le numéro avant "
+            "d'enregistrer."
+        ),
+        titre("La relance MRA", "h2"),
+        p(
+            "Une partie du réseau SOCADEL n'a pas de couverture data. L'agent y "
+            "relève quand même le numéro et rapporte <b>MRA</b> : la ligne "
+            "reste à traiter, personne n'est porté en responsable, et la "
+            "campagne WhatsApp relancera le client depuis MRA."
+        ),
+        p(
+            "Si la campagne aboutit, le contrôle Back office le voit et la "
+            "ligne bascule à « abonné » avec <b>MRA</b> en Responsable — pas le "
+            "nom de l'agent. L'agent est intéressé à la collecte, la relance "
+            "automatique ne l'est pas : lui attribuer cet abonnement fausserait "
+            "sa prime. Si elle n'aboutit pas, le verdict reste « non vérifié » "
+            "plutôt qu'« infirmé » : personne n'a rien affirmé, il n'y a rien à "
+            "contredire."
+        ),
+        titre("Le doublon de numéro", "h2"),
+        p(
+            "Le DPSR craint le contournement le plus simple qui soit : un "
+            "releveur payé à la ligne porte son propre numéro, ou celui d'un "
+            "proche, sur plusieurs contrats voisins. La règle est donc qu'un "
+            "<b>même numéro ne sert qu'un contrat par itinéraire</b>."
+        ),
+        p(
+            "Le refus <b>nomme le contrat déjà servi</b>, pour que la "
+            "correction ne demande pas d'enquête : c'est presque toujours une "
+            "ligne de décalage. Et seule une ligne <b>effectivement cochée</b> "
+            "occupe un numéro : décocher libère le numéro, sans quoi le "
+            "releveur qui s'est trompé de contrat ne pourrait plus se corriger."
+        ),
+        titre("6.5 Deux vues, un seul tableau", "h2"),
+        p(
+            "Le terrain voit six colonnes : le client, où il habite, son "
+            "compteur, son numéro, et le bouton. Superviseur, administrateur et "
+            "super utilisateur voient la feuille entière."
+        ),
+        encadre(
+            "<b>La restriction est de lisibilité, pas de sécurité.</b> Ce que "
+            "l'agent ne voit pas, il ne peut de toute façon pas l'écrire : "
+            "sa seule permission d'écriture est <font face='Courier'>"
+            "bordereau:cocher</font>, séparée de <font face='Courier'>"
+            "bordereau:declarer</font> précisément parce que déclarer choisit un "
+            "statut et un responsable. Et le rétrécissement ABAC le limite à sa "
+            "propre tournée, avant même la requête."
+        ),
+        p(
+            "Chaque colonne porte sa propre case de recherche, sous son titre. "
+            "Le filtre part au serveur : le tableau n'affiche que dix lignes à "
+            "la fois, filtrer dans le navigateur ne trouverait rien au-delà de "
+            "la page courante."
+        ),
         diagrammes.classes_domaine(),
         legende(
             "Diagramme de classes du domaine. En vert la ligne de bordereau, ce "
@@ -984,10 +1106,11 @@ def _decisions() -> list:
             "serait rejeté, avec le motif de chaque rejet.",
         ),
         _decision(
-            "Le compte agent est en lecture seule",
-            "Conséquence directe du fonctionnement réel : l'agent travaille sur "
-            "papier. Bénéfice de sécurité, son compte ne permet aucune écriture même "
-            "s'il était compromis.",
+            "L'agent n'a qu'une écriture, et elle est nommée",
+            "Cocher est une permission à part, séparée de déclarer : déclarer "
+            "choisit un statut et un responsable, ce qu'un releveur intéressé à "
+            "la collecte ne doit pas faire. Un compte agent compromis ne peut "
+            "donc que cocher, et seulement sur la tournée qui lui est affectée.",
         ),
         _decision(
             "Le filigrane sur les documents",

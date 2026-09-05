@@ -199,6 +199,12 @@ class LigneBordereauRepository(Protocol):
         self, filtre: FiltreBordereau, pagination: PaginationParams
     ) -> Page[LigneBordereau]: ...
 
+    async def rechercher_par_numero(
+        self, numero: str, *, code_itineraire: int | None = None
+    ) -> Sequence[LigneBordereau]:
+        """Les lignes portant déjà ce numéro, pour la règle du doublon."""
+        ...
+
     async def lister_pour_export(
         self, filtre: FiltreBordereau, limite: int
     ) -> Sequence[LigneBordereau]:

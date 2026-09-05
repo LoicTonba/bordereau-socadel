@@ -92,12 +92,15 @@ class TestAgentConnecte:
         assert profil.status_code == 200
         corps = profil.json()
         assert corps["role"] == "AGENT_TERRAIN"
-        # Le frontend n'affichera que trois familles d'actions.
+        # Le frontend n'affichera que quatre familles d'actions. Cocher est
+        # sa seule ecriture, et elle ne porte que sur sa propre tournee.
         assert set(corps["permissions"]) == {
             "bordereau:lire",
+            "bordereau:cocher",
             "analytics:consulter",
             "profil:consulter",
         }
+        assert "bordereau:declarer" not in corps["permissions"]
 
     async def test_il_ne_voit_que_sa_propre_production(
         self,

@@ -11,6 +11,8 @@ from pydantic import Field
 from ....application.dto import AnomalieImport, ApercuImport
 from ....domain.entities import AgentTerrain, Itineraire, LigneBordereau
 from ....domain.enums import (
+    Identite,
+    Rapport,
     Responsable,
     Role,
     StatutCollecte,
@@ -120,6 +122,18 @@ class TraceAuditSortie(SchemaBase):
             reussi=trace.reussi,
             adresse_ip=trace.adresse_ip,
         )
+
+
+class RequeteCoche(SchemaBase):
+    """Le geste du releveur : un rapport, et de quoi le tenir.
+
+    Tout y est facultatif sauf le rapport, qui vaut OK par défaut : le clic
+    seul doit suffire quand la ligne porte déjà son numéro.
+    """
+
+    rapport: Rapport = Rapport.OK
+    numero_collecte: str | None = Field(default=None, max_length=20)
+    identite: Identite | None = None
 
 
 class RequeteAgence(SchemaBase):
@@ -250,8 +264,22 @@ class LigneBordereauSortie(SchemaBase):
     code_itineraire: int | None
     numero_compteur: str | None
     numero_collecte: str | None
+
+    # Les colonnes du bordereau en production, dans leur ordre de lecture.
+    rapport: Rapport | None
+    verifie_terrain: bool
+    verifie_terrain_le: datetime | None
+    #: La colonne s'appelait API. « Back office » se comprend sans être
+    #: developpeur, et c'est bien ce qu'elle est : le controle de la maison.
+    back_office: VerdictVerification
+    back_office_le: datetime | None
+    date_abonnement: datetime | None
     statut: StatutCollecte
+    identite: Identite
     responsable: Responsable | None
+    #: Ce que la colonne Responsable montre : un nom, « MRA », ou rien.
+    auteur_affiche: str | None
+
     verdict: VerdictVerification
     date_collecte: date
     observation: str | None
@@ -273,8 +301,16 @@ class LigneBordereauSortie(SchemaBase):
             numero_collecte=(
                 ligne.numero_collecte.valeur if ligne.numero_collecte else None
             ),
+            rapport=ligne.rapport,
+            verifie_terrain=ligne.verifie_terrain,
+            verifie_terrain_le=ligne.verifie_terrain_le,
+            back_office=ligne.verdict,
+            back_office_le=ligne.verifie_le,
+            date_abonnement=ligne.date_abonnement,
             statut=ligne.statut,
+            identite=ligne.identite,
             responsable=ligne.responsable,
+            auteur_affiche=ligne.auteur_affiche,
             verdict=ligne.verdict,
             date_collecte=ligne.date_collecte,
             observation=ligne.observation,

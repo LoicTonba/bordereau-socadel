@@ -16,6 +16,8 @@ from ....domain.entities import (
     Utilisateur,
 )
 from ....domain.enums import (
+    Identite,
+    Rapport,
     CategorieClient,
     Responsable,
     Role,
@@ -246,6 +248,12 @@ def ligne_vers_domaine(row: LigneBordereauORM) -> LigneBordereau:
         code_itineraire=CodeItineraire.parse_ou_none(row.code_itineraire),
         numero_compteur=row.numero_compteur,
         numero_collecte=NumeroTelephone.parse_ou_none(row.numero_collecte),
+        identite=Identite(row.identite) if row.identite else Identite.PROPRIETAIRE,
+        rapport=Rapport(row.rapport) if row.rapport else None,
+        verifie_terrain_le=row.verifie_terrain_le,
+        date_abonnement=row.date_abonnement,
+        valide_par=row.valide_par,
+        valide_par_nom=row.valide_par_nom,
         responsable=Responsable(row.responsable) if row.responsable else None,
         observation=row.observation,
         verdict=VerdictVerification(row.verdict),
@@ -275,6 +283,12 @@ def ligne_vers_orm(
     row.numero_collecte = (
         entite.numero_collecte.valeur if entite.numero_collecte else None
     )
+    row.identite = entite.identite.value
+    row.rapport = entite.rapport.value if entite.rapport else None
+    row.verifie_terrain_le = entite.verifie_terrain_le
+    row.date_abonnement = entite.date_abonnement
+    row.valide_par = entite.valide_par
+    row.valide_par_nom = entite.valide_par_nom
     row.responsable = entite.responsable.value if entite.responsable else None
     row.observation = entite.observation
     row.verdict = entite.verdict.value
@@ -304,6 +318,12 @@ def ligne_vers_dict(entite: LigneBordereau) -> dict[str, object]:
         "numero_collecte": entite.numero_collecte.valeur
         if entite.numero_collecte
         else None,
+        "identite": entite.identite.value,
+        "rapport": entite.rapport.value if entite.rapport else None,
+        "verifie_terrain_le": entite.verifie_terrain_le,
+        "date_abonnement": entite.date_abonnement,
+        "valide_par": entite.valide_par,
+        "valide_par_nom": entite.valide_par_nom,
         "responsable": entite.responsable.value if entite.responsable else None,
         "observation": entite.observation,
         "verdict": entite.verdict.value,

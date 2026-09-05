@@ -392,11 +392,22 @@ def superviseur() -> list:
             "qu'écrites en silence."
         ),
         PageBreak(),
-        titre("5. Vérifier auprès du référentiel", "h1"),
+        titre("5. Le contrôle Back office", "h1"),
         p(
-            "C'est le cœur du dispositif. Le bouton <b>Vérifier auprès du "
-            "référentiel</b> confronte chacune de vos déclarations à ce que "
-            "SOCADEL enregistre réellement, et rend un verdict par ligne."
+            "C'est le cœur du dispositif. Le bouton <b>Back office</b> confronte "
+            "chacune des déclarations à ce que SOCADEL enregistre réellement "
+            "dans sa base des abonnements, et rend un verdict par ligne. La "
+            "colonne <b>Back office</b> du tableau porte ce verdict, et la "
+            "colonne <b>Back office Date</b> l'instant du contrôle."
+        ),
+        p(
+            "Trois colonnes se remplissent alors d'elles-mêmes : la date du "
+            "contrôle, la <b>date d'abonnement</b>, et le <b>statut</b> qui "
+            "passe à « abonné » lorsque la base confirme. Une ligne partie en "
+            "relance <b>MRA</b> que la campagne a fini par convertir porte "
+            "alors <b>MRA</b> en Responsable, et non le nom de l'agent : c'est "
+            "la relance automatique qui a obtenu l'abonnement, et la prime doit "
+            "le dire."
         ),
         tableau(
             [
@@ -526,33 +537,31 @@ def agent_terrain() -> list:
         *_couverture(
             "Agent de terrain",
             "SOCADEL, sur le terrain",
-            "Consulter ses itinéraires · suivre ses chiffres",
+            "Cocher les abonnements · suivre ses chiffres",
         ),
         titre("Votre rôle", "h1"),
         p(
-            "Vous collectez sur le terrain, bordereau papier en main. La "
-            "plateforme ne vous sert qu'à <b>voir où vous en êtes</b> : ce que "
-            "votre superviseur vous a confié, ce que vous avez réalisé, et ce que "
-            "le référentiel a confirmé."
+            "Vous démarchez les clients de votre tournée et vous les aidez à "
+            "s'abonner au service WhatsApp de SOCADEL. Dans la plateforme, vous "
+            "n'avez <b>qu'un seul geste</b> : cocher la case Check en face du "
+            "client qui s'est abonné."
         ),
         encadre(
-            "<b>Vous n'écrivez rien dans la plateforme, et c'est délibéré.</b> "
-            "Vous n'avez ni le temps ni toujours le réseau pour saisir en "
-            "mobilité, et votre superviseur saisit de toute façon d'après votre "
-            "bordereau papier. Ce choix a une conséquence appréciable : même si "
-            "votre compte tombait entre d'autres mains, il ne permettrait de "
-            "modifier aucune donnée."
+            "<b>Un clic, et tout le reste se remplit seul.</b> La date du "
+            "passage s'inscrit, le statut passe à « abonné », et votre nom "
+            "apparaît en Responsable — c'est lui qui vous vaudra la ligne au "
+            "moment du décompte. Vous n'avez ni date à saisir, ni statut à "
+            "choisir, ni case à cocher ailleurs."
         ),
         Spacer(1, 4 * mm),
         *_connexion("AGENT_TERRAIN", "votre agence"),
         titre("2. Votre espace", "h1"),
         p(
-            "Vous arrivez directement sur <b>Mon espace</b>, et c'est le seul "
-            "écran de la plateforme. La barre de gauche ne porte qu'une entrée : "
-            "il n'y a rien d'autre à trouver."
+            "Vous arrivez sur <b>Mon espace</b> : les itinéraires qu'on vous a "
+            "confiés, votre production, et votre évolution sur les derniers "
+            "jours."
         ),
         _ecran("ag-01-mon-espace", "Mon espace : vos itinéraires, votre production, votre évolution."),
-        p("Vous y lisez trois choses."),
         *puces(
             [
                 "<b>Vos itinéraires confiés</b>, avec la date et le nombre de "
@@ -563,22 +572,80 @@ def agent_terrain() -> list:
                 "aujourd'hui par rapport à la semaine.",
             ]
         ),
+        titre("3. Votre bordereau", "h1"),
+        p(
+            "L'entrée <b>Bordereau</b> ouvre la liste des clients de vos "
+            "tournées, et rien d'autre : vous n'y voyez jamais ceux d'un "
+            "collègue. Les colonnes sont réduites à ce qui vous sert — le nom du "
+            "client, où il habite, son compteur, son numéro, et le bouton à "
+            "cliquer. Les dix premières lignes s'affichent ; les suivantes sont "
+            "en bas de page."
+        ),
+        _ecran("ag-02-bordereau", "Votre bordereau : les colonnes du relevé, et la colonne Check."),
+        p(
+            "Chaque colonne a sa propre case de recherche, sous son titre. Tapez "
+            "un début de nom, de compteur ou de référence : la liste se réduit à "
+            "mesure. C'est la manière la plus rapide de retrouver le client qui "
+            "est devant vous."
+        ),
+        titre("Cocher un client", "h2"),
+        p(
+            "Cliquez sur le carré de la colonne <b>Check</b>. Il devient vert, et "
+            "c'est fini."
+        ),
+        _ecran("ag-03-coche", "La ligne cochée : la date et le statut se sont remplis seuls."),
+        p(
+            "Si le numéro WhatsApp du client n'est pas encore sur la ligne, une "
+            "petite fenêtre vous le demande avant d'enregistrer. C'est le seul "
+            "moment où vous tapez quelque chose."
+        ),
+        _ecran("ag-04-modale-coche", "Le numéro relevé, le rapport et l'identité de la personne."),
+        titre("Les trois questions de cette fenêtre", "h2"),
+        *puces(
+            [
+                "<b>Rapport</b> — laissez <b>OK</b> : le client s'est abonné. "
+                "Choisissez <b>MRA</b> seulement si vous êtes dans une zone sans "
+                "réseau : le numéro est enregistré, l'équipe MRA relancera le "
+                "client par WhatsApp, et vous n'avez plus à y revenir.",
+                "<b>Numéro WhatsApp relevé</b> — celui sur lequel le client a "
+                "reçu le message. Tapez-le comme vous le lisez, avec ou sans "
+                "espaces : la plateforme le met en forme.",
+                "<b>Identité</b> — <b>Propriétaire</b> par défaut. Choisissez "
+                "<b>Locataire</b> quand la personne occupe le logement sans être "
+                "au contrat, et <b>Relation</b> quand c'est un proche qui "
+                "répond : la facture doit partir au bon numéro.",
+            ]
+        ),
+        encadre(
+            "<b>Un même numéro ne peut pas servir deux clients d'une même "
+            "tournée.</b> Si vous le tentez, la plateforme refuse et vous dit "
+            "quel contrat porte déjà ce numéro. Vérifiez le relevé — c'est "
+            "presque toujours une ligne de décalage — ou signalez le cas à votre "
+            "superviseur."
+        ),
+        titre("Se corriger", "h2"),
+        p(
+            "Cliquez de nouveau sur le carré vert : la ligne redevient à traiter. "
+            "Vous pouvez alors cocher la bonne. Rien n'est perdu, et personne "
+            "n'a besoin d'intervenir."
+        ),
+        titre("4. Ce que vous ne voyez pas, et pourquoi", "h1"),
+        p(
+            "Votre bordereau ne montre pas les colonnes <b>Back office</b>, "
+            "<b>Date abonnement</b> ni <b>Responsable</b>. Ce ne sont pas des "
+            "secrets : ce sont des colonnes que <b>vous ne remplissez pas</b>. "
+            "Le back-office contrôle ensuite, dans la base des abonnements, que "
+            "le client est bien allé au bout du parcours WhatsApp. Ce contrôle "
+            "ne vous demande rien et vous encombrerait l'écran."
+        ),
         titre("Si un chiffre vous paraît faux", "h2"),
         p(
-            "Rapprochez-vous de votre superviseur : c'est lui qui saisit, et "
-            "c'est donc chez lui que la correction se fait. Un abonnement peut "
-            "aussi apparaître <b>infirmé</b> si le numéro relevé ne correspond "
-            "pas à celui que SOCADEL connaît ; dans ce cas le client devra "
-            "reprendre l'enrôlement WhatsApp."
+            "Un abonnement peut apparaître <b>infirmé</b> si le numéro relevé ne "
+            "correspond pas à celui que SOCADEL connaît ; le client devra alors "
+            "reprendre l'enrôlement WhatsApp. Pour tout le reste, rapprochez-vous "
+            "de votre superviseur : il voit la feuille entière, colonnes de "
+            "contrôle comprises."
         ),
-        titre("3. Les écrans qui ne vous sont pas ouverts", "h1"),
-        p(
-            "Si vous tapez à la main l'adresse d'un autre écran, la plateforme "
-            "vous ramène chez vous. Ce n'est pas une panne : ces écrans "
-            "n'existent pas pour votre profil, et le serveur refuserait de toute "
-            "façon de vous répondre."
-        ),
-        _ecran("ag-02-bordereau-interdit", "Une adresse saisie à la main ramène sur Mon espace."),
         Spacer(1, 4 * mm),
         *_compte_et_mot_de_passe(),
         *_pied_de_guide("Agent de terrain, SOCADEL"),

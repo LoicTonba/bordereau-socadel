@@ -52,7 +52,7 @@ const fr = {
   "nav.dashboard": "Tableau de bord",
   "nav.dashboard.aide": "KPI et évolution",
   "nav.bordereau": "Bordereau",
-  "nav.bordereau.aide": "Saisir la production des agents",
+  "nav.bordereau.aide": "Cocher les clients abonnés, tournée par tournée",
   "nav.itineraires": "Itinéraires",
   "nav.itineraires.aide": "Rechercher et imprimer",
   "nav.agents": "Agents",
@@ -285,6 +285,8 @@ const fr = {
   "bordereau.titre": "Bordereau de collecte",
   "bordereau.sousTitre":
     "Reportez ici ce que chaque agent a réalisé sur le terrain.",
+  "bordereau.sousTitreTerrain":
+    "Cochez chaque client qui s'est abonné. La date se remplit toute seule.",
   "bordereau.cadreSurItineraires":
     "Bordereau cadré sur les itinéraires {codes}, annoncés à la connexion.",
   "bordereau.toutAfficher": "Tout afficher",
@@ -310,6 +312,39 @@ const fr = {
   "bordereau.rechercheePlaceholder":
     "Nom, contrat, compteur ou référence géographique…",
   "bordereau.total": "{premier}–{dernier} sur {total} ligne(s)",
+  "bordereau.check": "Check",
+  "bordereau.checkAide":
+    "Cochez dès que le client s'est abonné : la date se remplit toute seule.",
+  "bordereau.checkDate": "Check Date",
+  "bordereau.rapport": "Rapport",
+  "bordereau.backOffice": "Back office",
+  "bordereau.backOfficeAide":
+    "Contrôle en base : le client est-il bien allé au bout du parcours WhatsApp.",
+  "bordereau.backOfficeDate": "Back office Date",
+  "bordereau.dateAbonnement": "Date abonnement",
+  "bordereau.identite": "Identité",
+  "bordereau.responsable": "Responsable",
+  "bordereau.contrat": "Contrat",
+  "bordereau.cocher": "Cocher",
+  "bordereau.decocher": "Annuler le coche",
+  "bordereau.cocheFait": "Ligne cochée. La date s'est inscrite toute seule.",
+  "bordereau.cocheAnnule": "Coche annulé : la ligne est de nouveau à traiter.",
+  "bordereau.cocheEchec": "Le coche n'a pas pu être enregistré.",
+  "bordereau.numeroDemande": "Numéro WhatsApp relevé",
+  "bordereau.numeroDemandeAide":
+    "Le numéro sur lequel le client a reçu le message. Il sera confronté au référentiel.",
+  "bordereau.rechercheColonne": "Rechercher dans cette colonne",
+  "bordereau.effacerRecherches": "Effacer les recherches de colonne",
+  "bordereau.telechargements": "Téléchargements",
+  "bordereau.telechargerRapport": "Rapport du tableau",
+  "bordereau.telechargerRapportAide":
+    "Les lignes affichées, avec les filtres en cours.",
+  "bordereau.telechargerModele": "Modèle à imprimer",
+  "bordereau.telechargerModeleAide":
+    "Le bordereau vierge, à remplir au stylo sur le terrain.",
+  "bordereau.colonnesRestreintes":
+    "Vue de terrain : seules les colonnes utiles au relevé sont affichées.",
+
 
   // --- Saisie --------------------------------------------------------------
   "saisie.titre": "Saisir le passage de l'agent",
@@ -525,7 +560,18 @@ const fr = {
   "verdict.INTROUVABLE.aide":
     "Ce contrat ne figure pas au référentiel SOCADEL",
 
+  "rapport.OK": "OK",
+  "rapport.OK.aide": "Le client s'est abonné ; le numéro relevé le prouve",
+  "rapport.MRA": "MRA",
+  "rapport.MRA.aide":
+    "Zone sans couverture : le numéro est relevé, MRA relancera par WhatsApp",
+
+  "identite.PROPRIETAIRE": "Propriétaire",
+  "identite.LOCATAIRE": "Locataire",
+  "identite.RELATION": "Relation",
+
   "responsable.TERRAIN": "Agent de terrain",
+  "responsable.MRA": "Relance MRA",
   "responsable.CHATBOT": "Chatbot WhatsApp",
   "responsable.CSC": "Centre de service client",
   "responsable.AUTRES": "Autre canal",
@@ -573,7 +619,7 @@ const en: Record<Cle, string> = {
   "nav.dashboard": "Dashboard",
   "nav.dashboard.aide": "KPIs and trends",
   "nav.bordereau": "Collection sheet",
-  "nav.bordereau.aide": "Record what agents achieved",
+  "nav.bordereau.aide": "Tick subscribed customers, route by route",
   "nav.itineraires": "Routes",
   "nav.itineraires.aide": "Search and print",
   "nav.agents": "Agents",
@@ -793,6 +839,8 @@ const en: Record<Cle, string> = {
 
   "bordereau.titre": "Collection sheet",
   "bordereau.sousTitre": "Record here what each agent achieved in the field.",
+  "bordereau.sousTitreTerrain":
+    "Tick every customer who subscribed. The date fills itself in.",
   "bordereau.cadreSurItineraires":
     "Sheet framed on routes {codes}, announced at sign-in.",
   "bordereau.toutAfficher": "Show everything",
@@ -817,6 +865,38 @@ const en: Record<Cle, string> = {
   "bordereau.annulerSelection": "Clear selection",
   "bordereau.rechercheePlaceholder": "Name, contract, meter or geographic reference…",
   "bordereau.total": "{premier}–{dernier} of {total} line(s)",
+  "bordereau.check": "Check",
+  "bordereau.checkAide":
+    "Tick as soon as the customer has subscribed: the date fills itself in.",
+  "bordereau.checkDate": "Check Date",
+  "bordereau.rapport": "Report",
+  "bordereau.backOffice": "Back office",
+  "bordereau.backOfficeAide":
+    "Database check: did the customer really complete the WhatsApp journey.",
+  "bordereau.backOfficeDate": "Back office Date",
+  "bordereau.dateAbonnement": "Subscription date",
+  "bordereau.identite": "Identity",
+  "bordereau.responsable": "Owner",
+  "bordereau.contrat": "Contract",
+  "bordereau.cocher": "Tick",
+  "bordereau.decocher": "Undo tick",
+  "bordereau.cocheFait": "Line ticked. The date filled itself in.",
+  "bordereau.cocheAnnule": "Tick undone: the line is pending again.",
+  "bordereau.cocheEchec": "The tick could not be saved.",
+  "bordereau.numeroDemande": "WhatsApp number collected",
+  "bordereau.numeroDemandeAide":
+    "The number the customer received the message on. It will be checked against reference data.",
+  "bordereau.rechercheColonne": "Search this column",
+  "bordereau.effacerRecherches": "Clear column searches",
+  "bordereau.telechargements": "Downloads",
+  "bordereau.telechargerRapport": "Table report",
+  "bordereau.telechargerRapportAide": "The lines shown, with the current filters.",
+  "bordereau.telechargerModele": "Printable template",
+  "bordereau.telechargerModeleAide":
+    "The blank sheet, to be filled in by hand in the field.",
+  "bordereau.colonnesRestreintes":
+    "Field view: only the columns useful for collecting are shown.",
+
 
   "saisie.titre": "Record the agent's visit",
   "saisie.resultat": "Visit outcome",
@@ -1013,7 +1093,18 @@ const en: Record<Cle, string> = {
   "verdict.INTROUVABLE.aide":
     "This contract does not appear in the SOCADEL reference data",
 
+  "rapport.OK": "OK",
+  "rapport.OK.aide": "The customer subscribed; the collected number proves it",
+  "rapport.MRA": "MRA",
+  "rapport.MRA.aide":
+    "No network coverage: the number is collected, MRA will follow up on WhatsApp",
+
+  "identite.PROPRIETAIRE": "Owner",
+  "identite.LOCATAIRE": "Tenant",
+  "identite.RELATION": "Relative",
+
   "responsable.TERRAIN": "Field agent",
+  "responsable.MRA": "MRA follow-up",
   "responsable.CHATBOT": "WhatsApp chatbot",
   "responsable.CSC": "Customer service centre",
   "responsable.AUTRES": "Other channel",

@@ -303,7 +303,29 @@ class LigneBordereauORM(Base, HorodatageMixin):
     code_itineraire: Mapped[int | None] = mapped_column(Integer, nullable=True)
     numero_compteur: Mapped[str | None] = mapped_column(String(40), nullable=True)
 
-    numero_collecte: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    numero_collecte: Mapped[str | None] = mapped_column(
+        String(20), nullable=True, index=True
+    )
+    # Indexé : la règle du doublon interroge cette colonne à chaque coche, et
+    # le bordereau porte plusieurs centaines de milliers de lignes.
+
+    identite: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="PROPRIETAIRE"
+    )
+    rapport: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    verifie_terrain_le: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    date_abonnement: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    valide_par: Mapped[UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), nullable=True
+    )
+    # Le nom est recopié plutôt que joint : une prime se conteste des mois
+    # plus tard, quand l'agent a parfois quitté le service.
+    valide_par_nom: Mapped[str | None] = mapped_column(String(160), nullable=True)
+
     responsable: Mapped[str | None] = mapped_column(String(20), nullable=True)
     observation: Mapped[str | None] = mapped_column(Text, nullable=True)
 

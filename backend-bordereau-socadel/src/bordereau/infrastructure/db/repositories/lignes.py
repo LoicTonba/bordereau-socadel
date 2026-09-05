@@ -95,6 +95,26 @@ class LigneBordereauRepositoryPg:
         )
         return [ligne_vers_domaine(row) for row in resultat]
 
+    async def rechercher_par_numero(
+        self, numero: str, *, code_itineraire: int | None = None
+    ) -> Sequence[LigneBordereau]:
+        """Les lignes qui portent déjà ce numéro, sur la tournée s'il y en a une.
+
+        Sert la règle du doublon : un même numéro ne peut servir deux contrats
+        d'un même itinéraire. La colonne est indexée, le bordereau comptant
+        plusieurs centaines de milliers de lignes.
+        """
+        requete = select(LigneBordereauORM).where(
+            LigneBordereauORM.numero_collecte == numero
+        )
+        if code_itineraire is not None:
+            requete = requete.where(
+                LigneBordereauORM.code_itineraire == code_itineraire
+            )
+
+        resultat = await self._session.scalars(requete)
+        return [ligne_vers_domaine(row) for row in resultat]
+
     async def enregistrer(self, ligne: LigneBordereau) -> None:
         existant = await self._session.get(LigneBordereauORM, ligne.id)
         row = ligne_vers_orm(ligne, existant)
@@ -142,6 +162,38 @@ class LigneBordereauRepositoryPg:
                     LigneBordereauORM.ref_geo.ilike(motif),
                     LigneBordereauORM.numero_collecte.ilike(motif),
                 )
+            )
+
+        # Chaque colonne se cherche pour elle-même. `contient` filtre sur un
+        # fragment, comme le fait la loupe d'un tableur : personne ne connaît
+        # un SERVICE_NO en entier de mémoire.
+        for critere, colonne in (
+            (filtre.service_no, LigneBordereauORM.service_no),
+            (filtre.nom_client, LigneBordereauORM.nom_client),
+            (filtre.ref_geo, LigneBordereauORM.ref_geo),
+            (filtre.numero_compteur, LigneBordereauORM.numero_compteur),
+            (filtre.numero_collecte, LigneBordereauORM.numero_collecte),
+            (filtre.responsable_nom, LigneBordereauORM.valide_par_nom),
+        ):
+            if critere and critere.strip():
+                requete = requete.where(colonne.ilike(f"%{critere.strip()}%"))
+
+        if filtre.rapports:
+            requete = requete.where(
+                LigneBordereauORM.rapport.in_([r.value for r in filtre.rapports])
+            )
+
+        if filtre.identites:
+            requete = requete.where(
+                LigneBordereauORM.identite.in_([i.value for i in filtre.identites])
+            )
+
+        if filtre.verifie_terrain is not None:
+            # La colonne Check n'est qu'une date posée ou absente.
+            requete = requete.where(
+                LigneBordereauORM.verifie_terrain_le.is_not(None)
+                if filtre.verifie_terrain
+                else LigneBordereauORM.verifie_terrain_le.is_(None)
             )
 
         if filtre.periode:

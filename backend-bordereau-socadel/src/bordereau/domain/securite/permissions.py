@@ -36,6 +36,10 @@ class Permission(str, Enum):
     # Bordereau de collecte
     BORDEREAU_LIRE = "bordereau:lire"
     BORDEREAU_DECLARER = "bordereau:declarer"
+    #: Le geste du releveur : un clic dans la colonne Check, rien d'autre.
+    #: Séparé de la déclaration parce que déclarer choisit un statut et un
+    #: responsable, ce qu'un agent intéressé à la collecte ne doit pas faire.
+    BORDEREAU_COCHER = "bordereau:cocher"
     BORDEREAU_VERIFIER = "bordereau:verifier"
     BORDEREAU_EXPORTER = "bordereau:exporter"
 
@@ -97,6 +101,7 @@ _SUPERVISEUR = frozenset(
     {
         Permission.BORDEREAU_LIRE,
         Permission.BORDEREAU_DECLARER,
+        Permission.BORDEREAU_COCHER,
         Permission.BORDEREAU_VERIFIER,
         Permission.BORDEREAU_EXPORTER,
         Permission.ITINERAIRE_LIRE,
@@ -151,6 +156,8 @@ MATRICE: dict[Role, frozenset[Permission]] = {
     Role.AGENT_TERRAIN: frozenset(
         {
             Permission.BORDEREAU_LIRE,
+            # Sa seule écriture : cocher les lignes de sa propre tournée.
+            Permission.BORDEREAU_COCHER,
             Permission.ANALYTICS_CONSULTER,
             Permission.PROFIL_CONSULTER,
         }
